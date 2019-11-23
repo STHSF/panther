@@ -95,7 +95,8 @@ class CalcEngine(object):
         benchmark_industry_weights_dict = {}
 
         for key, value in benchmark_code_dict.items():
-            total_data, index_rets, coverage_rate = self.performance_preprocessing(benchmark_data[benchmark_data.index_code == key],
+            total_data, index_rets, coverage_rate = self.performance_preprocessing(
+                                                                    benchmark_data[benchmark_data.index_code == key],
                                                                     index_data[index_data.security_code == value],
                                                                     market_data,
                                                                     factor_data,
@@ -215,12 +216,12 @@ class CalcEngine(object):
             other_basic_df = pd.concat(other_basic_list, axis=0)
             other_sub_df = pd.concat(other_sub_list, axis=0)
 
-            # storage_engine = PerformanceStorageEngine(self._url)
+            storage_engine = PerformanceStorageEngine(self._url)
             # storage_engine.update_destdb('factor_performance_return_basic', factor_name, return_basic_df)
             # storage_engine.update_destdb('factor_performance_return_sub', factor_name, return_sub_df)
             #
             # storage_engine.update_destdb('factor_performance_ic_ir_basic', factor_name, ic_df)
-            # storage_engine.update_destdb('factor_performance_ic_ir_sub', factor_name, ic_sub_df)
+            storage_engine.update_destdb('factor_performance_ic_ir_sub_test', factor_name, ic_sub_df)
             # storage_engine.update_destdb('factor_performance_ic_ir_group', factor_name, group_ic_df)
             # storage_engine.update_destdb('factor_performance_ic_ir_group_sub', factor_name, group_ic_sub_df)
             # storage_engine.update_destdb('factor_performance_ic_industry', factor_name, industry_ic_df)
@@ -346,7 +347,6 @@ class CalcEngine(object):
                                                                                      x['returns'])).to_frame(name='ic')
         ic_df['universe'] = universe
         ic_df['factor_name'] = factor_name
-        # ic_df = ic_df.shift(1).dropna()
         ic_df = ic_df.reset_index()
         return ic_df.loc[:, ['factor_name', 'universe', 'trade_date', 'ic']]
 
@@ -397,6 +397,9 @@ class CalcEngine(object):
             ic_avg = ic_df.iloc[-(year * 12):, :]['ic'].mean()
             ic_sub_dict['ic_avg'] = ic_avg
 
+            # 因子方向
+            ic_sub_dict['factor_direction'] = np.sign(ic_avg)
+
             # ir
             ir = ic_df.iloc[-(year * 12):, :]['ic'].mean() / ic_df.iloc[-(year * 12):, :]['ic'].std()
             ic_sub_dict['ir'] = ir
@@ -413,6 +416,10 @@ class CalcEngine(object):
             positive_rate = sum(ic_df.iloc[-(year * 12):, :]['ic'] > 0) / len(ic_df.iloc[-(year * 12):, :])
             ic_sub_dict['positive_ic_rate'] = positive_rate
 
+            # effective_ic_rate
+            effective_rate = sum(ic_df.iloc[-(year * 12):, :]['ic'].abs() > 0.02) / len(ic_df.iloc[-(year * 12):, :])
+            ic_sub_dict['effective_ic_rate'] = effective_rate
+
             # ic_std
             ic_std = ic_df.iloc[-(year * 12):, :]['ic'].std()
             ic_sub_dict['ic_std'] = ic_std
@@ -423,8 +430,9 @@ class CalcEngine(object):
             result_list.append(ic_sub_dict)
 
         result = pd.DataFrame(result_list, columns=['factor_name', 'universe', 'time_type', 'trade_date', 'ic_avg',
-                                                    'ir', 'best_ic', 'worst_ic', 'positive_ic_rate', 'ic_std',
-                                                    'ic_t_stat'])
+                                                    'ir', 'best_ic', 'worst_ic', 'positive_ic_rate',
+                                                    'effective_ic_rate', 'ic_std',
+                                                    'ic_t_stat', 'factor_direction'])
         return result
 
     def ic_ir_group_sub(self, engine, benchmark, universe, trade_date, factor_name, group_ic_df):
