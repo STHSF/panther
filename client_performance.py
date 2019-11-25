@@ -17,8 +17,8 @@ if __name__ == "__main__":
     calc_engine = CalcEngine('rl', db_url)
     parser = argparse.ArgumentParser()
     parser.add_argument('--start_date', type=int, default=20180701)
-    parser.add_argument('--end_date', type=int, default=20181201)
-    parser.add_argument('--factor_name', type=str, default='factor_power_volume')  # factor_earning
+    parser.add_argument('--end_date', type=int, default=20181001)
+    parser.add_argument('--factor_name', type=str, default='factor_sentiment')  # factor_earning
     args = parser.parse_args()
     if args.end_date == 0:
         end_date = int(datetime.now().date().strftime('%Y%m%d'))
