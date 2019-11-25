@@ -64,20 +64,23 @@ class FactorBasicDerivation(object):
     #     factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
     #     return factor_derivation
 
-    # @staticmethod
-    # def NonRecGainLoss(tp_derivation, factor_derivation, dependencies=['NEGAL']):
-    #     """
-    #     :name: 非经常性损益(MRQ)
-    #     :desc: 非经常性损益(MRQ)
-    #     :unit: 元
-    #     :view_dimension: 10000
-    #     """
-    #     management = tp_derivation.loc[:, dependencies]
-    #     if len(management) <= 0:
-    #         return None
-    #     management = management.rename(columns={'NEGAL': 'NonRecGainLoss'})
-    #     factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
-    #     return factor_derivation
+    @staticmethod
+    def NonRecGainLoss(tp_derivation, factor_derivation, dependencies=['NETPROFIT',
+                                                                       'NPCUT']):
+        """
+        :name: 非经常性损益(MRQ)
+        :desc: 净利润(MRQ) - 扣非净利润(MRQ)
+        :unit: 元
+        :view_dimension: 10000
+        """
+        management = tp_derivation.loc[:, dependencies]
+        if len(management) <= 0:
+            return None
+        func = lambda x: x[0] - x[1]
+        management['NonRecGainLoss'] = management[dependencies].apply(func, axis=1)
+        management = management.drop(dependencies, axis=1)
+        factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
+        return factor_derivation
 
     @staticmethod
     def NetOptInc(tp_derivation, factor_derivation, dependencies=['BIZTOTINCO',

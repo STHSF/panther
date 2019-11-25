@@ -12,7 +12,7 @@ from basic_derivation import factor_basic_derivation
 
 from data.model import BalanceMRQ
 from data.model import CashFlowMRQ, CashFlowTTM
-# from data.model import IndicatorMRQ, IndicatorTTM
+from data.model import IndicatorReport
 from data.model import IncomeMRQ, IncomeTTM
 
 from vision.db.signletion_engine import *
@@ -113,6 +113,7 @@ class CalcEngine(object):
                                                                       [IncomeMRQ.INCOTAXEXPE,
                                                                        IncomeMRQ.BIZTOTCOST,  # 营业总成本
                                                                        IncomeMRQ.BIZTOTINCO,  # 营业总收入
+                                                                       IncomeMRQ.NETPROFIT,   # 净利润
                                                                        ], dates=[trade_date])
         for col in columns:
             if col in list(income_sets.keys()):
