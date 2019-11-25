@@ -54,7 +54,7 @@ class CalcEngine(object):
     def performance_preprocessing(self, benchmark_data, index_data, market_data, factor_data, exposure_data):
         self._factor_columns = [i for i in factor_data.columns if i not in ['id', 'trade_date', 'security_code']]
 
-        coverage_rate = factor_data.groupby(['trade_date']).apply(self._factor_coverage_rate)
+        # coverage_rate = factor_data.groupby(['trade_date']).apply(self._factor_coverage_rate)
 
         index_rets = self._index_return(index_data)
         mkt_se = self._stock_return(market_data)
@@ -65,7 +65,7 @@ class CalcEngine(object):
         total_data = pd.merge(total_data, mkt_se, on=['trade_date', 'security_code'], how='left')
         total_data = total_data.dropna(subset=['returns'])
 
-        return total_data, index_rets, coverage_rate
+        return total_data, index_rets
 
     def _factor_preprocess(self, data):
         for factor in self._factor_columns:
@@ -95,7 +95,7 @@ class CalcEngine(object):
         benchmark_industry_weights_dict = {}
 
         for key, value in benchmark_code_dict.items():
-            total_data, index_rets, coverage_rate = self.performance_preprocessing(
+            total_data, index_rets = self.performance_preprocessing(
                                                                     benchmark_data[benchmark_data.index_code == key],
                                                                     index_data[index_data.security_code == value],
                                                                     market_data,

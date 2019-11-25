@@ -151,6 +151,7 @@ class IntegratedReturn(object):
 
         grouped = total_data.groupby(['trade_date'])
         res = []
+        stks_top20 = None
 
         for i, g in grouped:
             group_dict = {}
@@ -161,6 +162,7 @@ class IntegratedReturn(object):
             g = g.sort_values([factor_name], ascending=factor_direction, na_position='first')
             top = min(round(len(g)/10), 100)
             group_dict['top_returns'] = g.iloc[-top:]['returns'].mean()
+            # stks_top20 = g.iloc[-20:]['security_code'].to_list()
 
             res.append(group_dict)
 

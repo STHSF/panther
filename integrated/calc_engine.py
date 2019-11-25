@@ -4,6 +4,7 @@ import numpy as np
 import multiprocessing
 import pdb, importlib, inspect, time, datetime, json
 from sqlalchemy import create_engine, select, and_, or_
+import sqlalchemy as sa
 from data.polymerize import DBPolymerize
 from data.storage_engine import IntegratedStorageEngine, IntegratedSubStorageEngine
 from utilities.factor_se import *
@@ -12,6 +13,7 @@ from data.rl_model import Integrated
 import calendar
 from datetime import datetime
 from PyFin.api import *
+import config
 
 
 class CalcEngine(object):
@@ -42,24 +44,31 @@ class CalcEngine(object):
         mkt_se.name = 'returns'
         return mkt_se.dropna().reset_index()
 
+    def _factor_coverage_rate(self, factor_df):
+        factor_df = factor_df.loc[:, self._factor_columns]
+        coverage_rate = 1-factor_df.isnull().sum()/len(factor_df)
+        return coverage_rate
+
     def preprocessing(self, benchmark_data, market_data, factor_data, exposure_data):
-        self._factor_columns = [i for i in factor_data.columns if i not in ['id', 'trade_date', 'security_code']]
+        # self._factor_columns = [i for i in factor_data.columns if i not in ['id', 'trade_date', 'security_code']]
+
         mkt_se = self._stock_return(market_data)
         mkt_se['returns'] = mkt_se['returns'].replace([np.inf, -np.inf], np.nan)
         total_data = pd.merge(factor_data, exposure_data, on=['trade_date', 'security_code'])
         total_data = pd.merge(total_data, benchmark_data, on=['trade_date', 'security_code'])
+        coverage_rate = total_data.groupby(['trade_date']).apply(self._factor_coverage_rate)
 
         def date_shift(data):
             data['trade_date'] = data['trade_date'].shift(-1)
             return data.dropna(subset=['trade_date'])
 
         total_data = total_data.groupby(['security_code']).apply(date_shift).reset_index(drop=True)
-
         mkt_se['trade_date'] = mkt_se['trade_date'].apply(lambda x: x.to_pydatetime().date())
         total_data = pd.merge(total_data, mkt_se, on=['trade_date', 'security_code'], how='left')
-        return total_data
 
-    def _factor_preprocess(self, data, neu=1):
+        return total_data, coverage_rate
+
+    def _factor_preprocess(self, data):
         '''
         :param data:
         :param neu: 是否对因子进行中性化处理
@@ -81,17 +90,40 @@ class CalcEngine(object):
         factor_data = db_factor.fetch_factors(begin_date=begin_date, end_date=end_date)
         benchmark_data, market_data, exposure_data = db_polymerize.fetch_integrated_data(begin_date, end_date)
 
+        # 获取因子列表
+        self._factor_columns = [i for i in factor_data.columns if i not in ['id', 'trade_date', 'security_code']]
+
         # 针对不同的基准
         total_data_dict = {}
         benchmark_industry_weights_dict = {}
+        coverage_rate_dict = {}
+        factor_direction_dict = {}
+
+        # 获取因子方向
+        db_url = '''mysql+mysqlconnector://{0}:{1}@{2}:{3}/{4}'''.format(config.rl_db_user,
+                                                                         config.rl_db_pwd,
+                                                                         config.rl_db_host,
+                                                                         config.rl_db_port,
+                                                                         config.rl_db_database)
+
+        def get_factor_direction(factors_string):
+            destination = sa.create_engine(db_url)
+            sql = """select factor_name, universe, factor_direction from factor_performance_ic_ir_sub_test 
+                     where time_type='10' and factor_name in ( {0} );""".format(factors_string)
+            try:
+                factor_sets = pd.read_sql(sql, destination)
+                return factor_sets
+            except:
+                print("failed to get the factor directions!")
+
+        factor_str = ','.join(["'"+str(factor)+"'" for factor in self._factor_columns])
+        factor_directions = get_factor_direction(factor_str)
 
         for key, value in benchmark_code_dict.items():
-            total_data = self.preprocessing(benchmark_data[benchmark_data.index_code == key], market_data, factor_data,
-                                            exposure_data)
+            total_data, coverage_rate = self.preprocessing(benchmark_data[benchmark_data.index_code == key],
+                                                           market_data, factor_data, exposure_data)
             # 因子标准化
             total_data = total_data.sort_values(['trade_date', 'security_code'])
-
-            # 因子中性化
             total_data = total_data.groupby(['trade_date']).apply(self._factor_preprocess)
             total_data.loc[:, self._factor_columns] = total_data.loc[:, self._factor_columns].fillna(0)
 
@@ -101,19 +133,22 @@ class CalcEngine(object):
 
             total_data_dict[value] = total_data
             benchmark_industry_weights_dict[value] = benchmark_industry_weights
+            coverage_rate_dict[value] = coverage_rate
+            factor_direction_dict[value] = factor_directions[factor_directions.universe == key]
 
-        return total_data_dict, benchmark_industry_weights_dict
+        return total_data_dict, benchmark_industry_weights_dict, coverage_rate_dict, factor_direction_dict
 
-    def integrated_basic(self, engine, benchmark, factor_name, total_data, benchmark_weights):
+    def integrated_basic(self, engine, benchmark, factor_name, total_data, benchmark_weights, factor_direction):
         group_rets_df_neu = engine.group_rets_df_neu(total_data, benchmark_weights, factor_name, benchmark, benchmark)
         group_rets_df_neu = group_rets_df_neu.reset_index()
 
-        top_rets = engine.calc_top_rets(total_data, factor_name, 1, benchmark)
+        top_rets = engine.calc_top_rets(total_data, factor_name, factor_direction, benchmark)
         integrated_df = pd.merge(group_rets_df_neu, top_rets, on=['trade_date', 'factor_name'])
 
         return integrated_df
 
-    def calc_daily_return(self, benchmark_code_dict, total_data_dict, benchmark_industry_weights_dict):
+    def calc_daily_return(self, benchmark_code_dict, total_data_dict, benchmark_industry_weights_dict,
+                          coverage_rate_dict, factor_direction_dict):
         if 'integrated_return' not in self._methods:
             return
 
@@ -136,7 +171,11 @@ class CalcEngine(object):
 
             for key, value in benchmark_code_dict.items():
                 total_data = total_data_dict[value]
+                coverage_rate = coverage_rate_dict[value]
                 benchmark_industry_weights = benchmark_industry_weights_dict[value]
+                factor_directions = factor_direction_dict[value]
+                factor_dir = factor_directions[factor_directions.factor_name == factor_name]['factor_direction'].iloc[0]
+
                 start_time = time.time()
                 print('------------------------------------------------')
                 print('The factor {} is calculated with benchmark {}!'.format(factor_name, key))
@@ -144,7 +183,13 @@ class CalcEngine(object):
                                                       benchmark=key,
                                                       factor_name=factor_name,
                                                       total_data=total_data,
-                                                      benchmark_weights=benchmark_industry_weights)
+                                                      benchmark_weights=benchmark_industry_weights,
+                                                      factor_direction = factor_dir)
+                coverage_rate = coverage_rate.stack().to_frame(name='coverage_rate').reset_index().rename(
+                    columns={'level_1': 'factor_name'})
+                coverage_rate.trade_date = coverage_rate.trade_date.map(lambda x: pd.to_datetime(str(x),
+                                                                                                 format='%Y-%m-%d'))
+                group_rets_df = group_rets_df.merge(coverage_rate, on=['trade_date', 'factor_name'])
                 group_rets_list.append(group_rets_df)
 
             integrated_rets_df = pd.concat(group_rets_list, axis=0)
@@ -153,8 +198,8 @@ class CalcEngine(object):
             start_date = dates[0].strftime('%Y-%m-%d')
             stop_date = dates[-1].strftime('%Y-%m-%d')
             integrated_rets_df['factor_type'] = self._factor_type
-            # storage_engine.update_destdb('factor_integrated_basic', start_date, stop_date, factor_name,
-            #                              integrated_rets_df)
+            storage_engine.update_destdb('factor_integrated_basic_test', start_date, stop_date, factor_name,
+                                         integrated_rets_df)
             print(integrated_rets_df.head())
 
     def calc_interval_rets(self, trade_date):
@@ -246,13 +291,12 @@ class CalcEngine(object):
         for i in range(len(date_arr) - 1):
             print('计算区间：', date_arr[i], '-', date_arr[i + 1])
             # 计算每日收益
-            total_data_dict, benchmark_industry_weights_dict = self.loadon_data(date_arr[i],
-                                                                                date_arr[i + 1],
-                                                                                benchmark_code_dict,
-                                                                                table)
+            total_data_dict, benchmark_industry_weights_dict, coverage_rate_dict, factor_direction_dict = \
+                self.loadon_data(date_arr[i], date_arr[i + 1], benchmark_code_dict, table)
 
             # 计算区间收益
-            self.calc_daily_return(benchmark_code_dict, total_data_dict, benchmark_industry_weights_dict)
+            self.calc_daily_return(benchmark_code_dict, total_data_dict, benchmark_industry_weights_dict,
+                                   coverage_rate_dict, factor_direction_dict)
         last_date = date_arr[-1]
         self.calc_interval_rets(last_date[0:4] + '-' + last_date[4:6] + '-' + last_date[6:8])
 
