@@ -35,12 +35,15 @@ class InternalCode(object):
 
     def get_Ashare_internal_code(self, trade_date=None):
         if trade_date == None:
-            trade_date = datetime.date.today()
-        sql = """select security_code,symbol,exchange,company_id from `{0}`
-                    where exchange in (001002,001003) and security_type=101
-                     and ((begin_date<='{1}' and end_date>='{1}') 
-                     or (begin_date<='{1}' and end_date='19000101'));""".format(
-            self.internal_code_table, trade_date)
+            sql = """select security_code,symbol,exchange,company_id from `{0}`
+                                where exchange in (001002,001003) and security_type=101 and is_valid=1;""".format(
+                self.internal_code_table)
+        else:
+            sql = """select security_code,symbol,exchange,company_id from `{0}`
+                        where exchange in (001002,001003) and security_type=101
+                         and ((begin_date<='{1}' and end_date>='{1}') 
+                         or (begin_date<='{1}' and end_date='19000101'));""".format(
+                self.internal_code_table, trade_date)
         result_list = pd.read_sql(sql, self.source)
         if not result_list.empty:
             result_list['symbol'] = np.where(result_list['exchange'] == '001002',
