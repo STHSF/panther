@@ -52,7 +52,8 @@ class FactorPerShareIndicators(object):
         return factor_share_indicators
 
     @staticmethod
-    def CashEquPS(tp_share_indicators, factor_share_indicators, dependencies=['capitalization', 'cash_and_equivalents_at_end']):
+    def CashEquPS(tp_share_indicators, factor_share_indicators, dependencies=['capitalization',
+                                                                              'cash_and_equivalents_at_end']):
         """
         :name: 每股现金及现金等价物余额
         :desc: 现金及现金等价物余额（MRQ）/当日总股本
@@ -80,26 +81,26 @@ class FactorPerShareIndicators(object):
     #     factor_share_indicators = pd.merge(factor_share_indicators, share_indicators, how='outer', on='security_code')
     #     return factor_share_indicators
 
-    # @staticmethod
-    # def EPS(tp_share_indicators, factor_share_indicators, dependencies=['basic_eps']):
-    #     """
-    #     :name: 基本每股收益
-    #     :desc: 基本每股收益, 报表公布值
-    #     :unit: 元
-    #     :view_dimension: 1
-    #     """
-    #     share_indicators = tp_share_indicators.loc[:, dependencies]
-    #     # print(share_indicators.head())
-    #     share_indicators = share_indicators.rename(columns={'basic_eps': 'EPS'})
-    #     # share_indicators = share_indicators.drop(columns=dependencies, axis=1)
-    #     factor_share_indicators = pd.merge(factor_share_indicators, share_indicators,  how='outer', on='security_code')
-    #     return factor_share_indicators
+    @staticmethod
+    def EPS(tp_share_indicators, factor_share_indicators, dependencies=['basic_eps']):
+        """
+        :name: 基本每股收益
+        :desc: 基本每股收益, 报表公布值
+        :unit: 元
+        :view_dimension: 1
+        """
+        share_indicators = tp_share_indicators.loc[:, dependencies]
+        # print(share_indicators.head())
+        share_indicators = share_indicators.rename(columns={'basic_eps': 'EPS'})
+        # share_indicators = share_indicators.drop(columns=dependencies, axis=1)
+        factor_share_indicators = pd.merge(factor_share_indicators, share_indicators,  how='outer', on='security_code')
+        return factor_share_indicators
 
     # @staticmethod
     # def ShareholderFCFPS(tp_share_indicators, factor_share_indicators, dependencies=['shareholder_fcfps', 'capitalization']):
     #     """
     #     :name: 每股股东自由现金流量
-    #     :desc: 股东自由现金流量FCFE（MRQ）/当日总股本
+    #     :desc: 股东自由现金流量（MRQ）/当日总股本
     #     :unit: 元
     #     :view_dimension: 1
     #     """

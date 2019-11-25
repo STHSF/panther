@@ -183,16 +183,16 @@ class CalcEngine(object):
             if col in list(valuation_sets.keys()):
                 valuation_sets = valuation_sets.drop(col, axis=1)
 
-        indicator_ttm_sets = engine.fetch_fundamentals_pit_extend_company_id(IndicatorTTM,
-                                                                             [IndicatorTTM.NVALCHGITOTP,
-                                                                              ], dates=[trade_date])
-        for col in columns:
-            if col in list(indicator_ttm_sets.keys()):
-                indicator_ttm_sets = indicator_ttm_sets.drop(col, axis=1)
+        # indicator_ttm_sets = engine.fetch_fundamentals_pit_extend_company_id(IndicatorTTM,
+        #                                                                      [IndicatorTTM.NVALCHGITOTP,
+        #                                                                       ], dates=[trade_date])
+        # for col in columns:
+        #     if col in list(indicator_ttm_sets.keys()):
+        #         indicator_ttm_sets = indicator_ttm_sets.drop(col, axis=1)
         ttm_revenue_quanlity = pd.merge(cash_flow_ttm_sets, income_ttm_sets, on='security_code')
         ttm_revenue_quanlity = pd.merge(balance_ttm_sets, ttm_revenue_quanlity, on='security_code')
         ttm_revenue_quanlity = pd.merge(valuation_sets, ttm_revenue_quanlity, on='security_code')
-        ttm_revenue_quanlity = pd.merge(indicator_ttm_sets, ttm_revenue_quanlity, on='security_code')
+        # ttm_revenue_quanlity = pd.merge(indicator_ttm_sets, ttm_revenue_quanlity, on='security_code')
         ttm_revenue_quanlity = pd.merge(income_con_sets, ttm_revenue_quanlity, on='security_code')
 
         valuation_con_sets = get_fundamentals(query(Valuation.security_code,

@@ -12,7 +12,7 @@ from financial import factor_per_share_indicators
 
 from data.model import BalanceMRQ, BalanceTTM, BalanceReport
 from data.model import CashFlowTTM, CashFlowReport
-# from data.model import IndicatorReport
+from data.model import IndicatorReport
 from data.model import IncomeReport, IncomeTTM
 
 from vision.table.valuation import Valuation
@@ -115,16 +115,18 @@ class CalcEngine(object):
                                                     })
 
         indicator_sets = engine.fetch_fundamentals_pit_extend_company_id(IndicatorReport,
-                                                                         [IndicatorReport.FCFE,  # 股东自由现金流量
-                                                                          IndicatorReport.FCFF,  # 企业自由现金流量
+                                                                         [
+                                                                          # IndicatorReport.FCFE,  # 股东自由现金流量
+                                                                          # IndicatorReport.FCFF,  # 企业自由现金流量
                                                                           IndicatorReport.EPSBASIC,  # 基本每股收益
                                                                           # IndicatorReport.DPS,  # 每股股利（税前）
                                                                           ], dates=[trade_date])
         for col in columns:
             if col in list(indicator_sets.keys()):
                 indicator_sets = indicator_sets.drop(col, axis=1)
-        indicator_sets = indicator_sets.rename(columns={'FCFE': 'shareholder_fcfps',  # 股东自由现金流量
-                                                        'FCFF': 'enterprise_fcfps',  # 企业自由现金流量
+        indicator_sets = indicator_sets.rename(columns={
+                                                        # 'FCFE': 'shareholder_fcfps',  # 股东自由现金流量
+                                                        # 'FCFF': 'enterprise_fcfps',  # 企业自由现金流量
                                                         'EPSBASIC': 'basic_eps',  # 基本每股收益
                                                         # 'DPS': 'dividend_receivable',  # 每股股利（税前）
                                                         })

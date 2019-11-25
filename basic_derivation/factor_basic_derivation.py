@@ -379,7 +379,7 @@ class FactorBasicDerivation(object):
     # def EBIAT(tp_derivation, factor_derivation, dependencies=['EBIT',
     #                                                           'INCOTAXEXPE']):
     #     """
-    #     :name: 息前税后利润(MRQ)
+    #     :name: 息税前利润(TTM)[EBIT_反推]
     #     :desc: 息前税后利润 = 息税前利润－息税前利润所得税。 息税前利润所得税 = 全部所得税－利息净损益所得税 利润总额+财务费用
     #     :unit: 元
     #     :view_dimension: 10000
@@ -721,22 +721,22 @@ class FactorBasicDerivation(object):
     #     factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
     #     return factor_derivation
 
-    # @staticmethod
-    # def EBITFORPTTM(tp_derivation, factor_derivation, dependencies=['TOTPROFIT',
-    #                                                                 'FINEXPE']):
-    #     """
-    #     :name: EBIT(TTM)
-    #     :desc: EBIT=利润总额+财务费用, 根据截止指定日已披露的最新报告期“EBIT(正向）”计算：（1）最新报告期是年报。则TTM=年报；（2）最新报告期不是年报，Q则TTM=本期+（上年年报-上年同期合并数），如果上年年报非空，本期、上年同期台并数存在空值，则返回上年年报。
-    #     :unit: 元
-    #     :view_dimension: 10000
-    #     """
-    #     management = tp_derivation.loc[:, dependencies]
-    #     if len(management) <=0:
-    #         return None
-    #     func = lambda x: x[0] + x[1] if x[0] is not None and x[1] is not None else None
-    #     management['EBITFORPTTM'] = management[dependencies].apply(func, axis=1)
-    #     factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
-    #     return factor_derivation
+    @staticmethod
+    def EBITFORPTTM(tp_derivation, factor_derivation, dependencies=['TOTPROFIT',
+                                                                    'FINEXPE']):
+        """
+        :name: EBIT(TTM)
+        :desc: EBIT=利润总额+财务费用, 根据截止指定日已披露的最新报告期“EBIT(正向）”计算：（1）最新报告期是年报。则TTM=年报；（2）最新报告期不是年报，Q则TTM=本期+（上年年报-上年同期合并数），如果上年年报非空，本期、上年同期台并数存在空值，则返回上年年报。
+        :unit: 元
+        :view_dimension: 10000
+        """
+        management = tp_derivation.loc[:, dependencies]
+        if len(management) <=0:
+            return None
+        func = lambda x: x[0] + x[1] if x[0] is not None and x[1] is not None else None
+        management['EBITFORPTTM'] = management[dependencies].apply(func, axis=1)
+        factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
+        return factor_derivation
 
     # @staticmethod
     # def EBITDATTM(tp_derivation, factor_derivation, dependencies=['EBITDA']):

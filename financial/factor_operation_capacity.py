@@ -200,9 +200,9 @@ class FactorOperationCapacity(object):
 
     @staticmethod
     def FixAssetsRtTTM(ttm_management, factor_management, dependencies=['operating_revenue',
-                                                                                 'fixed_assets',
-                                                                                 'construction_materials',
-                                                                                 'constru_in_process']):
+                                                                        'fixed_assets',
+                                                                        'construction_materials',
+                                                                        'constru_in_process']):
         """
         :name: 固定资产周转率(TTM)
         :desc: 营业收入/（固定资产+工程物资+在建工程）
@@ -255,7 +255,7 @@ class FactorOperationCapacity(object):
 
     @staticmethod
     def TotaAssetRtTTM(ttm_management, factor_management, dependencies=['operating_revenue',
-                                                                                 'total_assets']):
+                                                                        'total_assets']):
         """
         :name: 总资产周转率(TTM)
         :desc: 营业收入/总资产

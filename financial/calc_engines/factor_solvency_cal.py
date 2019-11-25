@@ -180,18 +180,18 @@ class CalcEngine(object):
             'FINALCASHBALA': 'cash_and_equivalents_at_end',  # 期末现金及现金等价物余额
         })
 
-        indicator_ttm_sets = engine.fetch_fundamentals_pit_extend_company_id(IndicatorTTM,
-                                                                             [IndicatorTTM.NDEBT,
-                                                                              ], dates=[trade_date])
-        for col in columns:
-            if col in list(indicator_ttm_sets.keys()):
-                indicator_ttm_sets = indicator_ttm_sets.drop(col, axis=1)
-        indicator_ttm_sets = indicator_ttm_sets.rename(columns={'NDEBT': 'net_liability',  # 净负债
-                                                                })
+        # indicator_ttm_sets = engine.fetch_fundamentals_pit_extend_company_id(IndicatorTTM,
+        #                                                                      [IndicatorTTM.NDEBT,
+        #                                                                       ], dates=[trade_date])
+        # for col in columns:
+        #     if col in list(indicator_ttm_sets.keys()):
+        #         indicator_ttm_sets = indicator_ttm_sets.drop(col, axis=1)
+        # indicator_ttm_sets = indicator_ttm_sets.rename(columns={'NDEBT': 'net_liability',  # 净负债
+        #                                                         })
 
         ttm_solvency = pd.merge(balance_ttm_sets, cash_flow_ttm_sets, how='outer', on="security_code")
         ttm_solvency = pd.merge(ttm_solvency, income_ttm_sets, how='outer', on="security_code")
-        ttm_solvency = pd.merge(ttm_solvency, indicator_ttm_sets, how='outer', on="security_code")
+        # ttm_solvency = pd.merge(ttm_solvency, indicator_ttm_sets, how='outer', on="security_code")
 
         column = ['trade_date']
         valuation_sets = get_fundamentals(query(Valuation.security_code,
@@ -238,7 +238,7 @@ class CalcEngine(object):
         # solvency_sets = solvency.InterestCovTTM(tp_solvency, solvency_sets)
         solvency_sets = solvency.OptCFToLiabilityTTM(tp_solvency, solvency_sets)
         solvency_sets = solvency.OptCFToIBDTTM(tp_solvency, solvency_sets)
-        solvency_sets = solvency.OptCFToNetDebtTTM(tp_solvency, solvency_sets)
+        # solvency_sets = solvency.OptCFToNetDebtTTM(tp_solvency, solvency_sets)
         solvency_sets = solvency.OPCToDebtTTM(tp_solvency, solvency_sets)
         solvency_sets = solvency.CashRatioTTM(tp_solvency, solvency_sets)
         solvency_sets = solvency_sets.reset_index()

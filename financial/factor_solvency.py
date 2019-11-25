@@ -346,10 +346,10 @@ class FactorSolvency(object):
 
     @staticmethod
     def TNWorthToNDebt(tp_solvency, factor_solvency, dependencies=['equities_parent_company_owners',
-                                                                           'intangible_assets',
-                                                                           'development_expenditure',
-                                                                           'good_will',
-                                                                           'long_deferred_expense',
+                                                                   'intangible_assets',
+                                                                   'development_expenditure',
+                                                                   'good_will',
+                                                                   'long_deferred_expense',
                                                                    'deferred_tax_assets',
                                                                    'shortterm_loan',
                                                                    'non_current_liability_in_one_year',
@@ -421,7 +421,7 @@ class FactorSolvency(object):
 
     @staticmethod
     def CashRatioTTM(ttm_solvency, factor_solvency, dependencies=['cash_and_equivalents_at_end',
-                                                                                   'total_current_assets']):
+                                                                  'total_current_assets']):
         """
         :name:期末现金及现金等价物余额（TTM）/流动负债（TTM）
         :desc:期末现金及现金等价物余额（TTM）/流动负债（TTM）
@@ -474,10 +474,10 @@ class FactorSolvency(object):
 
     @staticmethod
     def OptCFToIBDTTM(ttm_solvency, factor_solvency, dependencies=['net_operate_cash_flow',
-                                                                                    'shortterm_loan',
-                                                                                    'non_current_liability_in_one_year_ttm',
-                                                                                    'longterm_loan',
-                                                                                    'bonds_payable',
+                                                                   'shortterm_loan',
+                                                                   'non_current_liability_in_one_year_ttm',
+                                                                   'longterm_loan',
+                                                                   'bonds_payable',
                                                                    'interest_payable'
                                                                    ]):
         """
