@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-import six,pdb,talib
+import six, pdb, talib
 import numpy as np
 from utilities.singleton import Singleton
+
 
 @six.add_metaclass(Singleton)
 class FactorMomentum(object):
@@ -20,15 +21,16 @@ class FactorMomentum(object):
         '''
         close_price = data['close_price'].copy().fillna(method='ffill').fillna(0).T
         close_price_shift = data['close_price'].copy().fillna(method='ffill').fillna(0).shift(1).T
+
         def _emaxd(data):
             expression1 = np.nan_to_num(talib.EMA(data.values, timeperiod))
             expression2 = np.nan_to_num(talib.EMA(expression1, timeperiod))
             expression3 = np.nan_to_num(talib.EMA(expression2, timeperiod))
             return expression3[-1]
-        close_price['ema3'] = close_price.apply(_emaxd,axis=1)
-        close_price_shift['ema3'] = close_price_shift.apply(_emaxd,axis=1)
-        return close_price['ema3'] / close_price_shift['ema3'] - 1
 
+        close_price['ema3'] = close_price.apply(_emaxd, axis=1)
+        close_price_shift['ema3'] = close_price_shift.apply(_emaxd, axis=1)
+        return close_price['ema3'] / close_price_shift['ema3'] - 1
 
     def TRIX5D(self, data, dependencies=['close_price'], max_window=18):
         '''
@@ -40,7 +42,6 @@ class FactorMomentum(object):
         '''
         return self._TRIXXD(data, 5)
 
-
     def TRIX10D(self, data, dependencies=['close_price'], max_window=18):
         '''
         This is alpha191_1
@@ -50,7 +51,6 @@ class FactorMomentum(object):
         :view_dimension:0.01
         '''
         return self._TRIXXD(data, 10)
-
 
     def _PMXD(self, data, param1, dependencies=['close_price']):
         '''
@@ -176,10 +176,12 @@ class FactorMomentum(object):
         prev_close = close_price.shift(50)
         rc = close_price / prev_close
         rc = rc.copy().fillna(method='ffill').fillna(0).T
+
         def _ema(data):
             return talib.EMA(data, 50)[-1]
+
         return rc.apply(_ema, axis=1)
-    
+
     def APBMA5D(self, data, dependencies=['close_price'], max_window=11):
         '''
          This is alpha191_1
@@ -189,8 +191,10 @@ class FactorMomentum(object):
          :view_dimension:1
         '''
         close_price = data['close_price'].fillna(method='ffill').fillna(0).T
+
         def _ma(data):
             return talib.MA(data, 5)
+
         close_price_5ma = close_price.apply(_ma, axis=1)
         result = close_price - close_price_5ma
         return result.apply(_ma, axis=1).T.iloc[-1]
@@ -204,15 +208,19 @@ class FactorMomentum(object):
          :view_dimension:1
         '''
         close_price = data['close_price'].fillna(method='ffill').fillna(0).T
+
         def _ma(data):
             return talib.MA(data, 10)
+
         ma10 = close_price.apply(_ma, axis=1)
         return (ma10 / close_price).T.iloc[-1]
 
     def _BIASXD(self, data, param1, dependencies=['close_price']):
         close_price = data['close_price'].fillna(method='ffill').fillna(0).T
+
         def _ma(data):
             return talib.MA(data, param1)[-1]
+
         close_price_ma = close_price.apply(_ma, axis=1)
         return (close_price.T.iloc[-1] - close_price_ma) / close_price_ma
 
@@ -221,6 +229,8 @@ class FactorMomentum(object):
          This is alpha191_1
          :name: 10日乖离率
          :desc: 乖离率 (10-day Bias Ratio/BIAS)，是移动平均原理派生的一项技术指标，表示股价偏离趋向指标斩百分比值。BIAS = (close / MA(close, N) - 1) 
+         :unit:
+         :view_dimension:1
         '''
         return self._BIASXD(data, 10)
 
@@ -233,7 +243,6 @@ class FactorMomentum(object):
          :view_dimension:0.01
         '''
         return self._BIASXD(data, 20)
-
 
     def BIAS5D(self, data, dependencies=['close_price'], max_window=6):
         '''
@@ -272,7 +281,7 @@ class FactorMomentum(object):
     def _ChgToXMAvg(self, data, dependencies=['close_price']):
         close_price = data['close_price']
         mean_price = close_price.mean()
-        return ((close_price / mean_price) -1).iloc[-1]
+        return ((close_price / mean_price) - 1).iloc[-1]
 
     def ChgTo1MAvg(self, data, dependencies=['close_price'], max_window=20):
         '''
@@ -283,7 +292,6 @@ class FactorMomentum(object):
          :view_dimension:1
         '''
         return self._ChgToXMAvg(data)
-
 
     def ChgTo3MAvg(self, data, dependencies=['close_price'], max_window=60):
         '''
@@ -314,29 +322,33 @@ class FactorMomentum(object):
          :view_dimension:1
         '''
         close_price = data['close_price'].fillna(method='ffill').fillna(0).T
+
         def _macd(data):
             macd, macdsignal, macdhist = talib.MACD(data, fastperiod=12, slowperiod=26, signalperiod=9)
             return macdsignal[-1]
+
         return close_price.apply(_macd, axis=1)
 
-    def _EMVXD(self, data, param1 , dependencies=['highest_price','lowest_price','turnover_vol']):
+    def _EMVXD(self, data, param1, dependencies=['highest_price', 'lowest_price', 'turnover_vol']):
         highest_price = data['highest_price'].fillna(method='ffill').fillna(0)
         lowest_price = data['lowest_price'].fillna(method='ffill').fillna(0)
         turnover_vol = data['turnover_vol'].fillna(method='ffill').fillna(0)
         perv_highest = highest_price.shift(1)
         perv_lowest = lowest_price.shift(1)
-        #(highest + lowest) / 2
+        # (highest + lowest) / 2
         expression1 = (highest_price + lowest_price) / 2
-        #(prev_highest + prev_lowest) / 2
-        expression2 = (perv_highest + perv_lowest) /2
-        #(highest – lowest) / volume
-        expression3 = (highest_price  - lowest_price) / (data['turnover_vol'] / 100000000)
+        # (prev_highest + prev_lowest) / 2
+        expression2 = (perv_highest + perv_lowest) / 2
+        # (highest – lowest) / volume
+        expression3 = (highest_price - lowest_price) / (data['turnover_vol'] / 100000000)
         expression4 = (expression1 - expression2) * expression3
+
         def _ema(data):
             return talib.EMA(data, param1)[-1]
+
         return expression4.fillna(method='ffill').fillna(0).T.apply(_ema, axis=1)
 
-    def EMV14D(self, data, dependencies=['highest_price','lowest_price','turnover_vol'], max_window=15):
+    def EMV14D(self, data, dependencies=['highest_price', 'lowest_price', 'turnover_vol'], max_window=15):
         '''
          This is alpha191_1
          :name: 14日简易波动指标
@@ -346,7 +358,7 @@ class FactorMomentum(object):
         '''
         return self._EMVXD(data, 14)
 
-    def EMV6D(self, data, dependencies=['highest_price','lowest_price','turnover_vol'], max_window=7):
+    def EMV6D(self, data, dependencies=['highest_price', 'lowest_price', 'turnover_vol'], max_window=7):
         '''
          This is alpha191_1
          :name: 6日简易波动指标
@@ -355,8 +367,7 @@ class FactorMomentum(object):
          :view_dimension:1
         '''
         return self._EMVXD(data, 6)
-    
-    
+
     def MACD12D26D(self, data, dependencies=['close_price'], max_window=35):
         '''
          This is alpha191_1
@@ -366,9 +377,11 @@ class FactorMomentum(object):
          :view_dimension:1
         '''
         close_price = data['close_price'].fillna(method='ffill').fillna(0).T
+
         def _macd(data):
             macd, macdsignal, macdhist = talib.MACD(data, fastperiod=12, slowperiod=26, signalperiod=9)
             return macd[-1]
+
         return close_price.apply(_macd, axis=1)
 
     def MTM10D(self, data, dependencies=['close_price'], max_window=11):
@@ -383,8 +396,10 @@ class FactorMomentum(object):
 
     def _EMAXD(self, data, param1, dependencies=['close_price']):
         close_price = data['close_price'].fillna(method='ffill').fillna(0).T
+
         def _ema(data):
             return talib.EMA(data, param1)[-1]
+
         return close_price.apply(_ema, axis=1)
 
     def EMA10D(self, data, dependencies=['close_price'], max_window=11):
@@ -402,6 +417,8 @@ class FactorMomentum(object):
          This is alpha191_1
          :name: 12 日指数移动均线
          :desc: 12 日指数移动均线（10-day Exponential moving average）。取前 N 天的收益和当日的价格，当日价格除以（1+当日收益）得到前一日价格，依次计算得到前 N 日价格，并对前 N 日价格计算指数移动平均，即为当日的前复权价移动平。
+         :unit:
+         :view_dimension:1
         '''
         return self._EMAXD(data, 12)
 
@@ -457,8 +474,10 @@ class FactorMomentum(object):
 
     def _MAXD(self, data, param1, dependencies=['close_price']):
         close_price = data['close_price'].fillna(method='ffill').fillna(0).T
+
         def _ma(data):
             return talib.MA(data, param1)[-1]
+
         return close_price.apply(_ma, axis=1)
 
     def MA20D(self, data, dependencies=['close_price'], max_window=21):
@@ -523,8 +542,10 @@ class FactorMomentum(object):
 
     def _TEMAXD(self, data, param1, dependencies=['close_price']):
         close_price = data['close_price'].fillna(method='ffill').fillna(0).T
+
         def _tema(data):
             return talib.TEMA(data, param1)[-1]
+
         return close_price.apply(_tema, axis=1)
 
     def TEMA10D(self, data, dependencies=['close_price'], max_window=31):
@@ -546,26 +567,28 @@ class FactorMomentum(object):
          :view_dimension:1
         '''
         return self._TEMAXD(data, 5)
-    
-    def _CCIXD(self, data, param1, dependencies=['highest_price','lowest_price', 'close_price']):
+
+    def _CCIXD(self, data, param1, dependencies=['highest_price', 'lowest_price', 'close_price']):
         highest_price = data['highest_price']
         lowest_price = data['lowest_price']
         close_price = data['close_price']
-        cp = close_price.stack().reset_index().rename(columns={0:'close_price'})
-        hp = highest_price.stack().reset_index().rename(columns={0:'highest_price'})
-        lp = lowest_price.stack().reset_index().rename(columns={0:'lowest_price'})
-        data_sets = lp.merge(cp,on=['security_code','trade_date']).merge(
-            hp,on=['security_code','trade_date']).sort_values(
-            by=['trade_date','security_code'],ascending=True)
+        cp = close_price.stack().reset_index().rename(columns={0: 'close_price'})
+        hp = highest_price.stack().reset_index().rename(columns={0: 'highest_price'})
+        lp = lowest_price.stack().reset_index().rename(columns={0: 'lowest_price'})
+        data_sets = lp.merge(cp, on=['security_code', 'trade_date']).merge(
+            hp, on=['security_code', 'trade_date']).sort_values(
+            by=['trade_date', 'security_code'], ascending=True)
+
         def _cci(data):
             result = talib.CCI(data.highest_price.values,
                                data.lowest_price.values,
                                data.close_price.values,
                                timeperiod=param1)
             return result[-1]
+
         return data_sets.groupby('security_code').apply(_cci)
-    
-    def CCI10D(self, data, dependencies=['highest_price','lowest_price', 'close_price'], max_window=11):
+
+    def CCI10D(self, data, dependencies=['highest_price', 'lowest_price', 'close_price'], max_window=11):
         '''
         This is alpha191_1
         :name: 10 日顺势指标
@@ -574,9 +597,8 @@ class FactorMomentum(object):
         :view_dimension:1
         '''
         return self._CCIXD(data, 10)
-    
-    
-    def CCI20D(self, data, dependencies=['highest_price','lowest_price', 'close_price'], max_window=21):
+
+    def CCI20D(self, data, dependencies=['highest_price', 'lowest_price', 'close_price'], max_window=21):
         '''
         This is alpha191_1
         :name: 20 日顺势指标
@@ -585,8 +607,8 @@ class FactorMomentum(object):
         :view_dimension:1
         '''
         return self._CCIXD(data, 20)
-    
-    def CCI5D(self, data, dependencies=['highest_price','lowest_price', 'close_price'], max_window=6):
+
+    def CCI5D(self, data, dependencies=['highest_price', 'lowest_price', 'close_price'], max_window=6):
         '''
         This is alpha191_1
         :name: 5 日顺势指标
@@ -595,8 +617,8 @@ class FactorMomentum(object):
         :view_dimension:1
         '''
         return self._CCIXD(data, 5)
-    
-    def CCI88D(self, data, dependencies=['highest_price','lowest_price', 'close_price'], max_window=91):
+
+    def CCI88D(self, data, dependencies=['highest_price', 'lowest_price', 'close_price'], max_window=91):
         '''
         This is alpha191_1
         :name: 88 日顺势指标
@@ -605,8 +627,8 @@ class FactorMomentum(object):
         :view_dimension:1
         '''
         return self._CCIXD(data, 88)
-    
-    def ADX14D(self, data, dependencies=['highest_price','lowest_price', 'close_price'],max_window=29):
+
+    def ADX14D(self, data, dependencies=['highest_price', 'lowest_price', 'close_price'], max_window=29):
         '''
          This is alpha191_1
          :name: 平均动向指数
@@ -617,22 +639,23 @@ class FactorMomentum(object):
         highest_price = data['highest_price']
         lowest_price = data['lowest_price']
         close_price = data['close_price']
-        cp = close_price.stack().reset_index().rename(columns={0:'close_price'})
-        hp = highest_price.stack().reset_index().rename(columns={0:'highest_price'})
-        lp = lowest_price.stack().reset_index().rename(columns={0:'lowest_price'})
-        data_sets = lp.merge(cp,on=['security_code','trade_date']).merge(
-            hp,on=['security_code','trade_date']).sort_values(
-            by=['trade_date','security_code'],ascending=True)
+        cp = close_price.stack().reset_index().rename(columns={0: 'close_price'})
+        hp = highest_price.stack().reset_index().rename(columns={0: 'highest_price'})
+        lp = lowest_price.stack().reset_index().rename(columns={0: 'lowest_price'})
+        data_sets = lp.merge(cp, on=['security_code', 'trade_date']).merge(
+            hp, on=['security_code', 'trade_date']).sort_values(
+            by=['trade_date', 'security_code'], ascending=True)
+
         def _adx(data):
             result = talib.ADX(data.highest_price.values,
                                data.lowest_price.values,
                                data.close_price.values,
                                timeperiod=14)
             return result[-1]
+
         return data_sets.groupby('security_code').apply(_adx)
-    
-    
-    def ADXR14D(self, data, dependencies=['highest_price','lowest_price', 'close_price'],max_window=43):
+
+    def ADXR14D(self, data, dependencies=['highest_price', 'lowest_price', 'close_price'], max_window=43):
         '''
          This is alpha191_1
          :name: 相对平均动向指数
@@ -643,21 +666,23 @@ class FactorMomentum(object):
         highest_price = data['highest_price']
         lowest_price = data['lowest_price']
         close_price = data['close_price']
-        cp = close_price.stack().reset_index().rename(columns={0:'close_price'})
-        hp = highest_price.stack().reset_index().rename(columns={0:'highest_price'})
-        lp = lowest_price.stack().reset_index().rename(columns={0:'lowest_price'})
-        data_sets = lp.merge(cp,on=['security_code','trade_date']).merge(
-            hp,on=['security_code','trade_date']).sort_values(
-            by=['trade_date','security_code'],ascending=True)
+        cp = close_price.stack().reset_index().rename(columns={0: 'close_price'})
+        hp = highest_price.stack().reset_index().rename(columns={0: 'highest_price'})
+        lp = lowest_price.stack().reset_index().rename(columns={0: 'lowest_price'})
+        data_sets = lp.merge(cp, on=['security_code', 'trade_date']).merge(
+            hp, on=['security_code', 'trade_date']).sort_values(
+            by=['trade_date', 'security_code'], ascending=True)
+
         def _adxr(data):
             result = talib.ADXR(data.highest_price.values,
-                               data.lowest_price.values,
-                               data.close_price.values,
-                               timeperiod=14)
+                                data.lowest_price.values,
+                                data.close_price.values,
+                                timeperiod=14)
             return result[-1]
+
         return data_sets.groupby('security_code').apply(_adxr)
-    
-    def UOS7D14D28D(self, data, dependencies=['highest_price','lowest_price', 'close_price'],max_window=30):
+
+    def UOS7D14D28D(self, data, dependencies=['highest_price', 'lowest_price', 'close_price'], max_window=30):
         '''
          This is alpha191_1
          :name: 终极指标
@@ -668,22 +693,24 @@ class FactorMomentum(object):
         highest_price = data['highest_price']
         lowest_price = data['lowest_price']
         close_price = data['close_price']
-        cp = close_price.stack().reset_index().rename(columns={0:'close_price'})
-        hp = highest_price.stack().reset_index().rename(columns={0:'highest_price'})
-        lp = lowest_price.stack().reset_index().rename(columns={0:'lowest_price'})
-        data_sets = lp.merge(cp,on=['security_code','trade_date']).merge(
-            hp,on=['security_code','trade_date']).sort_values(
-            by=['trade_date','security_code'],ascending=True)
+        cp = close_price.stack().reset_index().rename(columns={0: 'close_price'})
+        hp = highest_price.stack().reset_index().rename(columns={0: 'highest_price'})
+        lp = lowest_price.stack().reset_index().rename(columns={0: 'lowest_price'})
+        data_sets = lp.merge(cp, on=['security_code', 'trade_date']).merge(
+            hp, on=['security_code', 'trade_date']).sort_values(
+            by=['trade_date', 'security_code'], ascending=True)
+
         def _ultosc(data):
             result = talib.ULTOSC(data.highest_price.values,
-                               data.lowest_price.values,
-                               data.close_price.values,
-                               timeperiod1=7, timeperiod2=14, timeperiod3=28)
+                                  data.lowest_price.values,
+                                  data.close_price.values,
+                                  timeperiod1=7, timeperiod2=14, timeperiod3=28)
             return result[-1]
+
         return data_sets.groupby('security_code').apply(_ultosc)
-    
-    def ChkOsci3D10D(self, data, dependencies=['highest_price','lowest_price', 'close_price',
-                                              'turnover_vol'],max_window=11):
+
+    def ChkOsci3D10D(self, data, dependencies=['highest_price', 'lowest_price', 'close_price',
+                                               'turnover_vol'], max_window=11):
         '''
          This is alpha191_1
          :name: 佳庆指标
@@ -695,33 +722,33 @@ class FactorMomentum(object):
         lowest_price = data['lowest_price']
         close_price = data['close_price']
         turnover_vol = data['turnover_vol']
-        cp = close_price.stack().reset_index().rename(columns={0:'close_price'})
-        hp = highest_price.stack().reset_index().rename(columns={0:'highest_price'})
-        lp = lowest_price.stack().reset_index().rename(columns={0:'lowest_price'})
-        vol = turnover_vol.stack().reset_index().rename(columns={0:'turnover_vol'})
-        data_sets = lp.merge(cp,on=['security_code','trade_date']).merge(
-            hp,on=['security_code','trade_date']).merge(vol, on=['security_code','trade_date']).sort_values(
-            by=['trade_date','security_code'],ascending=True)
-        
+        cp = close_price.stack().reset_index().rename(columns={0: 'close_price'})
+        hp = highest_price.stack().reset_index().rename(columns={0: 'highest_price'})
+        lp = lowest_price.stack().reset_index().rename(columns={0: 'lowest_price'})
+        vol = turnover_vol.stack().reset_index().rename(columns={0: 'turnover_vol'})
+        data_sets = lp.merge(cp, on=['security_code', 'trade_date']).merge(
+            hp, on=['security_code', 'trade_date']).merge(vol, on=['security_code', 'trade_date']).sort_values(
+            by=['trade_date', 'security_code'], ascending=True)
+
         def _3adema(data):
             ad = talib.AD(data.highest_price.values,
-                               data.lowest_price.values,
-                               data.close_price,
-                                 data.turnover_vol)
-            result = talib.EMA(np.nan_to_num(ad),3)
+                          data.lowest_price.values,
+                          data.close_price,
+                          data.turnover_vol)
+            result = talib.EMA(np.nan_to_num(ad), 3)
             return result[-1]
-        
+
         def _10adema(data):
             ad = talib.AD(data.highest_price.values,
-                               data.lowest_price.values,
-                               data.close_price,
-                                 data.turnover_vol)
-            result = talib.EMA(np.nan_to_num(ad),10)
+                          data.lowest_price.values,
+                          data.close_price,
+                          data.turnover_vol)
+            result = talib.EMA(np.nan_to_num(ad), 10)
             return result[-1]
+
         return data_sets.groupby('security_code').apply(_3adema) - data_sets.groupby('security_code').apply(_10adema)
-    
-    
-    def ChkVol10D(self, data, dependencies=['highest_price','lowest_price'],max_window=21):
+
+    def ChkVol10D(self, data, dependencies=['highest_price', 'lowest_price'], max_window=21):
         '''
          This is alpha191_1
          :name: 佳庆离散指标
@@ -731,36 +758,37 @@ class FactorMomentum(object):
         '''
         highest_price = data['highest_price']
         lowest_price = data['lowest_price']
-        hp = highest_price.stack().reset_index().rename(columns={0:'highest_price'})
-        lp = lowest_price.stack().reset_index().rename(columns={0:'lowest_price'})
-        data_sets = lp.merge(hp,on=['security_code','trade_date']).sort_values(
-            by=['trade_date','security_code'],ascending=True)
-        
+        hp = highest_price.stack().reset_index().rename(columns={0: 'highest_price'})
+        lp = lowest_price.stack().reset_index().rename(columns={0: 'lowest_price'})
+        data_sets = lp.merge(hp, on=['security_code', 'trade_date']).sort_values(
+            by=['trade_date', 'security_code'], ascending=True)
+
         prev_highest_price = data['highest_price'].shift(10)
         prev_lowest_price = data['lowest_price'].shift(10)
-        prev_hp = prev_highest_price.stack().reset_index().rename(columns={0:'highest_price'})
-        prev_lp = prev_lowest_price.stack().reset_index().rename(columns={0:'lowest_price'})
-        prev_data_sets = prev_lp.merge(prev_hp,on=['security_code','trade_date']).sort_values(
-            by=['trade_date','security_code'],ascending=True)
-        
+        prev_hp = prev_highest_price.stack().reset_index().rename(columns={0: 'highest_price'})
+        prev_lp = prev_lowest_price.stack().reset_index().rename(columns={0: 'lowest_price'})
+        prev_data_sets = prev_lp.merge(prev_hp, on=['security_code', 'trade_date']).sort_values(
+            by=['trade_date', 'security_code'], ascending=True)
+
         def _10hlema(data):
             result = talib.EMA(data.highest_price.values - data.lowest_price.values, 10)
             return result[-1]
-        
-        hlema  = data_sets.groupby('security_code').apply(_10hlema)
-        prev_hlema  = prev_data_sets.groupby('security_code').apply(_10hlema)
+
+        hlema = data_sets.groupby('security_code').apply(_10hlema)
+        prev_hlema = prev_data_sets.groupby('security_code').apply(_10hlema)
         return 100 * (hlema - prev_hlema) / prev_hlema
-    
+
     def _MA10RegressCoeffX(self, data, param1, dependencies=['close_price']):
         close_price = data['close_price'].copy().fillna(method='ffill').fillna(0).T
+
         def _ma10(data):
             result = talib.MA(data, 10)
             b = result[-param1:]
-            x = np.array([i for i in range(1,param1 + 1)])
-            return np.linalg.lstsq(np.reshape(x,(-1,1)),np.reshape(b.values,(-1,1)))[0][0][-1]
-        return close_price.apply(_ma10,axis=1)
-         
-        
+            x = np.array([i for i in range(1, param1 + 1)])
+            return np.linalg.lstsq(np.reshape(x, (-1, 1)), np.reshape(b.values, (-1, 1)))[0][0][-1]
+
+        return close_price.apply(_ma10, axis=1)
+
     def MA10RegressCoeff12(self, data, dependencies=['close_price'], max_window=24):
         '''
         This is alpha191_1
@@ -770,23 +798,27 @@ class FactorMomentum(object):
         :view_dimension:1
         '''
         return self._MA10RegressCoeffX(data, 12)
-    
+
     def MA10RegressCoeff6(self, data, dependencies=['close_price'], max_window=17):
         '''
         This is alpha191_1
         :name: 10 日价格平均线 6 日线性回归系数
         :desc: 10 日价格平均线 6 日线性回归系数 (regression coefficient of 10-day moving average (in predicting 12-day moving average))。
+        :unit:
+        :view_dimension:1
         '''
         return self._MA10RegressCoeffX(data, 6)
-    
+
     def _PLRCXD(self, data, param1, dependencies=['close_price']):
         close_price = data['close_price'].copy().fillna(method='ffill').fillna(0).T
+
         def _pl(data):
             b = data[-param1:]
-            x = np.array([i for i in range(1,param1 + 1)])
-            return np.linalg.lstsq(np.reshape(x,(-1,1)),np.reshape(b.values,(-1,1)))[0][0][-1]
-        return close_price.apply(_pl,axis=1)
-    
+            x = np.array([i for i in range(1, param1 + 1)])
+            return np.linalg.lstsq(np.reshape(x, (-1, 1)), np.reshape(b.values, (-1, 1)))[0][0][-1]
+
+        return close_price.apply(_pl, axis=1)
+
     def PLRC6D(self, data, dependencies=['close_price'], max_window=7):
         '''
         This is alpha191_1
@@ -796,7 +828,7 @@ class FactorMomentum(object):
         :view_dimension:1
         '''
         return self._PLRCXD(data, 6)
-    
+
     def PLRC12D(self, data, dependencies=['close_price'], max_window=13):
         '''
         This is alpha191_1

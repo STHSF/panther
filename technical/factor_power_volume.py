@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-import six,pdb,talib
+import six, pdb, talib
 import numpy as np
 from utilities.singleton import Singleton
+
 
 @six.add_metaclass(Singleton)
 class FactorPowerVolume(object):
@@ -11,7 +12,7 @@ class FactorPowerVolume(object):
         self.factor_type1 = '技术指标因子'
         self.factor_type2 = '量能指标'
         self.description = '通过成交量与股价变动关系分析未来趋势'
-        
+
     def VoT20D(self, data, dependencies=['turn_rate'], max_window=20):
         '''
         This is alpha191_1
@@ -21,14 +22,16 @@ class FactorPowerVolume(object):
         :view_dimension:0.01
         '''
         return data['turn_rate'].std() / data['turn_rate'].mean()
-    
+
     def _TVMAXD(self, data, param1, dependencies=['turnover_value']):
         turnover_value = data['turnover_value'].fillna(method='ffill').fillna(0).T
+
         def _ma(data):
             return talib.MA(data, param1)[-1]
-        turnover_value['TVMAX'] = turnover_value.apply(_ma,axis=1)
+
+        turnover_value['TVMAX'] = turnover_value.apply(_ma, axis=1)
         return turnover_value['TVMAX']
-        
+
     def TVMA20D(self, data, dependencies=['turnover_value'], max_window=21):
         '''
         This is alpha191_1
@@ -38,7 +41,7 @@ class FactorPowerVolume(object):
         :view_dimension:1
         '''
         return self._TVMAXD(data, 20)
-    
+
     def TVMA6D(self, data, dependencies=['turnover_value'], max_window=7):
         '''
         This is alpha191_1
@@ -48,7 +51,7 @@ class FactorPowerVolume(object):
         :view_dimension:1
         '''
         return self._TVMAXD(data, 6)
-    
+
     def TVSD20D(self, data, dependencies=['turnover_value'], max_window=20):
         '''
         This is alpha191_1
@@ -58,7 +61,7 @@ class FactorPowerVolume(object):
         :view_dimension:1
         '''
         return data['turnover_value'].std()
-    
+
     def TVSD6D(self, data, dependencies=['turnover_value'], max_window=6):
         '''
         This is alpha191_1
@@ -68,15 +71,16 @@ class FactorPowerVolume(object):
         :view_dimension:1
         '''
         return data['turnover_value'].std()
-        
+
     def _VEMAXD(self, data, dependencies=['turnover_value']):
         turnover_value = data['turnover_value'].fillna(method='ffill').fillna(0).T
+
         def _ema(data):
             return talib.EMA(data, param1)[-1]
-        turnover_value['EMA'] = turnover_value.apply(_ema,axis=1)
+
+        turnover_value['EMA'] = turnover_value.apply(_ema, axis=1)
         return turnover_value['EMA']
-    
-    
+
     def VEMA10D(self, data, dependencies=['turnover_value'], max_window=11):
         '''
         This is alpha191_1
@@ -86,7 +90,7 @@ class FactorPowerVolume(object):
         :view_dimension:1
         '''
         return self._TVMAXD(data, 10)
-    
+
     def VEMA12D(self, data, dependencies=['turnover_value'], max_window=13):
         '''
         This is alpha191_1
@@ -96,7 +100,7 @@ class FactorPowerVolume(object):
         :view_dimension:1
         '''
         return self._TVMAXD(data, 12)
-    
+
     def VEMA26D(self, data, dependencies=['turnover_value'], max_window=26):
         '''
         This is alpha191_1
@@ -106,7 +110,7 @@ class FactorPowerVolume(object):
         :view_dimension:1
         '''
         return self._TVMAXD(data, 26)
-    
+
     def VEMA5D(self, data, dependencies=['turnover_value'], max_window=6):
         '''
         This is alpha191_1
@@ -116,7 +120,7 @@ class FactorPowerVolume(object):
         :view_dimension:1
         '''
         return self._TVMAXD(data, 5)
-    
+
     def VolDIFF(self, data, dependencies=['turnover_vol'], max_window=27):
         '''
         This is alpha191_1
@@ -126,24 +130,27 @@ class FactorPowerVolume(object):
         :view_dimension:1
         '''
         turnover_vol = data['turnover_vol'].fillna(method='ffill').fillna(0).T
+
         def _12ema(data):
             return talib.EMA(data, 13)[-1]
+
         def _26ema(data):
             return talib.EMA(data, 27)[-1]
-        turnover_vol['EMA_12'] = turnover_vol.apply(_12ema,axis=1)
-        turnover_vol['EMA_26'] = turnover_vol.apply(_26ema,axis=1)
+
+        turnover_vol['EMA_12'] = turnover_vol.apply(_12ema, axis=1)
+        turnover_vol['EMA_26'] = turnover_vol.apply(_26ema, axis=1)
         return turnover_vol['EMA_12'] - turnover_vol['EMA_26']
-    
+
     def VOL10D(self, data, dependencies=['turn_rate'], max_window=10):
         '''
         This is alpha191_1
         :name: 10 日平均换手率
         :desc: 10 日平均换手率
         :unit:
-        :view_dimension:1
+        :view_dimension:0.01
         '''
         return data['turn_rate'].mean()
-    
+
     def VOL120D(self, data, dependencies=['turn_rate'], max_window=120):
         '''
         This is alpha191_1
@@ -153,7 +160,7 @@ class FactorPowerVolume(object):
         :view_dimension:0.01
         '''
         return data['turn_rate'].mean()
-    
+
     def VOL20D(self, data, dependencies=['turn_rate'], max_window=20):
         '''
         This is alpha191_1
@@ -163,7 +170,7 @@ class FactorPowerVolume(object):
         :view_dimension:0.01
         '''
         return data['turn_rate'].mean()
-    
+
     def VOL240D(self, data, dependencies=['turn_rate'], max_window=240):
         '''
         This is alpha191_1
@@ -173,7 +180,7 @@ class FactorPowerVolume(object):
         :view_dimension:0.01
         '''
         return data['turn_rate'].mean()
-    
+
     def VOL5D(self, data, dependencies=['turn_rate'], max_window=5):
         '''
         This is alpha191_1
@@ -183,7 +190,7 @@ class FactorPowerVolume(object):
         :view_dimension:0.01
         '''
         return data['turn_rate'].mean()
-    
+
     def VOL60D(self, data, dependencies=['turn_rate'], max_window=60):
         '''
         This is alpha191_1
@@ -193,15 +200,16 @@ class FactorPowerVolume(object):
         :view_dimension:0.01
         '''
         return data['turn_rate'].mean()
-    
-    
+
     def _VROCXD(self, data, param1, dependencies=['close_price']):
         close_price = data['close_price'].copy().fillna(method='ffill').fillna(0).T
+
         def _roc(data):
             return talib.ROC(data, timeperiod=param1)[-1]
-        close_price['roc'] = close_price.apply(_roc,axis=1)
+
+        close_price['roc'] = close_price.apply(_roc, axis=1)
         return close_price['roc']
-     
+
     def VROC12D(self, data, dependencies=['close_price'], max_window=13):
         '''
         This is alpha191_1
@@ -211,7 +219,7 @@ class FactorPowerVolume(object):
         :view_dimension:0.01
         '''
         return self._VROCXD(data, 12)
-    
+
     def VROC6D(self, data, dependencies=['close_price'], max_window=7):
         '''
         This is alpha191_1
@@ -221,7 +229,7 @@ class FactorPowerVolume(object):
         :view_dimension:0.01
         '''
         return self._VROCXD(data, 6)
-    
+
     def VROC10D(self, data, dependencies=['close_price'], max_window=11):
         '''
         This is alpha191_1
@@ -231,7 +239,7 @@ class FactorPowerVolume(object):
         :view_dimension:0.01
         '''
         return self._VROCXD(data, 10)
-    
+
     def VROC20D(self, data, dependencies=['close_price'], max_window=21):
         '''
         This is alpha191_1
@@ -241,10 +249,10 @@ class FactorPowerVolume(object):
         :view_dimension:0.01
         '''
         return self._VROCXD(data, 20)
-    
+
     def _DifVOLXD(self, data, param1, dependencies=['close_price']):
         return data['close_price'].iloc[-param1:].mean() - data['close_price'].mean()
-    
+
     def DifVOL5D(self, data, dependencies=['close_price'], max_window=120):
         '''
         This is alpha191_1
@@ -254,7 +262,7 @@ class FactorPowerVolume(object):
         :view_dimension:0.01
         '''
         return self._DifVOLXD(data, 5)
-    
+
     def DifVOL10D(self, data, dependencies=['close_price'], max_window=120):
         '''
         This is alpha191_1
@@ -264,7 +272,7 @@ class FactorPowerVolume(object):
         :view_dimension:0.01
         '''
         return self._DifVOLXD(data, 10)
-    
+
     def DifVOL20D(self, data, dependencies=['close_price'], max_window=120):
         '''
         This is alpha191_1
@@ -274,7 +282,7 @@ class FactorPowerVolume(object):
         :view_dimension:0.01
         '''
         return self._DifVOLXD(data, 20)
-    
+
     def STOM(self, data, dependencies=['turn_rate'], max_window=21):
         '''
         This is alpha191_1
@@ -286,7 +294,7 @@ class FactorPowerVolume(object):
         turn_rate = data['turn_rate']
         turn_rate_sum = turn_rate.sum()
         return np.log(turn_rate_sum)
-    
+
     def STO3M(self, data, dependencies=['turn_rate'], max_window=63):
         '''
         This is alpha191_1
@@ -296,7 +304,7 @@ class FactorPowerVolume(object):
         :view_dimension:1
         '''
         return np.log((np.exp(data['turn_rate']).sum() / 3))
-    
+
     def STO12M(self, data, dependencies=['turn_rate'], max_window=252):
         '''
         This is alpha191_1
