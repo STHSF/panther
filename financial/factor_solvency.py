@@ -292,7 +292,6 @@ class FactorSolvency(object):
     #                                                                 'bonds_payable',
     #                                                                 'interest_payable']):
     #     """
-    #
     #     :name:有形净值/带息负债
     #     :desc:有形净值/带息负债（MRQ）
     #     """
@@ -319,11 +318,11 @@ class FactorSolvency(object):
 
     @staticmethod
     def SupQuickRatio(tp_solvency, factor_solvency, dependencies=['cash_equivalents',
-                                                                      'trading_assets',
-                                                                      'bill_receivable',
-                                                                      'account_receivable',
-                                                                      'other_receivable',
-                                                                      'total_current_liability']):
+                                                                  'trading_assets',
+                                                                  'bill_receivable',
+                                                                  'account_receivable',
+                                                                  'other_receivable',
+                                                                  'total_current_liability']):
         """
         :name:超速动比率
         :desc:（货币资金+交易性金融资资产+应收票据+应收帐款+其他应收款）/流动负债合计（MRQ）
@@ -502,6 +501,7 @@ class FactorSolvency(object):
     # @staticmethod
     # def OptCFToNetDebtTTM(ttm_solvency, factor_solvency, dependencies=['net_operate_cash_flow', 'net_liability']):
     #     """
+    #     缺少净负债
     #     :name:经营活动净现金流（TTM）/净负债（TTM）
     #     :desc:经营活动净现金流（TTM）/净负债（TTM）
     #     :unit:

@@ -87,9 +87,11 @@ class FactorEarning(object):
         return factor_earning
 
     @staticmethod
-    def _NetPft5YAvgChg(tp_earning, factor_earning,
-                       dependencies=['net_profit', 'net_profit_pre_year_1', 'net_profit_pre_year_2',
-                                      'net_profit_pre_year_3', 'net_profit_pre_year_4']):
+    def _NetPft5YAvgChg(tp_earning, factor_earning, dependencies=['net_profit',
+                                                                  'net_profit_pre_year_1',
+                                                                  'net_profit_pre_year_2',
+                                                                  'net_profit_pre_year_3',
+                                                                  'net_profit_pre_year_4']):
         """
         5年收益增长率
         :name:
@@ -97,7 +99,6 @@ class FactorEarning(object):
         :unit:
         :view_dimension: 0.01
         """
-
         regr = linear_model.LinearRegression()
         # 读取五年的时间和净利润
         historical_growth = tp_earning.loc[:, dependencies]
