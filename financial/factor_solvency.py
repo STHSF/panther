@@ -161,10 +161,10 @@ class FactorSolvency(object):
 
     @staticmethod
     def EquityPCToTCap(tp_solvency, factor_solvency, dependencies=['equities_parent_company_owners',
-                                                                          'total_owner_equities',
-                                                                          'shortterm_loan',
-                                                                          'non_current_liability_in_one_year',
-                                                                          'longterm_loan', 'bonds_payable',
+                                                                   'total_owner_equities',
+                                                                   'shortterm_loan',
+                                                                   'non_current_liability_in_one_year',
+                                                                   'longterm_loan', 'bonds_payable',
                                                                    'interest_payable']):
         """
 

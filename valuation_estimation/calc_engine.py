@@ -77,19 +77,20 @@ class CalcEngine(object):
 
         # report data
         columns = ['COMPCODE', 'PUBLISHDATE', 'ENDDATE', 'symbol', 'company_id', 'trade_date']
-        indicator_sets = engine.fetch_fundamentals_pit_extend_company_id(IndicatorReport,
-                                                                         [IndicatorReport.FCFF,
-                                                                          ], dates=[trade_date])
 
-        if len(indicator_sets) <= 0 or indicator_sets is None:
-            indicator_sets = pd.DataFrame({'security_code':[], 'FCFF':[]})
-
-        for column in columns:
-            if column in list(indicator_sets.keys()):
-                indicator_sets = indicator_sets.drop(column, axis=1)
-        indicator_sets = indicator_sets.rename(columns={
-            'FCFF': 'enterprise_fcfps',  # 企业自由现金流
-        })
+        # indicator_sets = engine.fetch_fundamentals_pit_extend_company_id(IndicatorReport,
+        #                                                                  [IndicatorReport.FCFF,
+        #                                                                   ], dates=[trade_date])
+        #
+        # if len(indicator_sets) <= 0 or indicator_sets is None:
+        #     indicator_sets = pd.DataFrame({'security_code':[], 'FCFF':[]})
+        #
+        # for column in columns:
+        #     if column in list(indicator_sets.keys()):
+        #         indicator_sets = indicator_sets.drop(column, axis=1)
+        # indicator_sets = indicator_sets.rename(columns={
+        #     'FCFF': 'enterprise_fcfps',  # 企业自由现金流
+        # })
 
         balance_sets = engine.fetch_fundamentals_pit_extend_company_id(BalanceReport,
                                                                        [BalanceReport.TOTASSET,
@@ -103,7 +104,7 @@ class CalcEngine(object):
         balance_sets = balance_sets.rename(columns={
             'TOTASSET': 'total_assets_report',  # 资产总计
         })
-        valuation_report_sets = pd.merge(indicator_sets, balance_sets, how='outer', on='security_code')
+        # valuation_report_sets = pd.merge(indicator_sets, balance_sets, how='outer', on='security_code')
 
         # MRQ data
         cash_flow_mrq = engine.fetch_fundamentals_pit_extend_company_id(CashFlowMRQ,
@@ -156,18 +157,18 @@ class CalcEngine(object):
             'MANANETR': 'net_operate_cash_flow',  # 经营活动现金流量净额
         })
 
-        indicator_ttm_sets = engine.fetch_fundamentals_pit_extend_company_id(IndicatorTTM,
-                                                                             [IndicatorTTM.NETPROFITCUT,
-                                                                              ], dates=[trade_date_1y])
-        if len(indicator_ttm_sets) <= 0 or indicator_ttm_sets is None:
-            indicator_ttm_sets = pd.DataFrame({'security_code':[], 'NETPROFITCUT':[]})
-
-        for column in columns:
-            if column in list(indicator_ttm_sets.keys()):
-                indicator_ttm_sets = indicator_ttm_sets.drop(column, axis=1)
-        indicator_ttm_sets = indicator_ttm_sets.rename(columns={
-            'NETPROFITCUT': 'net_profit_cut_pre',  # 扣除非经常性损益的净利润
-        })
+        # indicator_ttm_sets = engine.fetch_fundamentals_pit_extend_company_id(IndicatorTTM,
+        #                                                                      [IndicatorTTM.NETPROFITCUT,
+        #                                                                       ], dates=[trade_date_1y])
+        # if len(indicator_ttm_sets) <= 0 or indicator_ttm_sets is None:
+        #     indicator_ttm_sets = pd.DataFrame({'security_code':[], 'NETPROFITCUT':[]})
+        #
+        # for column in columns:
+        #     if column in list(indicator_ttm_sets.keys()):
+        #         indicator_ttm_sets = indicator_ttm_sets.drop(column, axis=1)
+        # indicator_ttm_sets = indicator_ttm_sets.rename(columns={
+        #     'NETPROFITCUT': 'net_profit_cut_pre',  # 扣除非经常性损益的净利润
+        # })
 
         income_ttm_sets = engine.fetch_fundamentals_pit_extend_company_id(IncomeTTM,
                                                                           [IncomeTTM.NETPROFIT,
@@ -218,7 +219,7 @@ class CalcEngine(object):
         })
 
         valuation_ttm_sets = pd.merge(cash_flow_ttm_sets, income_ttm_sets, how='outer', on='security_code')
-        valuation_ttm_sets = pd.merge(valuation_ttm_sets, indicator_ttm_sets, how='outer', on='security_code')
+        # valuation_ttm_sets = pd.merge(valuation_ttm_sets, indicator_ttm_sets, how='outer', on='security_code')
         valuation_ttm_sets = pd.merge(valuation_ttm_sets, income_ttm_sets_3, how='outer', on='security_code')
         valuation_ttm_sets = pd.merge(valuation_ttm_sets, income_ttm_sets_5, how='outer', on='security_code')
 
@@ -329,7 +330,9 @@ class CalcEngine(object):
                 sw_indu = sw_indu.drop(col, axis=1)
         sw_indu = sw_indu[sw_indu['isymbol'].isin(industry_set)]
 
-        valuation_sets = pd.merge(valuation_sets, valuation_report_sets, how='outer', on='security_code')
+
+        # valuation_sets = pd.merge(valuation_sets, indicator_sets, how='outer', on='security_code')
+        valuation_sets = pd.merge(valuation_sets, balance_sets, how='outer', on='security_code')
         valuation_sets = pd.merge(valuation_sets, valuation_mrq, how='outer', on='security_code')
         valuation_sets = pd.merge(valuation_sets, valuation_ttm_sets, how='outer', on='security_code')
 
@@ -348,7 +351,7 @@ class CalcEngine(object):
         factor_historical_value = historical_value.LogofMktValue(valuation_sets, factor_historical_value)
         factor_historical_value = historical_value.LogofNegMktValue(valuation_sets, factor_historical_value)
         factor_historical_value = historical_value.NLSIZE(valuation_sets, factor_historical_value)
-        factor_historical_value = historical_value.MrktCapToCorFreeCashFlow(valuation_sets, factor_historical_value)
+        # factor_historical_value = historical_value.MrktCapToCorFreeCashFlow(valuation_sets, factor_historical_value)
         factor_historical_value = historical_value.PBAvgOnSW1(valuation_sets, sw_industry, factor_historical_value)
         factor_historical_value = historical_value.PBStdOnSW1(valuation_sets, sw_industry, factor_historical_value)
         factor_historical_value = historical_value.PBIndu(valuation_sets, factor_historical_value)
@@ -366,7 +369,7 @@ class CalcEngine(object):
         factor_historical_value = historical_value.LogSalesTTM(valuation_sets, factor_historical_value)
         factor_historical_value = historical_value.PCFToOptCashflowTTM(valuation_sets, factor_historical_value)
         factor_historical_value = historical_value.EPTTM(valuation_sets, factor_historical_value)
-        factor_historical_value = historical_value.PECutTTM(valuation_sets, factor_historical_value)
+        # factor_historical_value = historical_value.PECutTTM(valuation_sets, factor_historical_value)
         factor_historical_value = historical_value.PEAvgOnSW1(valuation_sets, sw_industry, factor_historical_value)
         factor_historical_value = historical_value.PEStdOnSW1(valuation_sets, sw_industry, factor_historical_value)
         factor_historical_value = historical_value.PSAvgOnSW1(valuation_sets, sw_industry, factor_historical_value)
