@@ -24,7 +24,6 @@ class FactorSolvency(object):
     """
     偿债能力
     """
-
     def __init__(self):
         __str__ = 'factor_solvency'
         self.name = '财务指标'
