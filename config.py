@@ -18,7 +18,7 @@ rl_db_host = '39.98.3.182'
 rl_db_port = '3306'
 rl_db_database = 'vision'
 rl_db_user = 'factor_edit'
-rl_db_pwd = 'factor_edit_2019'
+rl_db_pwd = 'tcdept_Factoredit'
 
 pre_db_host = 'db1.irongliang.com'
 pre_db_port = '3306'

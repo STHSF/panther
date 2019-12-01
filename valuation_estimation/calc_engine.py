@@ -18,6 +18,7 @@ from data.model import IncomeTTM
 from vision.db.signletion_engine import *
 from vision.table.valuation import Valuation
 from vision.table.industry import Industry
+from vision.table.sk_daily_price import SkDailyPrice
 from data.sqlengine import sqlEngine
 from utilities.sync_util import SyncUtil
 # pd.set_option('display.max_columns', None)
@@ -223,6 +224,23 @@ class CalcEngine(object):
         valuation_ttm_sets = pd.merge(valuation_ttm_sets, income_ttm_sets_3, how='outer', on='security_code')
         valuation_ttm_sets = pd.merge(valuation_ttm_sets, income_ttm_sets_5, how='outer', on='security_code')
 
+
+        # 流通市值，总市值
+        column = ['trade_date']
+        sk_daily_price_sets = get_fundamentals(query(SkDailyPrice.security_code,
+                                                     SkDailyPrice.trade_date,
+                                                     SkDailyPrice.tot_mkt_cap,
+                                                     SkDailyPrice.circulating_market_cap
+                                                     ).filter(SkDailyPrice.trade_date.in_([trade_date])))
+        if len(sk_daily_price_sets) <= 0 or sk_daily_price_sets is None:
+            sk_daily_price_sets = pd.DataFrame({'security_code': [],
+                                                'tot_mkt_cap': [],
+                                                'circulating_market_cap': []})
+        for col in column:
+            if col in list(sk_daily_price_sets.keys()):
+                sk_daily_price_sets = sk_daily_price_sets.drop(col, axis=1)
+
+
         # PS, PE, PB, PCF
         column = ['trade_date']
         valuation_sets = get_fundamentals(query(Valuation.security_code,
@@ -231,12 +249,13 @@ class CalcEngine(object):
                                                 Valuation.ps,
                                                 Valuation.pb,
                                                 Valuation.pcf,
-                                                Valuation.market_cap,
-                                                Valuation.circulating_market_cap
                                                 ).filter(Valuation.trade_date.in_([trade_date])))
         if len(valuation_sets) <= 0 or valuation_sets is None:
-            valuation_sets = pd.DataFrame({'security_code':[], 'pe':[], 'ps':[], 'pb':[],
-                                           'pcf':[], 'market_cap':[], 'circulating_market_cap':[]})
+            valuation_sets = pd.DataFrame({'security_code': [],
+                                           'pe': [],
+                                           'ps': [],
+                                           'pb': [],
+                                           'pcf': []})
         for col in column:
             if col in list(valuation_sets.keys()):
                 valuation_sets = valuation_sets.drop(col, axis=1)
