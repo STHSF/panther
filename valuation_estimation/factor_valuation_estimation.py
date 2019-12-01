@@ -37,7 +37,7 @@ class FactorValuationEstimation(object):
         self.description = '估值类因子'
 
     @staticmethod
-    def LogofMktValue(valuation_sets, factor_historical_value, dependencies=['tot_mkt_cap']):
+    def LogofMktValue(valuation_sets, factor_historical_value, dependencies=['tot_market_cap']):
         """
         :name: 总市值的对数
         :desc: 市值的对数
@@ -71,7 +71,7 @@ class FactorValuationEstimation(object):
         return factor_historical_value
 
     @staticmethod
-    def NLSIZE(valuation_sets, factor_historical_value, dependencies=['tot_mkt_cap']):
+    def NLSIZE(valuation_sets, factor_historical_value, dependencies=['tot_market_cap']):
         """
         :name: 对数市值立方
         :desc: 对数市值开立方
@@ -88,7 +88,7 @@ class FactorValuationEstimation(object):
         return factor_historical_value
     #
     # @staticmethod
-    # def MrktCapToCorFreeCashFlow(valuation_sets, factor_historical_value, dependencies=['tot_mkt_cap', 'enterprise_fcfps']):
+    # def MrktCapToCorFreeCashFlow(valuation_sets, factor_historical_value, dependencies=['tot_market_cap', 'enterprise_fcfps']):
     #     """
     #     :name: 市值/企业自由现金流
     #     :desc: 总市值/企业自由现金流LYR 企业自由现金流取截止指定日最新年报
@@ -248,7 +248,7 @@ class FactorValuationEstimation(object):
         return factor_historical_value
 
     @staticmethod
-    def MktValue(valuation_sets, factor_historical_value, dependencies=['tot_mkt_cap']):
+    def MktValue(valuation_sets, factor_historical_value, dependencies=['tot_market_cap']):
         """
         :name: 总市值
         :desc: 总市值
@@ -257,7 +257,7 @@ class FactorValuationEstimation(object):
         """
         historical_value = valuation_sets.loc[:, dependencies]
         factor_historical_value = pd.merge(historical_value, factor_historical_value, how='outer', on='security_code')
-        factor_historical_value = factor_historical_value.rename(columns={"tot_mkt_cap": "MktValue"})
+        factor_historical_value = factor_historical_value.rename(columns={"tot_market_cap": "MktValue"})
         return factor_historical_value
 
     @staticmethod
@@ -293,7 +293,7 @@ class FactorValuationEstimation(object):
 
     @staticmethod
     def BMInduAvgOnSW1(valuation_sets, sw_industry, factor_historical_value,
-                                       dependencies=['equities_parent_company_owners', 'tot_mkt_cap']):
+                                       dependencies=['equities_parent_company_owners', 'tot_market_cap']):
         """
         :name: 所属申万一级行业的账面市值比行业均值
         :desc: 所属申万一级行业的账面市值比行业均值 分子取值归属于母公司的股东权益（MRQ）分母取值总市值
@@ -322,7 +322,7 @@ class FactorValuationEstimation(object):
 
     @staticmethod
     def BMInduSTDOnSW1(valuation_sets, sw_industry, factor_historical_value,
-                                       dependencies=['equities_parent_company_owners', 'tot_mkt_cap']):
+                                       dependencies=['equities_parent_company_owners', 'tot_market_cap']):
         """
         :name: 所属申万一级行业的账面市值比行业标准差
         :desc: 所属申万一级行业的账面市值比行业标准差。分子取值归属于母公司的股东权益（MRQ）分母取值总市值
@@ -351,7 +351,7 @@ class FactorValuationEstimation(object):
 
     @staticmethod
     def BookValueToIndu(valuation_sets, factor_historical_value,
-                             dependencies=['equities_parent_company_owners', 'tot_mkt_cap']):
+                             dependencies=['equities_parent_company_owners', 'tot_market_cap']):
         """
         :name: 账面市值比行业相对值
         :desc: （账面市值比/（行业平均账面市值比））/行业账面市值标准差 其中：账面市值比=归属于母公司的股东权益（MRQ）/总市值"
@@ -375,7 +375,7 @@ class FactorValuationEstimation(object):
     def TotalAssetsToEnterpriseValue(valuation_sets, factor_historical_value, dependencies=['total_assets_report',
                                                                                           'shortterm_loan',
                                                                                           'longterm_loan',
-                                                                                          'tot_mkt_cap',
+                                                                                          'tot_market_cap',
                                                                                           'cash_and_equivalents_at_end',
                                                                                           ]):
         """
@@ -418,7 +418,7 @@ class FactorValuationEstimation(object):
         return factor_historical_value
 
     @staticmethod
-    def PCFToOptCashflowTTM(valuation_sets, factor_historical_value, dependencies=['tot_mkt_cap', 'net_operate_cash_flow']):
+    def PCFToOptCashflowTTM(valuation_sets, factor_historical_value, dependencies=['tot_market_cap', 'net_operate_cash_flow']):
         """
         :name: 市现率PCF(经营现金流TTM)
         :desc: 市现率PCF(经营现金流TTM)
@@ -435,7 +435,7 @@ class FactorValuationEstimation(object):
         return factor_historical_value
 
     @staticmethod
-    def EPTTM(valuation_sets, factor_historical_value, dependencies=['net_profit', 'tot_mkt_cap']):
+    def EPTTM(valuation_sets, factor_historical_value, dependencies=['net_profit', 'tot_market_cap']):
         """
         :name: 收益市值比
         :desc: 净利润TTM/总市值
@@ -444,16 +444,16 @@ class FactorValuationEstimation(object):
         """
         historical_value = valuation_sets.loc[:, dependencies]
 
-        historical_value['EPTTM'] = np.where(CalcTools.is_zero(historical_value['tot_mkt_cap']), 0,
+        historical_value['EPTTM'] = np.where(CalcTools.is_zero(historical_value['tot_market_cap']), 0,
                                              historical_value['net_profit'] /
-                                             historical_value['tot_mkt_cap'])
+                                             historical_value['tot_market_cap'])
         historical_value = historical_value.drop(columns=dependencies, axis=1)
         factor_historical_value = pd.merge(factor_historical_value, historical_value, how='outer', on="security_code")
         # factor_historical_value['EPTTM'] = historical_value['EPTTM']
         return factor_historical_value
 
     # @staticmethod
-    # def PECutTTM(valuation_sets, factor_historical_value, dependencies=['tot_mkt_cap', 'net_profit_cut_pre']):
+    # def PECutTTM(valuation_sets, factor_historical_value, dependencies=['tot_market_cap', 'net_profit_cut_pre']):
     #     """
     #     :name: 市盈率PE(TTM)（扣除）
     #     :desc: "扣非后的市盈率（TTM）=总市值/前推12个月扣除非经常性损益后的净利润 注：扣除非经常性损益后的净利润（TTM根据报告期扣除非经常性损益后的净利润”计算"
@@ -463,7 +463,7 @@ class FactorValuationEstimation(object):
     #     historical_value = valuation_sets.loc[:, dependencies]
     #
     #     historical_value['PECutTTM'] = np.where(CalcTools.is_zero(historical_value['net_profit_cut_pre']), 0,
-    #                                             historical_value['tot_mkt_cap'] /
+    #                                             historical_value['tot_market_cap'] /
     #                                             historical_value['net_profit_cut_pre'])
     #
     #     # factor_historical_value['PECutTTM'] = historical_value['PECutTTM']
@@ -651,7 +651,7 @@ class FactorValuationEstimation(object):
 
     @staticmethod
     def TotalMrktAVGToEBIDAOnSW1(valuation_sets, sw_industry, factor_historical_value,
-                                dependencies=['tot_mkt_cap', 'total_profit']):
+                                dependencies=['tot_market_cap', 'total_profit']):
         """
         :name: 所属申万一级行业的总市值/息税折旧及摊销前利润TTM均值
         :desc: 所属申万一级行业的总市值/息税折旧及摊销前利润TTM均值   分子取值总市值，分母取值息税折旧及摊销前利润TTM（反推法
@@ -680,7 +680,7 @@ class FactorValuationEstimation(object):
 
     @staticmethod
     def TotalMrktSTDToEBIDAOnSW1(valuation_sets, sw_industry, factor_historical_value,
-                                dependencies=['tot_mkt_cap', 'total_profit']):
+                                dependencies=['tot_market_cap', 'total_profit']):
         """
         :name: 所属申万一级行业的总市值/息税折旧及摊销前利润TTM标准差
         :desc: 所属申万一级行业的总市值/息税折旧及摊销前利润TTM标准差    分子取值总市值，分母取值息税折旧及摊销前利润TTM（反推法）
@@ -708,7 +708,7 @@ class FactorValuationEstimation(object):
 
     @staticmethod
     def TotalMrktToEBIDATTM(valuation_sets, factor_historical_value,
-                                     dependencies=['tot_mkt_cap', 'total_profit']):
+                                     dependencies=['tot_market_cap', 'total_profit']):
 
         """
         :name: 总市值/息税折旧及摊销前利润TTM行业相对值
@@ -767,7 +767,7 @@ class FactorValuationEstimation(object):
         return factor_historical_value
 
     @staticmethod
-    def CEToPTTM(valuation_sets, factor_historical_value, dependencies=['net_operate_cash_flow', 'tot_mkt_cap']):
+    def CEToPTTM(valuation_sets, factor_historical_value, dependencies=['net_operate_cash_flow', 'tot_market_cap']):
         """
 
         :name: 现金收益滚动收益与市值比
@@ -777,9 +777,9 @@ class FactorValuationEstimation(object):
         """
         historical_value = valuation_sets.loc[:, dependencies]
 
-        historical_value['CEToPTTM'] = np.where(CalcTools.is_zero(historical_value['tot_mkt_cap']), 0,
+        historical_value['CEToPTTM'] = np.where(CalcTools.is_zero(historical_value['tot_market_cap']), 0,
                                                 historical_value['net_operate_cash_flow'] /
-                                                historical_value['tot_mkt_cap'])
+                                                historical_value['tot_market_cap'])
 
         historical_value = historical_value.drop(columns=dependencies, axis=1)
         factor_historical_value = pd.merge(factor_historical_value, historical_value, how='outer', on="security_code")
@@ -788,7 +788,7 @@ class FactorValuationEstimation(object):
 
     @staticmethod
     def RevToMrktRatioTTM(valuation_sets, factor_historical_value, dependencies=['operating_revenue',
-                                                                                           'tot_mkt_cap']):
+                                                                                           'tot_market_cap']):
         """
         :name: 营收市值比(TTM)
         :desc: 营业收入（TTM）/总市值
@@ -797,9 +797,9 @@ class FactorValuationEstimation(object):
         """
         historical_value = valuation_sets.loc[:, dependencies]
 
-        historical_value['RevToMrktRatioTTM'] = np.where(CalcTools.is_zero(historical_value['tot_mkt_cap']), 0,
+        historical_value['RevToMrktRatioTTM'] = np.where(CalcTools.is_zero(historical_value['tot_market_cap']), 0,
                                                 historical_value['operating_revenue'] /
-                                                historical_value['tot_mkt_cap'])
+                                                historical_value['tot_market_cap'])
 
         historical_value = historical_value.drop(columns=dependencies, axis=1)
         factor_historical_value = pd.merge(factor_historical_value, historical_value, how='outer', on="security_code")
@@ -809,7 +809,7 @@ class FactorValuationEstimation(object):
     def OptIncToEnterpriseValueTTM(valuation_sets, factor_historical_value, dependencies=['operating_revenue',
                                                                                            'shortterm_loan',
                                                                                            'longterm_loan',
-                                                                                           'tot_mkt_cap',
+                                                                                           'tot_market_cap',
                                                                                            'cash_and_equivalents_at_end',
                                                                                            ]):
         """

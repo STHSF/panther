@@ -229,12 +229,12 @@ class CalcEngine(object):
         column = ['trade_date']
         sk_daily_price_sets = get_fundamentals(query(SkDailyPrice.security_code,
                                                      SkDailyPrice.trade_date,
-                                                     SkDailyPrice.tot_mkt_cap,
+                                                     SkDailyPrice.tot_market_cap,
                                                      SkDailyPrice.circulating_market_cap
                                                      ).filter(SkDailyPrice.trade_date.in_([trade_date])))
         if len(sk_daily_price_sets) <= 0 or sk_daily_price_sets is None:
             sk_daily_price_sets = pd.DataFrame({'security_code': [],
-                                                'tot_mkt_cap': [],
+                                                'tot_market_cap': [],
                                                 'circulating_market_cap': []})
         for col in column:
             if col in list(sk_daily_price_sets.keys()):
