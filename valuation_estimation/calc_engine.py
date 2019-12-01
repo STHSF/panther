@@ -349,8 +349,8 @@ class CalcEngine(object):
                 sw_indu = sw_indu.drop(col, axis=1)
         sw_indu = sw_indu[sw_indu['isymbol'].isin(industry_set)]
 
-
         # valuation_sets = pd.merge(valuation_sets, indicator_sets, how='outer', on='security_code')
+        valuation_sets = pd.merge(valuation_sets, sk_daily_price_sets, how='outer', on='security_code')
         valuation_sets = pd.merge(valuation_sets, balance_sets, how='outer', on='security_code')
         valuation_sets = pd.merge(valuation_sets, valuation_mrq, how='outer', on='security_code')
         valuation_sets = pd.merge(valuation_sets, valuation_ttm_sets, how='outer', on='security_code')
