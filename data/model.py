@@ -204,7 +204,7 @@ class CashFlowMRQ(Base):
     LABORGETCASH = Column(Float(53))
     MINYSHARRIGH = Column(Float(53))
     INCOTAXEXPE = Column(Float(53))
-    ASSEDPR = Column(Float(53))
+    ASSEDEPR = Column(Float(53))
     INTAASSEAMOR = Column(Float(53))
     LONGDEFEEXPENAMOR = Column(Float(53))
     TMSTAMP = Column(Integer)
@@ -237,7 +237,7 @@ class CashFlowTTM(Base):
     LABORGETCASH = Column(Float(53))
     MINYSHARRIGH = Column(Float(53))
     INCOTAXEXPE = Column(Float(53))
-    ASSEDPR = Column(Float(53))
+    ASSEDEPR = Column(Float(53))
     INTAASSEAMOR = Column(Float(53))
     LONGDEFEEXPENAMOR = Column(Float(53))
     TMSTAMP = Column(Integer)
@@ -270,7 +270,7 @@ class CashFlowReport(Base):
     LABORGETCASH = Column(DECIMAL(19, 4))
     MINYSHARRIGH = Column(Float(53))
     INCOTAXEXPE = Column(Float(53))
-    ASSEDPR = Column(Float(53))
+    ASSEDEPR = Column(Float(53))
     INTAASSEAMOR = Column(Float(53))
     LONGDEFEEXPENAMOR = Column(Float(53))
 
@@ -415,6 +415,60 @@ class IncomeReport(Base):
 
 class IndicatorReport(Base):
     __tablename__ = 'indicator_report'
+    __table_args__ = {"useexisting": True}
+    ID = Column(VARCHAR(32), primary_key=True)
+    COMPCODE = Column(BigInteger)
+    PUBLISHDATE = Column(DATE)
+    ENDDATE = Column(DATE)
+    REPORTTYPE = Column(Integer)
+    REPORTYEAR = Column(Integer)
+    REPORTDATETYPE = Column(Integer)
+    ENDPUBLISHDATE = Column(DATE)
+    NPCUT = Column(Float(53))
+    EPSFULLDILUTED = Column(Float(53))
+    EPSBASIC = Column(Float(53))
+    EPSBASICEPSCUT = Column(Float(53))
+    ROEWEIGHTED = Column(Float(53))
+    ROEWEIGHTEDCUT = Column(Float(53))
+    EPSFULLDILUTEDCUT = Column(Float(53))
+    TMSTAMP = Column(Integer)
+    creat_time = Column(DATE)
+    update_time = Column(DATE)
+    __pit_column__ = {
+        'pub_date': PUBLISHDATE,
+        'filter_date': ENDDATE,
+        'index': COMPCODE
+    }
+
+class IndicatorMRQ(Base):
+    __tablename__ = 'indicator_mrq'
+    __table_args__ = {"useexisting": True}
+    ID = Column(VARCHAR(32), primary_key=True)
+    COMPCODE = Column(BigInteger)
+    PUBLISHDATE = Column(DATE)
+    ENDDATE = Column(DATE)
+    REPORTTYPE = Column(Integer)
+    REPORTYEAR = Column(Integer)
+    REPORTDATETYPE = Column(Integer)
+    ENDPUBLISHDATE = Column(DATE)
+    NPCUT = Column(Float(53))
+    EPSFULLDILUTED = Column(Float(53))
+    EPSBASIC = Column(Float(53))
+    EPSBASICEPSCUT = Column(Float(53))
+    ROEWEIGHTED = Column(Float(53))
+    ROEWEIGHTEDCUT = Column(Float(53))
+    EPSFULLDILUTEDCUT = Column(Float(53))
+    TMSTAMP = Column(Integer)
+    creat_time = Column(DATE)
+    update_time = Column(DATE)
+    __pit_column__ = {
+        'pub_date': PUBLISHDATE,
+        'filter_date': ENDDATE,
+        'index': COMPCODE
+    }
+
+class IndicatorTTM(Base):
+    __tablename__ = 'indicator_ttm'
     __table_args__ = {"useexisting": True}
     ID = Column(VARCHAR(32), primary_key=True)
     COMPCODE = Column(BigInteger)
