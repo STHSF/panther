@@ -348,13 +348,14 @@ class CalcEngine(object):
             if col in list(sw_indu.keys()):
                 sw_indu = sw_indu.drop(col, axis=1)
         sw_indu = sw_indu[sw_indu['isymbol'].isin(industry_set)]
-
         # valuation_sets = pd.merge(valuation_sets, indicator_sets, how='outer', on='security_code')
         valuation_sets = pd.merge(valuation_sets, sk_daily_price_sets, how='outer', on='security_code')
         valuation_sets = pd.merge(valuation_sets, balance_sets, how='outer', on='security_code')
         valuation_sets = pd.merge(valuation_sets, valuation_mrq, how='outer', on='security_code')
         valuation_sets = pd.merge(valuation_sets, valuation_ttm_sets, how='outer', on='security_code')
 
+        valuation_sets['tot_market_cap'] = valuation_sets['tot_market_cap'] * 10000
+        valuation_sets['circulating_market_cap'] = valuation_sets['circulating_market_cap'] * 10000
         return valuation_sets, sw_indu, pe_sets
 
     def process_calc_factor(self, trade_date, valuation_sets, pe_sets, sw_industry):
