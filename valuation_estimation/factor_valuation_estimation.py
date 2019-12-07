@@ -455,6 +455,7 @@ class FactorValuationEstimation(object):
     # @staticmethod
     # def PECutTTM(valuation_sets, factor_historical_value, dependencies=['tot_market_cap', 'net_profit_cut_pre']):
     #     """
+    #     缺少扣除非经常性损益的净利润TTM
     #     :name: 市盈率PE(TTM)（扣除）
     #     :desc: "扣非后的市盈率（TTM）=总市值/前推12个月扣除非经常性损益后的净利润 注：扣除非经常性损益后的净利润（TTM根据报告期扣除非经常性损益后的净利润”计算"
     #     :unit: 倍
@@ -730,7 +731,7 @@ class FactorValuationEstimation(object):
         return factor_historical_value
 
     @staticmethod
-    def PEG3YChgTTM(valuation_sets, factor_historical_value, dependencies=['pe', 'np_parent_company_owners', 'np_parent_company_owners_3']):
+    def PEG3YTTM(valuation_sets, factor_historical_value, dependencies=['pe', 'np_parent_company_owners', 'np_parent_company_owners_3']):
         """
         :name: PEG3 年复合增长率(TTM)
         :desc: 市盈率/归属于母公司所有者净利润 3 年复合增长率
@@ -741,14 +742,14 @@ class FactorValuationEstimation(object):
 
         tmp = np.where(CalcTools.is_zero(historical_value['np_parent_company_owners_3']), 0,
                        (historical_value['np_parent_company_owners'] / historical_value['np_parent_company_owners_3']))
-        historical_value['PEG3YChgTTM'] = tmp / abs(tmp) * pow(abs(tmp), 1 / 3.0) - 1
+        historical_value['PEG5YTTM'] = tmp / abs(tmp) * pow(abs(tmp), 1 / 3.0) - 1
 
         historical_value = historical_value.drop(columns=dependencies, axis=1)
         factor_historical_value = pd.merge(factor_historical_value, historical_value, how='outer', on="security_code")
         return factor_historical_value
 
     @staticmethod
-    def PEG5YChgTTM(valuation_sets, factor_historical_value, dependencies=['pe', 'np_parent_company_owners', 'np_parent_company_owners_5']):
+    def PEG5YTTM(valuation_sets, factor_historical_value, dependencies=['pe', 'np_parent_company_owners', 'np_parent_company_owners_5']):
         """
         :name: PEG5 年复合增长率(TTM)
         :desc: 市盈率/归属于母公司所有者净利润 5 年复合增长率
@@ -759,7 +760,7 @@ class FactorValuationEstimation(object):
 
         tmp = np.where(CalcTools.is_zero(historical_value['np_parent_company_owners_5']), 0,
                        (historical_value['np_parent_company_owners'] / historical_value['np_parent_company_owners_5']))
-        historical_value['PEG5YChgTTM'] = tmp / abs(tmp) * pow(abs(tmp), 1 / 5.0) - 1
+        historical_value['PEG5YTTM'] = tmp / abs(tmp) * pow(abs(tmp), 1 / 5.0) - 1
 
         historical_value = historical_value.drop(columns=dependencies, axis=1)
         factor_historical_value = pd.merge(factor_historical_value, historical_value, how='outer', on="security_code")

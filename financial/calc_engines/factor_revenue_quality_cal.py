@@ -238,7 +238,7 @@ class CalcEngine(object):
         factor_revenue = revenue_quality.OptCFToCurrLiabilityTTM(ttm_revenue_quanlity, factor_revenue)
         factor_revenue = revenue_quality.OPToTPTTM(ttm_revenue_quanlity, factor_revenue)
         factor_revenue = revenue_quality.PriceToRevRatioTTM(ttm_revenue_quanlity, factor_revenue)
-        factor_revenue = revenue_quality.NVALCHGITOTP(ttm_revenue_quanlity, factor_revenue)
+        # factor_revenue = revenue_quality.NetInToTPTTM(ttm_revenue_quanlity, factor_revenue)
         factor_revenue = revenue_quality.PftMarginTTM(ttm_revenue_quanlity, factor_revenue)
         factor_revenue = revenue_quality.PriceToRevRatioAvg5YTTM(ttm_revenue_quanlity, factor_revenue)
         factor_revenue = factor_revenue.reset_index()

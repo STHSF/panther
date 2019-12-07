@@ -127,7 +127,7 @@ class FactorRevenueQuality(object):
         return revenue_quality
 
     # @staticmethod
-    # def NVALCHGITOTP(ttm_revenue_quanlity, revenue_quality, dependencies=['NVALCHGITOTP']):
+    # def NetInToTPTTM(ttm_revenue_quanlity, revenue_quality, dependencies=['NVALCHGITOTP']):
     #     """
     #     :name: 价值变动净收益/利润总额(TTM)
     #     :desc: 价值变动净收益（TTM)/利润总额（TTM)

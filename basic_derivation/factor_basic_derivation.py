@@ -140,7 +140,6 @@ class FactorBasicDerivation(object):
     #                                                                    'LOGPREPEXPE',
     #                                                                    'DEFETAXASSET']):
     #     """
-    #     缺少开发支出
     #     :name: 有形资产(MRQ)
     #     :desc: 股东权益（不含少数股东权益）-无形资产+开发支出+商誉+长期待摊费用+递延所得税资产）
     #     """
@@ -603,6 +602,7 @@ class FactorBasicDerivation(object):
     # @staticmethod
     # def NetIncFromValueChgTTM(tp_derivation, factor_derivation, dependencies=['NVALCHGIT']):
     #     """
+    #     缺公允价值变动净收益+投资净收益+汇兑净收益
     #     :name: 价值变动净收益(TTM)
     #     :desc: 公允价值变动净收益+投资净收益+汇兑净收益
     #     :unit: 元
@@ -648,11 +648,10 @@ class FactorBasicDerivation(object):
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
 
-    # @staticmethod
+    @staticmethod
     # def EBITTTM(tp_derivation, factor_derivation, dependencies=['TOTPROFIT',
     #                                                             'INTEEXPE']):
     #     """
-    #     缺失利息支出
     #     :name: 息税前利润(TTM)
     #     :desc: [EBIT_反推]息税前利润=利润总额+利息支出
     #     :unit: 元

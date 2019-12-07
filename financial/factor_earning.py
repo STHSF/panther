@@ -38,7 +38,7 @@ class FactorEarning(object):
         self.description = '财务指标的二级指标-盈利能力'
 
     @staticmethod
-    def _Rev5YChg(tp_earning, factor_earning, dependencies=['operating_revenue',
+    def Rev5YChg(tp_earning, factor_earning, dependencies=['operating_revenue',
                                                             'operating_revenue_pre_year_1',
                                                             'operating_revenue_pre_year_2',
                                                             'operating_revenue_pre_year_3',
@@ -140,11 +140,11 @@ class FactorEarning(object):
         return factor_earning
 
     @staticmethod
-    def _DGPR(ttm_earning, ttm_earning_p1y, factor_earning, dependencies=['operating_revenue', 'operating_cost']):
+    def DGPR(ttm_earning, ttm_earning_p1y, factor_earning, dependencies=['operating_revenue', 'operating_cost']):
         """
         毛利率增长率，与去年同期相比
-        :name:
-        :desc:
+        :name:毛利率增长率
+        :desc:毛利率增长率，与去年同期相比
         :unit:
         :view_dimension: 0.01
         """
@@ -407,7 +407,7 @@ class FactorEarning(object):
         return factor_earning
 
     @staticmethod
-    def AdminExpTTM(ttm_earning, factor_earning, dependencies=['administration_expense', 'total_operating_revenue']):
+    def AdminExpRtTTM(ttm_earning, factor_earning, dependencies=['administration_expense', 'total_operating_revenue']):
         """
         :name: 管理费用与营业总收入之比
         :desc: 管理费用/营业总收入
@@ -415,7 +415,7 @@ class FactorEarning(object):
         :view_dimension: 0.01
         """
         constrains = ttm_earning.loc[:, dependencies]
-        constrains['AdminExpTTM'] = np.where(
+        constrains['AdminExpRtTTM'] = np.where(
             CalcTools.is_zero(constrains['total_operating_revenue']), 0,
             constrains['administration_expense'] / constrains['total_operating_revenue']
         )
@@ -468,7 +468,7 @@ class FactorEarning(object):
         return factor_earning
 
     @staticmethod
-    def SalesCostTTM(ttm_earning, factor_earning, dependencies=['operating_cost', 'operating_revenue']):
+    def CostRtTTM(ttm_earning, factor_earning, dependencies=['operating_cost', 'operating_revenue']):
         """
         :name: 销售成本率(TTM)
         :desc: 营业成本(TTM)/营业收入(TTM)
@@ -476,7 +476,7 @@ class FactorEarning(object):
         :view_dimension: 0.01
         """
         constrains = ttm_earning.loc[:, dependencies]
-        constrains['SalesCostTTM'] = np.where(
+        constrains['CostRtTTM'] = np.where(
             CalcTools.is_zero(constrains['operating_revenue']),
             0, constrains['operating_cost'] / constrains['operating_revenue']
         )
@@ -521,7 +521,7 @@ class FactorEarning(object):
         return factor_earning
 
     @staticmethod
-    def FinExpTTM(ttm_earning, factor_earning, dependencies=['financial_expense', 'total_operating_cost']):
+    def FinExpRtTTM(ttm_earning, factor_earning, dependencies=['financial_expense', 'total_operating_cost']):
         """
         :name: 财务费用与营业总收入之比(TTM)
         :desc: 财务费用(TTM)/营业总收入(TTM)
@@ -529,7 +529,7 @@ class FactorEarning(object):
         :view_dimension: 0.01
         """
         constrains = ttm_earning.loc[:, dependencies]
-        constrains['FinExpTTM'] = np.where(
+        constrains['FinExpRtTTM'] = np.where(
             CalcTools.is_zero(constrains['total_operating_cost']), 0,
             constrains['financial_expense'] / constrains['total_operating_cost']
         )
@@ -590,7 +590,7 @@ class FactorEarning(object):
         return factor_earning
 
     @staticmethod
-    def NetNonOToTP(ttm_earning, factor_earning,
+    def NetNonOiToTP(ttm_earning, factor_earning,
                      dependencies=['total_operating_cost', 'total_operating_revenue']):
         """
         :name: 营业总成本/营业总收入(TTM)
@@ -600,7 +600,7 @@ class FactorEarning(object):
         """
         constrains = ttm_earning.loc[:, dependencies]
         func = lambda x: x[0] / x[1] if x[1] is not None and x[1] != 0 else None
-        constrains['NetNonOToTP'] = constrains.apply(func, axis=1)
+        constrains['NetNonOiToTP'] = constrains.apply(func, axis=1)
 
         constrains = constrains.drop(columns=dependencies, axis=1)
         factor_earning = pd.merge(factor_earning, constrains, how='outer', on="security_code")
@@ -639,7 +639,7 @@ class FactorEarning(object):
         return factor_earning
 
     @staticmethod
-    def OperExpRtTTM(ttm_earning, factor_earning, dependencies=['sale_expense', 'total_operating_cost', 'total_operating_revenue']):
+    def ExpRtTTM(ttm_earning, factor_earning, dependencies=['sale_expense', 'total_operating_cost', 'total_operating_revenue']):
         """
         :name: 营业费用率(TTM)
         :desc: 营业费用与营业总收入之比=销售费用(TTM)/营业总收入(TTM)
@@ -647,7 +647,7 @@ class FactorEarning(object):
         :view_dimension: 0.01
         """
         constrains = ttm_earning.loc[:, dependencies]
-        constrains['OperExpRtTTM'] = np.where(
+        constrains['ExpRtTTM'] = np.where(
             CalcTools.is_zero(constrains['total_operating_cost']), 0,
             constrains['sale_expense'] / constrains['total_operating_revenue']
         )
