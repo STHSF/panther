@@ -48,7 +48,7 @@ class CalcEngine(object):
         engine = sqlEngine()
         cash_flow_sets = engine.fetch_fundamentals_pit_extend_company_id(CashFlowMRQ,
                                                                          [CashFlowMRQ.FINALCASHBALA,
-                                                                          # CashFlowMRQ.ASSEDPR,
+                                                                          CashFlowMRQ.ASSEDEPR,
                                                                           CashFlowMRQ.INTAASSEAMOR,
                                                                           CashFlowMRQ.LONGDEFEEXPENAMOR,
                                                                           ], dates=[trade_date])
