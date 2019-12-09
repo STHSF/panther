@@ -149,6 +149,7 @@ class CalcEngine(object):
                                                                            IncomeTTM.PERPROFIT,
                                                                            IncomeTTM.NETPROFIT,
                                                                            IncomeTTM.BIZINCO,
+                                                                           IncomeTTM.VALUECHGLOSS, # 公允价值变动收益
                                                                            ], dates=[trade_date])
         for col in columns:
             if col in list(income_ttm_sets.keys()):
@@ -238,7 +239,7 @@ class CalcEngine(object):
         factor_revenue = revenue_quality.OptCFToCurrLiabilityTTM(ttm_revenue_quanlity, factor_revenue)
         factor_revenue = revenue_quality.OPToTPTTM(ttm_revenue_quanlity, factor_revenue)
         factor_revenue = revenue_quality.PriceToRevRatioTTM(ttm_revenue_quanlity, factor_revenue)
-        # factor_revenue = revenue_quality.NetInToTPTTM(ttm_revenue_quanlity, factor_revenue)
+        factor_revenue = revenue_quality.NetInToTPTTM(ttm_revenue_quanlity, factor_revenue)
         factor_revenue = revenue_quality.PftMarginTTM(ttm_revenue_quanlity, factor_revenue)
         factor_revenue = revenue_quality.PriceToRevRatioAvg5YTTM(ttm_revenue_quanlity, factor_revenue)
         factor_revenue = factor_revenue.reset_index()
