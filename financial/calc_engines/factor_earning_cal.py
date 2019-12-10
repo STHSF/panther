@@ -184,37 +184,6 @@ class CalcEngine(object):
                                                                         })
         tp_earning = pd.merge(income_sets_pre_year_4, tp_earning, how='outer', on='security_code')
 
-        # MRQ
-        balance_mrq_sets = engine.fetch_fundamentals_pit_extend_company_id(BalanceMRQ,
-                                                                           [BalanceMRQ.TOTASSET,  # 资产总计
-                                                                            BalanceMRQ.PARESHARRIGH,  # 归属于母公司股东权益合计
-                                                                            BalanceMRQ.RIGHAGGR,  # 所有者权益（或股东权益）合计
-                                                                            BalanceMRQ.LONGBORR,  # 长期借款
-                                                                            ], dates=[trade_date])
-        for column in columns:
-            if column in list(balance_mrq_sets.keys()):
-                balance_mrq_sets = balance_mrq_sets.drop(column, axis=1)
-        balance_mrq_sets = balance_mrq_sets.rename(columns={'TOTASSET': 'total_assets_mrq',
-                                                            'PARESHARRIGH': 'equities_parent_company_owners_mrq',
-                                                            # 归属于母公司股东权益合计
-                                                            'RIGHAGGR': 'total_owner_equities_mrq',  # 所有者权益（或股东权益）合计
-                                                            'LONGBORR': 'longterm_loan_mrq',  # 长期借款
-                                                            })
-
-        balance_mrq_sets_pre = engine.fetch_fundamentals_pit_extend_company_id(BalanceMRQ,
-                                                                               [BalanceMRQ.TOTASSET,  # 资产总计
-                                                                                BalanceMRQ.RIGHAGGR,  # 所有者权益(或股东权益)合计
-                                                                                BalanceMRQ.LONGBORR,  # 长期借款
-                                                                                ], dates=[trade_date])
-        for column in columns:
-            if column in list(balance_mrq_sets_pre.keys()):
-                balance_mrq_sets_pre = balance_mrq_sets_pre.drop(column, axis=1)
-        balance_mrq_sets_pre = balance_mrq_sets_pre.rename(columns={'TOTASSET': 'total_assets_mrq_pre',
-                                                                    'RIGHAGGR': 'total_owner_equities_mrq_pre',
-                                                                    # 所有者权益（或股东权益）合计
-                                                                    'LONGBORR': 'longterm_loan_mrq_pre',  # 长期借款
-                                                                    })
-
         # TTM Data
         cash_flow_ttm_sets = engine.fetch_fundamentals_pit_extend_company_id(CashFlowTTM,
                                                                              [CashFlowTTM.FINNETCFLOW,
@@ -261,6 +230,7 @@ class CalcEngine(object):
                                                           'BIZTAX': 'operating_tax_surcharges',  # 营业税金及附加
                                                           'ASSEIMPALOSS': 'asset_impairment_loss',  # 资产减值损失
                                                           })
+        ttm_earning = pd.merge(income_ttm_sets, cash_flow_ttm_sets, how='outer', on='security_code')
 
         balance_ttm_sets = engine.fetch_fundamentals_pit_extend_company_id(BalanceTTM,
                                                                            [BalanceTTM.TOTASSET,  # 资产总计
@@ -275,6 +245,7 @@ class CalcEngine(object):
                      'RIGHAGGR': 'total_owner_equities',  # 所有者权益（或股东权益）合计
                      'TOTASSET': 'total_assets',  # 资产总计
                      })
+        ttm_earning = pd.merge(ttm_earning, balance_ttm_sets, how='outer', on='security_code')
 
         income_ttm_sets_pre_year_1 = engine.fetch_fundamentals_pit_extend_company_id(IncomeTTM,
                                                                                      [IncomeTTM.BIZINCO,
@@ -287,6 +258,7 @@ class CalcEngine(object):
             columns={'BIZINCO': 'operating_revenue_pre_year_1',  # 营业收入
                      'NETPROFIT': 'net_profit_pre_year_1',  # 净利润
                      })
+        ttm_earning = pd.merge(ttm_earning, income_ttm_sets_pre_year_1, how='outer', on='security_code')
 
         income_ttm_sets_pre_year_2 = engine.fetch_fundamentals_pit_extend_company_id(IncomeTTM,
                                                                                      [IncomeTTM.BIZINCO,
@@ -299,6 +271,7 @@ class CalcEngine(object):
             columns={'BIZINCO': 'operating_revenue_pre_year_2',  # 营业收入
                      'NETPROFIT': 'net_profit_pre_year_2',  # 净利润
                      })
+        ttm_earning = pd.merge(ttm_earning, income_ttm_sets_pre_year_2, how='outer', on='security_code')
 
         income_ttm_sets_pre_year_3 = engine.fetch_fundamentals_pit_extend_company_id(IncomeTTM,
                                                                                      [IncomeTTM.BIZINCO,
@@ -311,6 +284,7 @@ class CalcEngine(object):
             columns={'BIZINCO': 'operating_revenue_pre_year_3',  # 营业收入
                      'NETPROFIT': 'net_profit_pre_year_3',  # 净利润
                      })
+        ttm_earning = pd.merge(ttm_earning, income_ttm_sets_pre_year_3, how='outer', on='security_code')
 
         income_ttm_sets_pre_year_4 = engine.fetch_fundamentals_pit_extend_company_id(IncomeTTM,
                                                                                      [IncomeTTM.BIZINCO,
@@ -323,21 +297,45 @@ class CalcEngine(object):
             columns={'BIZINCO': 'operating_revenue_pre_year_4',  # 营业收入
                      'NETPROFIT': 'net_profit_pre_year_4',  # 净利润
                      })
+        ttm_earning = pd.merge(ttm_earning, income_ttm_sets_pre_year_4, how='outer', on='security_code')
 
         # indicator_ttm_sets = engine.fetch_fundamentals_pit_extend_company_id(IndicatorTTM,
         #                                                                      [IndicatorTTM.ROIC,   # 投入资本回报率
         #                                                                       ], dates=[trade_date]).drop(columns, axis=1)
-        #
         # indicator_ttm_sets = indicator_ttm_sets.rename(columns={'ROIC': '',
         #                                                         })
 
-        ttm_earning = pd.merge(income_ttm_sets, balance_ttm_sets, how='outer', on='security_code')
-        ttm_earning = pd.merge(ttm_earning, cash_flow_ttm_sets, how='outer', on='security_code')
-        ttm_earning = pd.merge(ttm_earning, income_ttm_sets_pre_year_1, how='outer', on='security_code')
-        ttm_earning = pd.merge(ttm_earning, income_ttm_sets_pre_year_2, how='outer', on='security_code')
-        ttm_earning = pd.merge(ttm_earning, income_ttm_sets_pre_year_3, how='outer', on='security_code')
-        ttm_earning = pd.merge(ttm_earning, income_ttm_sets_pre_year_4, how='outer', on='security_code')
+        # MRQ
+        balance_mrq_sets = engine.fetch_fundamentals_pit_extend_company_id(BalanceMRQ,
+                                                                           [BalanceMRQ.TOTASSET,  # 资产总计
+                                                                            BalanceMRQ.PARESHARRIGH,  # 归属于母公司股东权益合计
+                                                                            BalanceMRQ.RIGHAGGR,  # 所有者权益（或股东权益）合计
+                                                                            BalanceMRQ.LONGBORR,  # 长期借款
+                                                                            ], dates=[trade_date])
+        for column in columns:
+            if column in list(balance_mrq_sets.keys()):
+                balance_mrq_sets = balance_mrq_sets.drop(column, axis=1)
+        balance_mrq_sets = balance_mrq_sets.rename(columns={'TOTASSET': 'total_assets_mrq',
+                                                            'PARESHARRIGH': 'equities_parent_company_owners_mrq',
+                                                            # 归属于母公司股东权益合计
+                                                            'RIGHAGGR': 'total_owner_equities_mrq',  # 所有者权益（或股东权益）合计
+                                                            'LONGBORR': 'longterm_loan_mrq',  # 长期借款
+                                                            })
         ttm_earning = pd.merge(ttm_earning, balance_mrq_sets, how='outer', on='security_code')
+
+        balance_mrq_sets_pre = engine.fetch_fundamentals_pit_extend_company_id(BalanceMRQ,
+                                                                               [BalanceMRQ.TOTASSET,  # 资产总计
+                                                                                BalanceMRQ.RIGHAGGR,  # 所有者权益(或股东权益)合计
+                                                                                BalanceMRQ.LONGBORR,  # 长期借款
+                                                                                ], dates=[trade_date])
+        for column in columns:
+            if column in list(balance_mrq_sets_pre.keys()):
+                balance_mrq_sets_pre = balance_mrq_sets_pre.drop(column, axis=1)
+        balance_mrq_sets_pre = balance_mrq_sets_pre.rename(columns={'TOTASSET': 'total_assets_mrq_pre',
+                                                                    'RIGHAGGR': 'total_owner_equities_mrq_pre',
+                                                                    # 所有者权益（或股东权益）合计
+                                                                    'LONGBORR': 'longterm_loan_mrq_pre',  # 长期借款
+                                                                    })
         ttm_earning = pd.merge(ttm_earning, balance_mrq_sets_pre, how='outer', on='security_code')
 
         balance_con_sets = engine.fetch_fundamentals_pit_extend_company_id(BalanceTTM,
@@ -427,7 +425,7 @@ class CalcEngine(object):
         earning_sets['security_code'] = tp_earning.index
         earning_sets = earning_sets.set_index('security_code')
         # MRQ
-        earning_sets = earning.Rev5YChg(ttm_earning_5y, earning_sets)
+        earning_sets = earning.Rev5YChg(tp_earning, earning_sets)
         earning_sets = earning.ROA5YChg(ttm_earning_5y, earning_sets)
         earning_sets = earning.ROE5Y(ttm_earning_5y, earning_sets)
         earning_sets = earning.NPCutToNP(tp_earning, earning_sets)
