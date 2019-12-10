@@ -184,7 +184,7 @@ class FactorBasicDerivation(object):
         :view_dimension: 10000
         """
         management = tp_derivation.loc[:, dependencies]
-        if len(management) <=0:
+        if len(management) <= 0:
             return None
         func = lambda x: x[0] + x[1] + x[2] + x[3] + x[4]
         management['InterestBearingLiabilities'] = management[dependencies].apply(func, axis=1)
@@ -202,11 +202,12 @@ class FactorBasicDerivation(object):
                                                                 'CURFDS']):
         """
         :name: 净债务(MRQ)
-        :desc: 净债务 = 带息债务MRQ - 货币资金MRQ。 其中，带息负债 = 短期借款+一年内到期的长期负债+长期借款+应付债券+应付利息
+        :desc: 净债务 = 带息债务(MRQ) - 货币资金(MRQ)。 其中，带息负债 = 短期借款 + 一年内到期的长期负债+长期借款+应付债券+应付利息
         :unit: 元
         :view_dimension: 10000
         """
         management = tp_derivation.loc[:, dependencies]
+
         if len(management) <= 0:
             return None
 

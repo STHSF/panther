@@ -819,6 +819,40 @@ class FactorEarning(object):
         return factor_earning
 
     @staticmethod
+    def ROEWeight(tp_earning, factor_earning, dependencies=['np_parent_company_owners',
+                                                             'ROEWEIGHTED']):
+        """
+        :name: 净资产收益率（加权）
+        :desc: 归属母公司股净利润/加权平均归属母公司股东的权益
+        :unit:
+        :view_dimension: 0.01
+        """
+        constrains = tp_earning.loc[:, dependencies]
+        func = lambda x: x[0] / x[1] if x[1] is not None and x[1] != 0 else None
+        constrains['ROEWeight'] = constrains.apply(func, axis=1)
+
+        constrains = constrains.drop(columns=dependencies, axis=1)
+        factor_earning = pd.merge(factor_earning, constrains, how='outer', on="security_code")
+        return factor_earning
+
+    @staticmethod
+    def ROEDilutedWeight(tp_earning, factor_earning, dependencies=['np_parent_company_owners',
+                                                                    'ROEWEIGHTEDCUT']):
+        """
+        :name: 净资产收益率（扣除/加权）
+        :desc: 扣除非经常损益后归属母公司股东的净利润/加权平均归属母公司股东的权益
+        :unit:
+        :view_dimension: 0.01
+        """
+        constrains = tp_earning.loc[:, dependencies]
+        func = lambda x: x[0] / x[1] if x[1] is not None and x[1] != 0 else None
+        constrains['ROEDilutedWeight'] = constrains.apply(func, axis=1)
+
+        constrains = constrains.drop(columns=dependencies, axis=1)
+        factor_earning = pd.merge(factor_earning, constrains, how='outer', on="security_code")
+        return factor_earning
+
+    @staticmethod
     def ROICTTM(ttm_earning, factor_earning,
                 dependencies=['np_parent_company_owners', 'total_assets_mrq']):
         """

@@ -107,16 +107,19 @@ class CalcEngine(object):
                                                   'PERPROFIT': 'operating_profit',  # 营业利润
                                                   'PARENETP': 'np_parent_company_owners',  # 归属于母公司所有者的净利润
                                                   })
+        tp_earning = pd.merge(cash_flow_sets, income_sets, how='outer', on='security_code')
 
         indicator_sets = engine.fetch_fundamentals_pit_extend_company_id(IndicatorReport,
-                                                                         [IndicatorReport.NPCUT, # 扣除非经常损益后的净利润
-                                                                          # IndicatorReport.MGTEXPRT, # 管理费用率
+                                                                         [IndicatorReport.NPCUT,  # 扣除非经常损益后的净利润
+                                                                          IndicatorReport.ROEWEIGHTED,
+                                                                          IndicatorReport.ROEWEIGHTEDCUT
                                                                          ], dates=[trade_date])
         for column in columns:
             if column in list(indicator_sets.keys()):
                 indicator_sets = indicator_sets.drop(column, axis=1)
         indicator_sets = indicator_sets.rename(columns={'NETPROFITCUT': 'adjusted_profit',  # 扣除非经常损益后的净利润
                                                         })
+        tp_earning = pd.merge(indicator_sets, tp_earning, how='outer', on='security_code')
 
         balance_sets = engine.fetch_fundamentals_pit_extend_company_id(BalanceReport,
                                                                        [BalanceReport.PARESHARRIGH,
@@ -126,6 +129,7 @@ class CalcEngine(object):
                 balance_sets = balance_sets.drop(column, axis=1)
         balance_sets = balance_sets.rename(columns={'PARESHARRIGH': 'equities_parent_company_owners',  # 归属于母公司股东权益合计
                                                     })
+        tp_earning = pd.merge(balance_sets, tp_earning, how='outer', on='security_code')
 
         income_sets_pre_year_1 = engine.fetch_fundamentals_pit_extend_company_id(IncomeReport,
                                                                                  [IncomeReport.BIZINCO,  # 营业收入
@@ -139,6 +143,7 @@ class CalcEngine(object):
                                                                         'BIZINCO': 'operating_revenue_pre_year_1',  # 营业收入
                                                                         'BIZCOST': 'operating_cost_1y',  # 营业成本
                                                                         })
+        tp_earning = pd.merge(income_sets_pre_year_1, tp_earning, how='outer', on='security_code')
 
         income_sets_pre_year_2 = engine.fetch_fundamentals_pit_extend_company_id(IncomeReport,
                                                                                  [IncomeReport.BIZINCO,
@@ -151,6 +156,7 @@ class CalcEngine(object):
                                                                         'BIZINCO': 'operating_revenue_pre_year_2',
                                                                         # 营业收入
                                                                         })
+        tp_earning = pd.merge(income_sets_pre_year_2, tp_earning, how='outer', on='security_code')
 
         income_sets_pre_year_3 = engine.fetch_fundamentals_pit_extend_company_id(IncomeReport,
                                                                                  [IncomeReport.BIZINCO,
@@ -163,6 +169,7 @@ class CalcEngine(object):
                                                                         'BIZINCO': 'operating_revenue_pre_year_3',
                                                                         # 营业收入
                                                                         })
+        tp_earning = pd.merge(income_sets_pre_year_3, tp_earning, how='outer', on='security_code')
 
         income_sets_pre_year_4 = engine.fetch_fundamentals_pit_extend_company_id(IncomeReport,
                                                                                  [IncomeReport.BIZINCO,
@@ -175,13 +182,6 @@ class CalcEngine(object):
                                                                         'BIZINCO': 'operating_revenue_pre_year_4',
                                                                         # 营业收入
                                                                         })
-
-        tp_earning = pd.merge(cash_flow_sets, income_sets, how='outer', on='security_code')
-        tp_earning = pd.merge(indicator_sets, tp_earning, how='outer', on='security_code')
-        tp_earning = pd.merge(balance_sets, tp_earning, how='outer', on='security_code')
-        tp_earning = pd.merge(income_sets_pre_year_1, tp_earning, how='outer', on='security_code')
-        tp_earning = pd.merge(income_sets_pre_year_2, tp_earning, how='outer', on='security_code')
-        tp_earning = pd.merge(income_sets_pre_year_3, tp_earning, how='outer', on='security_code')
         tp_earning = pd.merge(income_sets_pre_year_4, tp_earning, how='outer', on='security_code')
 
         # MRQ
@@ -435,6 +435,8 @@ class CalcEngine(object):
         earning_sets = earning.ROEAvg(tp_earning, earning_sets)
         earning_sets = earning.ROEcut(tp_earning, earning_sets)
         earning_sets = earning.DGPR(tp_earning, earning_sets)
+        earning_sets = earning.ROEWeight(tp_earning, earning_sets)
+        earning_sets = earning.ROEDilutedWeight(tp_earning, earning_sets)
 
         # TTM
         # factor_earning = earning.invest_r_associates_to_tp_latest(tp_earning, earning_sets)
