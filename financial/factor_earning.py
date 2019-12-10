@@ -550,7 +550,7 @@ class FactorEarning(object):
         :view_dimension: 0.01
         """
         constrains = ttm_earning.loc[:, dependencies]
-        func = lambda x: x[0] / x[1] if x[1] is not None and x[1] != 0 else None
+        func = lambda x: x[0] / x[1] if x[1] is not None and x[1] != 0 and x[0] is not None else None
         constrains['ImpLossToTOITTM'] = constrains.apply(func, axis=1)
 
         constrains = constrains.drop(columns=dependencies, axis=1)
@@ -567,7 +567,7 @@ class FactorEarning(object):
         :view_dimension: 0.01
         """
         constrains = ttm_earning.loc[:, dependencies]
-        func = lambda x: x[0] / x[1] if x[1] is not None and x[1] != 0 else None
+        func = lambda x: x[0] / x[1] if x[1] is not None and x[1] != 0 and x[0] is not None else None
         constrains['OIAToOITTM'] = constrains.apply(func, axis=1)
 
         constrains = constrains.drop(columns=dependencies, axis=1)
@@ -585,7 +585,7 @@ class FactorEarning(object):
         :view_dimension: 0.01
         """
         constrains = ttm_earning.loc[:, dependencies]
-        func = lambda x: x[0] / x[1] if x[1] is not None and x[1] != 0 else None
+        func = lambda x: x[0] / x[1] if x[1] is not None and x[1] != 0 and x[0] is not None else None
         constrains['ROAexTTM'] = constrains.apply(func, axis=1)
 
         constrains = constrains.drop(columns=dependencies, axis=1)
