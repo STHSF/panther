@@ -335,12 +335,12 @@ class FactorBasicDerivation(object):
     def TotalFixedAssets(tp_derivation, factor_derivation, dependencies=['FIXEDASSECLEATOT']):
         """
         :name: 固定资产合计(MRQ)
-        :desc: 固定资产合计(MRQ)balance
+        :desc: 固定资产合计(MRQ)
         :unit: 元
         :view_dimension: 10000
         """
         management = tp_derivation.loc[:, dependencies]
-        if len(management) <=0:
+        if len(management) <= 0:
             return None
         management = management.rename(columns={'FIXEDASSECLEATOT': 'TotalFixedAssets'})
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")

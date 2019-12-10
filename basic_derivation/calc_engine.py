@@ -55,6 +55,7 @@ class CalcEngine(object):
         for col in columns:
             if col in list(cash_flow_sets.keys()):
                 cash_flow_sets = cash_flow_sets.drop(col, axis=1)
+
         balance_sets = engine.fetch_fundamentals_pit_extend_company_id(BalanceMRQ,
                                                                        [BalanceMRQ.SHORTTERMBORR,
                                                                         BalanceMRQ.DUENONCLIAB,
@@ -63,7 +64,7 @@ class CalcEngine(object):
                                                                         BalanceMRQ.INTEPAYA,
                                                                         BalanceMRQ.PARESHARRIGH,
                                                                         BalanceMRQ.TOTASSET,
-                                                                        BalanceMRQ.FIXEDASSECLEATOT,
+                                                                        BalanceMRQ.FIXEDASSECLEATOT,  # 固定资产合计
                                                                         BalanceMRQ.TOTLIAB,
                                                                         BalanceMRQ.RIGHAGGR,  # 股东权益合计
                                                                         BalanceMRQ.INTAASSET,
