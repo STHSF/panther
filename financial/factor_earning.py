@@ -718,7 +718,6 @@ class FactorEarning(object):
                                                            'interest_income',
                                                            'total_assets']):
         """
-        缺利息收入
         :name: 总资产报酬率(TTM)
         :desc: ROAEBIT = EBIT*2/(期初总资产+期末总资产）(注，此处用过去四个季度资产均值）
         """
@@ -844,6 +843,24 @@ class FactorEarning(object):
 
         dependencies = dependencies + ['cost']
         constrains = constrains.drop(dependencies, axis=1)
+        factor_earning = pd.merge(factor_earning, constrains, how='outer', on="security_code")
+        return factor_earning
+
+    @staticmethod
+    def TaxRtTTM(ttm_earning, factor_earning, dependencies=['operating_tax_surcharges',
+                                                            'operating_revenue',
+                                                            ]):
+        """
+        :name:销售税金率（TTM）_PIT
+        :desc: 营业税金及附加（TTM）/营业收入（TTM)
+        :unit:
+        :view_dimension: 0.01
+        """
+        constrains = ttm_earning.loc[:, dependencies]
+        func = lambda x: x[0] / x[1] if x[1] != 0 and x[1] is not None and x[0] is not None else None
+
+        constrains['TaxRtTTM'] = constrains.apply(func, axis=1)
+        constrains = constrains.drop(columns=dependencies, axis=1)
         factor_earning = pd.merge(factor_earning, constrains, how='outer', on="security_code")
         return factor_earning
 

@@ -434,6 +434,8 @@ class CalcEngine(object):
         earning_sets = earning.SalesGrossMarginTTM(ttm_earning, earning_sets)
         earning_sets = earning.TaxRTTM(ttm_earning, earning_sets)
         earning_sets = earning.TotaProfRtTTM(ttm_earning, earning_sets)
+        earning_sets = earning.TaxRtTTM(ttm_earning, earning_sets)
+
         # factor_earning = earning.invest_r_associates_to_tp_ttm(ttm_earning, earning_sets)
         earning_sets = earning_sets.reset_index()
         earning_sets['trade_date'] = str(trade_date)
