@@ -39,10 +39,10 @@ class FactorEarning(object):
 
     @staticmethod
     def Rev5YChg(tp_earning, factor_earning, dependencies=['operating_revenue',
-                                                            'operating_revenue_pre_year_1',
-                                                            'operating_revenue_pre_year_2',
-                                                            'operating_revenue_pre_year_3',
-                                                            'operating_revenue_pre_year_4']):
+                                                           'operating_revenue_pre_year_1',
+                                                           'operating_revenue_pre_year_2',
+                                                           'operating_revenue_pre_year_3',
+                                                           'operating_revenue_pre_year_4']):
         """
         五年营业收入增长率
         :name:
@@ -140,33 +140,63 @@ class FactorEarning(object):
         return factor_earning
 
     @staticmethod
-    def DGPR(ttm_earning, ttm_earning_p1y, factor_earning, dependencies=['operating_revenue', 'operating_cost']):
+    def DGPR(ttm_earning, factor_earning, dependencies=['operating_revenue',
+                                                        'operating_cost',
+                                                        'operating_revenue_1y',
+                                                        'operating_cost_1y']):
         """
-        毛利率增长率，与去年同期相比
+        毛利率增长率TTM，与去年同期相比
         :name:毛利率增长率
         :desc:毛利率增长率，与去年同期相比
         :unit:
         :view_dimension: 0.01
         """
-
         earning = ttm_earning.loc[:, dependencies]
-        earning_p1y = ttm_earning_p1y.loc[:, dependencies]
         earning['gross_income_ratio'] = np.where(
             CalcTools.is_zero(earning.operating_revenue.values), 0,
             (earning.operating_revenue.values -
              earning.operating_cost.values)
             / earning.operating_revenue.values
                 )
-        earning_p1y['gross_income_ratio'] = np.where(
-            CalcTools.is_zero(earning_p1y.operating_revenue.values), 0,
-            (earning_p1y.operating_revenue.values -
-             earning_p1y.operating_cost.values)
-            / earning_p1y.operating_revenue.values)
+        earning['gross_income_ratio_1y'] = np.where(
+            CalcTools.is_zero(earning.operating_revenue_1y.values), 0,
+            (earning.operating_revenue_1y.values -
+             earning.operating_cost_1y.values)
+            / earning.operating_revenue_1y.values)
 
-        earning["DGPR"] = earning["gross_income_ratio"] - earning_p1y["gross_income_ratio"]
-        dependencies = dependencies + ['gross_income_ratio']
+        func = lambda x: x[0] - x[1] / x[1] if x[1] is not None and x[1] != 0 and x[0] is not None else None
+        earning['DGPR'] = earning[['gross_income_ratio', 'gross_income_ratio_1y']].apply(func, axis=1)
+
+        dependencies = dependencies + ['gross_income_ratio', 'gross_income_ratio_1y']
         earning = earning.drop(dependencies, axis=1)
         factor_earning = pd.merge(factor_earning, earning, on="security_code")
+        return factor_earning
+
+    @staticmethod
+    def DROE(ttm_earning, factor_earning, dependencies=['np_parent_company_owners',
+                                                        'equities_parent_company_owners_mrq',
+                                                        'np_parent_company_owners_1y',
+                                                        'equities_parent_company_owners_mrq_1y'
+                                                        ]):
+        """
+        :name: 净资产收益率的变化(TTM)
+        :desc: 净资产收益率的变化率， 与去年同期相比
+        :unit:
+        :view_dimension: 0.01
+        """
+        constrains = ttm_earning.loc[:, dependencies]
+        func_ratio = lambda x: x[0] / x[1] if x[0] is not None and x[1] is not None and x[1] != 0 else None
+
+        constrains['roe_'] = constrains[['np_parent_company_owners',
+                                         'equities_parent_company_owners_mrq']].apply(func_ratio, axis=1)
+        constrains['roe_1y'] = constrains[['np_parent_company_owners_1y',
+                                           'equities_parent_company_owners_mrq_1y']].apply(func_ratio, axis=1)
+
+        func = lambda x: x[0] - x[1] / x[1] if x[1] is not None and x[1] != 0 and x[0] is not None else None
+        constrains['DROE'] = constrains[['roe_', 'roe_1y']].apply(func, axis=1)
+        dependencies = dependencies + ['roe_', 'roe_1y']
+        constrains = constrains.drop(columns=dependencies, axis=1)
+        factor_earning = pd.merge(factor_earning, constrains, how='outer', on="security_code")
         return factor_earning
 
     @staticmethod
@@ -294,8 +324,11 @@ class FactorEarning(object):
 
     @staticmethod
     def NetPft5YAvgChgTTM(ttm_earning, factor_earning,
-                          dependencies=['net_profit', 'net_profit_pre_year_1', 'net_profit_pre_year_2',
-                                        'net_profit_pre_year_3', 'net_profit_pre_year_4']):
+                          dependencies=['net_profit',
+                                        'net_profit_pre_year_1',
+                                        'net_profit_pre_year_2',
+                                        'net_profit_pre_year_3',
+                                        'net_profit_pre_year_4']):
         """
         :name: 5年收益增长率(TTM)
         :desc: 5年收益关于时间（年）进行线性回归的回归系数/（5年收益均值的绝对值）对于上市新股以上市前已披露的3年净利润计算之后新的年报数据披露后再计算四年、五年的收益增长率数据每年变化一次，在年报披露日
@@ -490,7 +523,6 @@ class FactorEarning(object):
                                                                   'interest_income',
                                                                   'total_operating_revenue']):
         """
-        缺利息收入
         :name: 息税前利润与营业总收入之比(TTM)
         :desc: （利润总额+利息支出-利息收入)/营业总收入
         """
@@ -734,8 +766,8 @@ class FactorEarning(object):
         return factor_earning
 
     @staticmethod
-    def ROETTM(ttm_earning, factor_earning,
-               dependencies=['np_parent_company_owners', 'equities_parent_company_owners_mrq']):
+    def ROETTM(ttm_earning, factor_earning, dependencies=['np_parent_company_owners',
+                                                          'equities_parent_company_owners_mrq']):
         """
         :name: 净资产收益率(TTM)
         :desc: 归属于母公司的净利润（TTM）/归属于母公司的股东权益（MRQ）
@@ -781,6 +813,25 @@ class FactorEarning(object):
             earning.net_profit.values / earning.total_owner_equities.values / 4)
         earning = earning.drop(dependencies, axis=1)
         factor_earning = pd.merge(factor_earning, earning, on="security_code")
+        return factor_earning
+
+    @staticmethod
+    def TolTaxToPTTM(ttm_earning, factor_earning, dependencies=['INCOTAXEXPE',
+                                                                'operating_tax_surcharges',
+                                                                'total_profit'
+                                                                ]):
+        """
+        :name:  税项/利润总额（TTM)
+        :desc:  税项（TTM）/利润总额（TTM）*100%, 税项=所得税+税金和附加
+        :unit:
+        :view_dimension: 0.01
+        """
+        constrains = ttm_earning.loc[:, dependencies]
+        func = lambda x: x[0] + x[1] / x[2] if x[1] is not None and x[0] is not None and x[2] is not None and x[2] != 0 else None
+        constrains['TolTaxToPTTM'] = constrains.apply(func, axis=1)
+
+        constrains = constrains.drop(columns=dependencies, axis=1)
+        factor_earning = pd.merge(factor_earning, constrains, how='outer', on="security_code")
         return factor_earning
 
     @staticmethod

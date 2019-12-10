@@ -237,6 +237,7 @@ class CalcEngine(object):
                                                                            # IncomeTTM.ASSOINVEPROF,  # 对联营企业和合营企业的投资收益
                                                                            IncomeTTM.BIZTAX,  # 营业税金及附加
                                                                            IncomeTTM.ASSEIMPALOSS,  # 资产减值损失
+                                                                           IncomeTTM.INCOTAXEXPE,  # 所得税
                                                                            ], dates=[trade_date])
         for column in columns:
             if column in list(income_ttm_sets.keys()):
@@ -386,6 +387,30 @@ class CalcEngine(object):
         income_con_sets = income_con_sets.rename(columns={'NETPROFIT': 'net_profit'}).reset_index()
         ttm_earning_5y = pd.merge(balance_con_sets, income_con_sets, how='outer', on='security_code')
 
+        ttm_earning_1y = engine.fetch_fundamentals_pit_extend_company_id(IncomeTTM,
+                                                                         [IncomeTTM.BIZCOST,
+                                                                          IncomeTTM.BIZINCO,
+                                                                          IncomeTTM.PARENETP,
+                                                                          ], dates=[trade_date_pre_year])
+        for column in columns:
+            if column in list(ttm_earning_1y.keys()):
+                ttm_earning_1y = ttm_earning_1y.drop(column, axis=1)
+        ttm_earning_1y = ttm_earning_1y.rename(columns={'BIZINCO': 'operating_revenue_1y',  # 营业收入
+                                                        'BIZCOST': 'operating_cost_1y',  # 营业成本
+                                                        'PARENETP': 'np_parent_company_owners_1y'
+                                                        })
+        ttm_earning = pd.merge(ttm_earning, ttm_earning_1y, how='outer', on='security_code')
+
+        balance_mrq_1y = engine.fetch_fundamentals_pit_extend_company_id(BalanceMRQ,
+                                                                         [BalanceMRQ.PARESHARRIGH,
+                                                                          ], dates=[trade_date_pre_year])
+        for column in columns:
+            if column in list(balance_mrq_1y.keys()):
+                balance_mrq_1y = balance_mrq_1y.drop(column, axis=1)
+        balance_mrq_1y = balance_mrq_1y.rename(columns={'PARESHARRIGH': 'equities_parent_company_owners_mrq_1y',
+                                                        })
+        ttm_earning = pd.merge(ttm_earning, balance_mrq_1y, how='outer', on='security_code')
+
         return tp_earning, ttm_earning, ttm_earning_5y
 
     def process_calc_factor(self, trade_date, tp_earning, ttm_earning, ttm_earning_5y):
@@ -398,15 +423,20 @@ class CalcEngine(object):
         earning_sets = pd.DataFrame()
         earning_sets['security_code'] = tp_earning.index
         earning_sets = earning_sets.set_index('security_code')
+        # MRQ
+        earning_sets = earning.Rev5YChg(ttm_earning_5y, earning_sets)
         earning_sets = earning.ROA5YChg(ttm_earning_5y, earning_sets)
         earning_sets = earning.ROE5Y(ttm_earning_5y, earning_sets)
         earning_sets = earning.NPCutToNP(tp_earning, earning_sets)
         earning_sets = earning.ROE(tp_earning, earning_sets)
         earning_sets = earning.ROEAvg(tp_earning, earning_sets)
         earning_sets = earning.ROEcut(tp_earning, earning_sets)
-        # earning_sets = earning.DGPR(tp_earning, earning_sets)
 
+        # TTM
         # factor_earning = earning.invest_r_associates_to_tp_latest(tp_earning, earning_sets)
+        earning_sets = earning.NetNonOiToTP(ttm_earning, earning_sets)
+        earning_sets = earning.DGPR(ttm_earning, earning_sets)
+        earning_sets = earning.DROE(ttm_earning, earning_sets)
         earning_sets = earning.NetPft5YAvgChgTTM(ttm_earning, earning_sets)
         earning_sets = earning.Sales5YChgTTM(ttm_earning, earning_sets)
         # factor_earning = earning.roa(ttm_earning, earning_sets)
@@ -420,7 +450,6 @@ class CalcEngine(object):
         earning_sets = earning.ImpLossToTOITTM(ttm_earning, earning_sets)
         earning_sets = earning.OIAToOITTM(ttm_earning, earning_sets)
         earning_sets = earning.ROAexTTM(ttm_earning, earning_sets)
-        earning_sets = earning.NetNonOiToTP(ttm_earning, earning_sets)
         earning_sets = earning.NetProfitRtTTM(ttm_earning, earning_sets)
         earning_sets = earning.NPToTORevTTM(ttm_earning, earning_sets)
         earning_sets = earning.ExpRtTTM(ttm_earning, earning_sets)
@@ -431,6 +460,7 @@ class CalcEngine(object):
         earning_sets = earning.ROETTM(ttm_earning, earning_sets)
         earning_sets = earning.ROICTTM(ttm_earning, earning_sets)
         earning_sets = earning.OwnROETTM(ttm_earning, earning_sets)
+        earning_sets = earning.TolTaxToPTTM(ttm_earning, earning_sets)
         earning_sets = earning.SalesGrossMarginTTM(ttm_earning, earning_sets)
         earning_sets = earning.TaxRTTM(ttm_earning, earning_sets)
         earning_sets = earning.TotaProfRtTTM(ttm_earning, earning_sets)
