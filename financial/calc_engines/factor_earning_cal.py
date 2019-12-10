@@ -95,6 +95,7 @@ class CalcEngine(object):
                                                                        IncomeReport.PERPROFIT,
                                                                        IncomeReport.PARENETP,
                                                                        IncomeReport.NETPROFIT,
+                                                                       IncomeReport.BIZCOST,
                                                                        ], dates=[trade_date])
         for column in columns:
             if column in list(income_sets.keys()):
@@ -102,6 +103,7 @@ class CalcEngine(object):
         income_sets = income_sets.rename(columns={'NETPROFIT': 'net_profit',  # 净利润
                                                   'BIZTOTINCO': 'total_operating_revenue',  # 营业总收入
                                                   'BIZINCO': 'operating_revenue',  # 营业收入
+                                                  'BIZCOST': 'operating_cost',  # 营业成本
                                                   'PERPROFIT': 'operating_profit',  # 营业利润
                                                   'PARENETP': 'np_parent_company_owners',  # 归属于母公司所有者的净利润
                                                   })
@@ -128,13 +130,14 @@ class CalcEngine(object):
         income_sets_pre_year_1 = engine.fetch_fundamentals_pit_extend_company_id(IncomeReport,
                                                                                  [IncomeReport.BIZINCO,  # 营业收入
                                                                                   IncomeReport.NETPROFIT,  # 净利润
+                                                                                  IncomeReport.BIZCOST,  # 营业成本
                                                                                   ], dates=[trade_date_pre_year])
         for column in columns:
             if column in list(income_sets_pre_year_1.keys()):
                 income_sets_pre_year_1 = income_sets_pre_year_1.drop(column, axis=1)
         income_sets_pre_year_1 = income_sets_pre_year_1.rename(columns={'NETPROFIT': 'net_profit_pre_year_1',  # 净利润
-                                                                        'BIZINCO': 'operating_revenue_pre_year_1',
-                                                                        # 营业收入
+                                                                        'BIZINCO': 'operating_revenue_pre_year_1',  # 营业收入
+                                                                        'BIZCOST': 'operating_cost_1y',  # 营业成本
                                                                         })
 
         income_sets_pre_year_2 = engine.fetch_fundamentals_pit_extend_company_id(IncomeReport,
@@ -431,11 +434,12 @@ class CalcEngine(object):
         earning_sets = earning.ROE(tp_earning, earning_sets)
         earning_sets = earning.ROEAvg(tp_earning, earning_sets)
         earning_sets = earning.ROEcut(tp_earning, earning_sets)
+        earning_sets = earning.DGPR(tp_earning, earning_sets)
 
         # TTM
         # factor_earning = earning.invest_r_associates_to_tp_latest(tp_earning, earning_sets)
         earning_sets = earning.NetNonOiToTP(ttm_earning, earning_sets)
-        earning_sets = earning.DGPR(ttm_earning, earning_sets)
+        earning_sets = earning.GPM1YChgTTM(ttm_earning, earning_sets)
         earning_sets = earning.DROE(ttm_earning, earning_sets)
         earning_sets = earning.NetPft5YAvgChgTTM(ttm_earning, earning_sets)
         earning_sets = earning.Sales5YChgTTM(ttm_earning, earning_sets)

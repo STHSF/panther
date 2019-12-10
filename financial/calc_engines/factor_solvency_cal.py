@@ -238,7 +238,7 @@ class CalcEngine(object):
         solvency_sets = solvency.InterestCovTTM(tp_solvency, solvency_sets)
         solvency_sets = solvency.OptCFToLiabilityTTM(tp_solvency, solvency_sets)
         solvency_sets = solvency.OptCFToIBDTTM(tp_solvency, solvency_sets)
-        # solvency_sets = solvency.OptCFToNetDebtTTM(tp_solvency, solvency_sets)
+        solvency_sets = solvency.OptCFToNetDebtTTM(tp_solvency, solvency_sets)
         solvency_sets = solvency.OPCToDebtTTM(tp_solvency, solvency_sets)
         solvency_sets = solvency.CashRatioTTM(tp_solvency, solvency_sets)
         solvency_sets = solvency_sets.reset_index()

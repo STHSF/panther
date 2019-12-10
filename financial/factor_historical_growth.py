@@ -10,6 +10,7 @@
 import gc, six
 import json
 import pandas as pd
+from sklearn import linear_model
 from pandas.io.json import json_normalize
 from utilities.singleton import Singleton
 # from basic_derivation import app

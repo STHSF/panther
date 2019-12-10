@@ -15,6 +15,7 @@ from pandas.io.json import json_normalize
 from utilities.calc_tools import CalcTools
 from utilities.singleton import Singleton
 
+
 # from basic_derivation import app
 # from ultron.cluster.invoke.cache_data import cache_data
 
@@ -24,6 +25,7 @@ class FactorSolvency(object):
     """
     偿债能力
     """
+
     def __init__(self):
         __str__ = 'factor_solvency'
         self.name = '财务指标'
@@ -132,10 +134,10 @@ class FactorSolvency(object):
 
     @staticmethod
     def EquityPCToIBDebt(tp_solvency, factor_solvency, dependencies=['equities_parent_company_owners',
-                                                                               'shortterm_loan',
-                                                                               'non_current_liability_in_one_year',
-                                                                               'longterm_loan',
-                                                                               'bonds_payable',
+                                                                     'shortterm_loan',
+                                                                     'non_current_liability_in_one_year',
+                                                                     'longterm_loan',
+                                                                     'bonds_payable',
                                                                      'interest_payable']):
         """
         :name:归属母公司股东的权益/带息负债
@@ -496,25 +498,43 @@ class FactorSolvency(object):
         factor_solvency = pd.merge(factor_solvency, cash_flow, how='outer', on="security_code")
         return factor_solvency
 
-    # @staticmethod
-    # def OptCFToNetDebtTTM(ttm_solvency, factor_solvency, dependencies=['net_operate_cash_flow', 'net_liability']):
-    #     """
-    #     缺少净负债
-    #     :name:经营活动净现金流（TTM）/净负债（TTM）
-    #     :desc:经营活动净现金流（TTM）/净负债（TTM）
-    #     :unit:
-    #     :view_dimension: 0.01
-    #     """
-    #     cash_flow = ttm_solvency.loc[:, dependencies]
-    #     cash_flow['OptCFToNetDebtTTM'] = np.where(CalcTools.is_zero(cash_flow.net_liability.values), 0,
-    #                                               cash_flow.net_operate_cash_flow.values / cash_flow.net_liability.values)
-    #     cash_flow = cash_flow.drop(dependencies, axis=1)
-    #     factor_solvency = pd.merge(factor_solvency, cash_flow, how='outer', on="security_code")
-    #     return factor_solvency
+    @staticmethod
+    def OptCFToNetDebtTTM(ttm_solvency, factor_solvency, dependencies=['net_operate_cash_flow',
+                                                                       'shortterm_loan',
+                                                                       'longterm_loan',
+                                                                       'non_current_liability_in_one_year',
+                                                                       'bonds_payable',
+                                                                       'interest_payable',
+                                                                       'CURFDS'
+                                                                       ]):
+        """
+        :name:经营活动净现金流（TTM）/净负债（MRQ）
+        :desc:经营活动净现金流（TTM）/净负债（MRQ）， 净债务 = 带息债务MRQ - 货币资金MRQ。 其中，带息负债 = 短期借款+一年内到期的长期负债+长期借款+应付债券+应付利息
+        :unit:
+        :view_dimension: 0.01
+        """
+        cash_flow = ttm_solvency.loc[:, dependencies]
+
+        func = lambda x: x[0] + x[1] + x[2] + x[3] + x[4] - x[5] if x[0] is not None \
+                                                                    and x[1] is not None and x[2] is not None \
+                                                                    and x[3] is not None and x[4] is not None \
+                                                                    and x[5] is not None else None
+
+        cash_flow['NetDebt'] = cash_flow[['shortterm_loan', 'longterm_loan',
+                                          'non_current_liability_in_one_year',
+                                          'bonds_payable', 'interest_payable',
+                                          'CURFDS']].apply(func, axis=1)
+
+        func2 = lambda x: x[0] / x[1] if x[0] is not None and x[1] is not None and x[1] != 0 else None
+        cash_flow['OptCFToNetDebtTTM'] = cash_flow[['net_operate_cash_flow', 'NetDebt']].apply(func2, axis=1)
+        dependencies = dependencies + ['NetDebt']
+        cash_flow = cash_flow.drop(dependencies, axis=1)
+        factor_solvency = pd.merge(factor_solvency, cash_flow, how='outer', on="security_code")
+        return factor_solvency
 
     @staticmethod
     def OPCToDebtTTM(ttm_solvency, factor_solvency,
-                                dependencies=['net_operate_cash_flow', 'total_current_liability_ttm']):
+                     dependencies=['net_operate_cash_flow', 'total_current_liability_ttm']):
         """
         :name:现金流债务比(TTM)
         :desc:经营活动现金净流量（TTM）/流动负债（MRQ）

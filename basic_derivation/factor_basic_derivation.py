@@ -202,7 +202,7 @@ class FactorBasicDerivation(object):
                                                                 'CURFDS']):
         """
         :name: 净债务(MRQ)
-        :desc: 带息债务MRQ - 货币资金MRQ。 其中，带息负债 = 短期借款+一年内到期的长期负债+长期借款+应付债券+应付利息
+        :desc: 净债务 = 带息债务MRQ - 货币资金MRQ。 其中，带息负债 = 短期借款+一年内到期的长期负债+长期借款+应付债券+应付利息
         :unit: 元
         :view_dimension: 10000
         """

@@ -140,10 +140,10 @@ class FactorEarning(object):
         return factor_earning
 
     @staticmethod
-    def DGPR(ttm_earning, factor_earning, dependencies=['operating_revenue',
-                                                        'operating_cost',
-                                                        'operating_revenue_1y',
-                                                        'operating_cost_1y']):
+    def GPM1YChgTTM(ttm_earning, factor_earning, dependencies=['operating_revenue',
+                                                               'operating_cost',
+                                                               'operating_revenue_1y',
+                                                               'operating_cost_1y']):
         """
         毛利率增长率TTM，与去年同期相比
         :name:毛利率增长率
@@ -164,13 +164,49 @@ class FactorEarning(object):
              earning.operating_cost_1y.values)
             / earning.operating_revenue_1y.values)
 
-        func = lambda x: x[0] - x[1] / x[1] if x[1] is not None and x[1] != 0 and x[0] is not None else None
+        func = lambda x: x[0] - x[1] / abs(x[1]) if x[1] is not None and x[1] != 0 and x[0] is not None else None
+        earning['GPM1YChgTTM'] = earning[['gross_income_ratio', 'gross_income_ratio_1y']].apply(func, axis=1)
+
+        dependencies = dependencies + ['gross_income_ratio', 'gross_income_ratio_1y']
+        earning = earning.drop(dependencies, axis=1)
+        factor_earning = pd.merge(factor_earning, earning, on="security_code")
+        return factor_earning
+
+    @staticmethod
+    def DGPR(tp_earning, factor_earning, dependencies=['operating_revenue',
+                                                       'operating_cost',
+                                                       'operating_revenue_pre_year_1',
+                                                       'operating_cost_1y']):
+        """
+        毛利率增长率TTM，与去年同期相比
+        :name:毛利率增长率
+        :desc:毛利率增长率，与去年同期相比
+        :unit:
+        :view_dimension: 0.01
+        """
+        earning = tp_earning.loc[:, dependencies]
+        earning['gross_income_ratio'] = np.where(
+            CalcTools.is_zero(earning.operating_revenue.values), 0,
+            (earning.operating_revenue.values -
+             earning.operating_cost.values)
+            / earning.operating_revenue.values
+                )
+        earning['gross_income_ratio_1y'] = np.where(
+            CalcTools.is_zero(earning.operating_revenue_1y.values), 0,
+            (earning.operating_revenue_1y.values -
+             earning.operating_cost_1y.values)
+            / earning.operating_revenue_1y.values)
+
+        func = lambda x: x[0] - x[1] / abs(x[1]) if x[1] is not None and x[1] != 0 and x[0] is not None else None
         earning['DGPR'] = earning[['gross_income_ratio', 'gross_income_ratio_1y']].apply(func, axis=1)
 
         dependencies = dependencies + ['gross_income_ratio', 'gross_income_ratio_1y']
         earning = earning.drop(dependencies, axis=1)
         factor_earning = pd.merge(factor_earning, earning, on="security_code")
         return factor_earning
+
+
+
 
     @staticmethod
     def DROE(ttm_earning, factor_earning, dependencies=['np_parent_company_owners',
