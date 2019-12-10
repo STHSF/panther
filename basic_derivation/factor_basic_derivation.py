@@ -107,7 +107,7 @@ class FactorBasicDerivation(object):
         management = tp_derivation.loc[:, dependencies]
         if len(management) <= 0:
             return None
-        func = lambda x: x[0] - x[1]
+        func = lambda x: x[0] - x[1] if x[0] is not None and x[1] is not None else None
         management['NetOptInc'] = management[dependencies].apply(func, axis=1)
         management = management.drop(dependencies, axis=1)
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
@@ -270,7 +270,7 @@ class FactorBasicDerivation(object):
         :desc: 固定资产折旧+无形资产摊销+长期待摊费用摊销
         """
         management = tp_derivation.loc[:, dependencies]
-        if len(management) <=0:
+        if len(management) <= 0:
             return None
         func = lambda x: x[0] + x[1] + x[2] if x[0] is not None and x[1] is not None and x[2] is not None else None
         management['DepAndAmo'] = management[dependencies].apply(func, axis=1)
@@ -584,7 +584,8 @@ class FactorBasicDerivation(object):
         return factor_derivation
 
     @staticmethod
-    def NetIncFromOptActTTM(tp_derivation, factor_derivation, dependencies=['MANANETR']):
+    def NetIncFromOptActTTM(tp_derivation, factor_derivation, dependencies=['BIZTOTINCO',
+                                                                            'BIZTOTCOST']):
         """
         :name: 经营活动净收益(TTM)
         :desc: 根据截止指定日已披露的最新报告期“经营活动净收益”计算：（1）最新报告期是年报。则TTM=年报；（2）最新报告期不是年报，Q则TTM=本期+（上年年报-上年同期合并数），如果上年年报非空，本期、上年同期台并数存在空值，则返回上年年报。
@@ -594,7 +595,10 @@ class FactorBasicDerivation(object):
         management = tp_derivation.loc[:, dependencies]
         if len(management) <= 0:
             return None
-        management = management.rename(columns={'MANANETR': 'NetIncFromOptActTTM'})
+        func = lambda x: x[0] - x[1] if x[0] is not None and x[1] is not None else None
+        management['NetIncFromOptActTTM'] = management[dependencies].apply(func, axis=1)
+        management = management.drop(dependencies, axis=1)
+
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
 

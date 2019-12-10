@@ -12,8 +12,7 @@ from basic_derivation import factor_basic_derivation
 
 from data.model import BalanceMRQ
 from data.model import CashFlowMRQ, CashFlowTTM
-from data.model import IndicatorReport
-from data.model import IncomeMRQ, IncomeTTM
+from data.model import IncomeMRQ, IncomeTTM, IndicatorTTM, IndicatorMRQ, BalanceTTM
 
 from vision.db.signletion_engine import *
 from data.sqlengine import sqlEngine
@@ -72,7 +71,7 @@ class CalcEngine(object):
                                                                         BalanceMRQ.GOODWILL,
                                                                         BalanceMRQ.LOGPREPEXPE,
                                                                         BalanceMRQ.DEFETAXASSET,
-                                                                        BalanceMRQ.MINYSHARRIGH,
+                                                                        BalanceMRQ.MINYSHARRIGH,  # 少数股东权益[MINYSHARRIGH]利润表中也有
                                                                         BalanceMRQ.TOTCURRASSET,  # 流动资产合计
                                                                         BalanceMRQ.TOTALCURRLIAB,  # 流动负债合计
                                                                         BalanceMRQ.RESE,  # 盈余公积
@@ -94,6 +93,7 @@ class CalcEngine(object):
             'BDSPAYA': 'bonds_payable',  # 应付债券
             'INTEPAYA': 'interest_payable',  # 应付利息
         })
+        tp_detivation = pd.merge(cash_flow_sets, balance_sets, how='outer', on='security_code')
 
         # indicator_sets = engine.fetch_fundamentals_pit_extend_company_id(IndicatorMRQ,
         #                                                                  [IndicatorMRQ.FCFF,
@@ -105,13 +105,14 @@ class CalcEngine(object):
         #                                                                   IndicatorMRQ.NDEBT,
         #                                                                   IndicatorMRQ.NONINTCURLIABS,
         #                                                                   IndicatorMRQ.NONINTNONCURLIAB,
-        #                                                                   # IndicatorMRQ.CURDEPANDAMOR,
+        #                                                                   IndicatorMRQ.CURDEPANDAMOR,
         #                                                                   IndicatorMRQ.TOTIC,
         #                                                                   IndicatorMRQ.EBIT,
         #                                                                   ], dates=[trade_date])
         # for col in columns:
         #     if col in list(indicator_sets.keys()):
         #         indicator_sets = indicator_sets.drop(col, axis=1)
+        # tp_detivation = pd.merge(indicator_sets, tp_detivation, how='outer', on='security_code')
 
         income_sets = engine.fetch_fundamentals_pit_extend_company_id(IncomeMRQ,
                                                                       [IncomeMRQ.INCOTAXEXPE,
@@ -124,37 +125,32 @@ class CalcEngine(object):
         for col in columns:
             if col in list(income_sets.keys()):
                 income_sets = income_sets.drop(col, axis=1)
-
-        tp_detivation = pd.merge(cash_flow_sets, balance_sets, how='outer', on='security_code')
-        # tp_detivation = pd.merge(indicator_sets, tp_detivation, how='outer', on='security_code')
         tp_detivation = pd.merge(income_sets, tp_detivation, how='outer', on='security_code')
 
-        # balance_ttm_sets = engine.fetch_fundamentals_pit_extend_company_id(BalanceTTM,
-        #                                                                    [BalanceTTM.MINYSHARRIGH,
-        #                                                                    ], dates=[trade_date]).drop(columns, axis=1)
+        # income ttm
         income_ttm_sets = engine.fetch_fundamentals_pit_extend_company_id(IncomeTTM,
-                                                                          [IncomeTTM.BIZTOTINCO,
-                                                                           IncomeTTM.BIZTOTCOST,
+                                                                          [IncomeTTM.BIZTOTINCO,  # 营业总收入
+                                                                           IncomeTTM.BIZTOTCOST,  # 营业总成本
                                                                            IncomeTTM.BIZINCO,  # 营业收入
                                                                            IncomeTTM.BIZCOST,  # 营业成本
                                                                            IncomeTTM.SALESEXPE,  # 销售费用
                                                                            IncomeTTM.MANAEXPE,  # 管理费用
                                                                            IncomeTTM.FINEXPE,
                                                                            IncomeTTM.INTEEXPE,  # 利息支出
-                                                                           IncomeTTM.DEVEEXPE, # 研发费用
+                                                                           IncomeTTM.DEVEEXPE,  # 研发费用
                                                                            IncomeTTM.ASSEIMPALOSS,
                                                                            IncomeTTM.PERPROFIT,
-                                                                           IncomeTTM.TOTPROFIT,
+                                                                           IncomeTTM.TOTPROFIT,  # 利润总额
                                                                            IncomeTTM.NETPROFIT,
                                                                            IncomeTTM.PARENETP,
                                                                            IncomeTTM.BIZTAX,  # 营业税金及附加
                                                                            IncomeTTM.NONOREVE,
                                                                            IncomeTTM.NONOEXPE,
-                                                                           IncomeTTM.MINYSHARRIGH,
+                                                                           IncomeTTM.MINYSHARRIGH,  # 少数股东权益
                                                                            IncomeTTM.INCOTAXEXPE,
                                                                            IncomeTTM.VALUECHGLOSS,  # 公允价值变动收益
                                                                            IncomeTTM.INVEINCO,  # 投资收益
-                                                                           IncomeTTM.EXCHGGAIN, # 汇兑收益
+                                                                           IncomeTTM.EXCHGGAIN,  # 汇兑收益
 
                                                                            ], dates=[trade_date])
         for col in columns:
@@ -162,6 +158,7 @@ class CalcEngine(object):
                 income_ttm_sets = income_ttm_sets.drop(col, axis=1)
         income_ttm_sets = income_ttm_sets.rename(columns={'MINYSHARRIGH': 'minority_profit'})
 
+        # cash flow ttm
         cash_flow_ttm_sets = engine.fetch_fundamentals_pit_extend_company_id(CashFlowTTM,
                                                                              [CashFlowTTM.MANANETR,
                                                                               CashFlowTTM.LABORGETCASH,
@@ -172,21 +169,16 @@ class CalcEngine(object):
         for col in columns:
             if col in list(cash_flow_ttm_sets.keys()):
                 cash_flow_ttm_sets = cash_flow_ttm_sets.drop(col, axis=1)
-
-        # indicator_ttm_sets = engine.fetch_fundamentals_pit_extend_company_id(IndicatorTTM,
-        #                                                                      [IndicatorTTM.OPGPMARGIN,
-        #                                                                       IndicatorTTM.NPCUT,
-        #                                                                       IndicatorTTM.NVALCHGIT,
-        #                                                                       IndicatorTTM.EBITDA,
-        #                                                                       IndicatorTTM.EBIT,
-        #                                                                       IndicatorTTM.EBITFORP,
-        #                                                                       ], dates=[trade_date])
-        # for col in columns:
-        #     if col in list(indicator_ttm_sets.keys()):
-        #         indicator_ttm_sets = indicator_ttm_sets.drop(col, axis=1)
-
         ttm_derivation = pd.merge(income_ttm_sets, cash_flow_ttm_sets, how='outer', on='security_code')
-        # ttm_derivation = pd.merge(indicator_ttm_sets, ttm_derivation, how='outer', on='security_code')
+
+        # indicator ttm
+        indicator_ttm_sets = engine.fetch_fundamentals_pit_extend_company_id(IndicatorTTM,
+                                                                             [IndicatorTTM.NPCUT,
+                                                                              ], dates=[trade_date])
+        for col in columns:
+            if col in list(indicator_ttm_sets.keys()):
+                indicator_ttm_sets = indicator_ttm_sets.drop(col, axis=1)
+        ttm_derivation = pd.merge(indicator_ttm_sets, ttm_derivation, how='outer', on='security_code')
 
         return tp_detivation, ttm_derivation
 
