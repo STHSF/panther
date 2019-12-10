@@ -126,17 +126,23 @@ class FactorRevenueQuality(object):
         revenue_quality = pd.merge(revenue_quality, cash_flow, how='outer', on="security_code")
         return revenue_quality
 
-    # @staticmethod
-    # def NetInToTPTTM(ttm_revenue_quanlity, revenue_quality, dependencies=['NVALCHGITOTP']):
-    #     """
-    #     :name: 价值变动净收益/利润总额(TTM)
-    #     :desc: 价值变动净收益（TTM)/利润总额（TTM)
-    #     :unit:
-    #     :view_dimension: 0.01
-    #     """
-    #     historical_value = ttm_revenue_quanlity.loc[:, dependencies]
-    #     revenue_quality = pd.merge(revenue_quality, historical_value, how='outer', on='security_code')
-    #     return revenue_quality
+    @staticmethod
+    def NetInToTPTTM(ttm_revenue_quanlity, revenue_quality, dependencies=['VALUECHGLOSS',
+                                                                          'total_profit']):
+        """
+        :name: 价值变动净收益/利润总额(TTM)
+        :desc: 价值变动净收益（TTM)/利润总额（TTM)(使用的是公允价值变动收益)
+        :unit:
+        :view_dimension: 0.01
+        """
+        historical_value = ttm_revenue_quanlity.loc[:, dependencies]
+
+        func = lambda x: x[0] / x[1] if x[1] != 0 and x[1] is not None and x[0] is not None else None
+        historical_value['NetInToTPTTM'] = historical_value.apply(func, axis=1)
+        historical_value = historical_value.drop(dependencies, axis=1)
+
+        revenue_quality = pd.merge(revenue_quality, historical_value, how='outer', on='security_code')
+        return revenue_quality
 
     @staticmethod
     def OPToTPTTM(ttm_revenue_quanlity, revenue_quality,
