@@ -10,7 +10,7 @@ import pandas as pd
 from datetime import datetime
 from financial import factor_capital_structure
 
-from data.model import BalanceMRQ, CashFlowTTM
+from data.model import BalanceMRQ, CashFlowTTM, BalanceTTM
 
 from vision.db.signletion_engine import *
 from data.sqlengine import sqlEngine
@@ -75,13 +75,16 @@ class CalcEngine(object):
 
         # TTM
         cash_flow_ttm = engine.fetch_fundamentals_pit_extend_company_id(CashFlowTTM,
-                                                                        [CashFlowTTM.BIZNETCFLOW
+                                                                        [CashFlowTTM.BIZNETCFLOW,
                                                                          ], dates=[trade_date])
-
         balance_sets = pd.merge(balance_sets, cash_flow_ttm, how='outer', on='security_code')
 
-        return balance_sets
+        balance_ttm = engine.fetch_fundamentals_pit_extend_company_id(BalanceTTM,
+                                                                      [BalanceTTM.TOTLIAB,
+                                                                       ], dates=[trade_date])
+        balance_sets = pd.merge(balance_sets, balance_ttm, how='outer', on='security_code')
 
+        return balance_sets
 
     def process_calc_factor(self, trade_date, tp_management):
         tp_management = tp_management.set_index('security_code')
@@ -102,6 +105,7 @@ class CalcEngine(object):
         factor_management = management.EquityToFixedAsset(tp_management, factor_management)
         factor_management = management.CurAssetsR(tp_management, factor_management)
         factor_management = management.CaptCashRecRtTTM(tp_management, factor_management)
+        factor_management = management.AssertLibRtTTM(tp_management, factor_management)
 
         factor_management = factor_management.reset_index()
         factor_management['trade_date'] = str(trade_date)

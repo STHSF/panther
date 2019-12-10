@@ -206,3 +206,19 @@ class FactorCapitalStructure(object):
         management = management.drop(columns=dependencies, axis=1)
         factor_earning = pd.merge(factor_management, management, how='outer', on="security_code")
         return factor_earning
+
+    @staticmethod
+    def AssertLibRtTTM(tp_management, factor_management, dependencies=['TOTLIAB',
+                                                                       'total_assets']):
+        """
+        :name: 资产负债率(TTM)
+        :desc: 负债合计(TTM)/资产总计(MRQ)
+        :unit:
+        :view_dimension: 0.01
+        """
+        management = tp_management.loc[:, dependencies]
+        func = lambda x: x[0] / x[1] if x[1] != 0 and x[1] is not None and x[0] is not None else None
+        management['AssertLibRtTTM'] = management.apply(func, axis=1)
+        management = management.drop(columns=dependencies, axis=1)
+        factor_earning = pd.merge(factor_management, management, how='outer', on="security_code")
+        return factor_earning
