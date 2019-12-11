@@ -205,7 +205,7 @@ class CalcEngine(object):
         # factor_derivation = derivation.FCFF(tp_derivation, factor_derivation)
         # factor_derivation = derivation.FCFE(tp_derivation, factor_derivation)
         factor_derivation = derivation.NonRecGainLoss(tp_derivation, factor_derivation)
-        factor_derivation = derivation.NetOptInc(tp_derivation, factor_derivation, sw_industry)
+        # factor_derivation = derivation.NetOptInc(tp_derivation, factor_derivation, sw_industry)
         factor_derivation = derivation.WorkingCap(tp_derivation, factor_derivation)
         factor_derivation = derivation.TangibleAssets(tp_derivation, factor_derivation)
         factor_derivation = derivation.RetainedEarnings(tp_derivation, factor_derivation)
