@@ -15,6 +15,8 @@ from data.model import CashFlowMRQ, CashFlowTTM
 from data.model import IncomeMRQ, IncomeTTM, IndicatorTTM, IndicatorMRQ, BalanceTTM
 
 from vision.db.signletion_engine import *
+from vision.table.industry import Industry
+from vision.table.industry_daily import IndustryDaily
 from data.sqlengine import sqlEngine
 # pd.set_option('display.max_columns', None)
 # pd.set_option('display.max_rows', None)
@@ -180,9 +182,16 @@ class CalcEngine(object):
                 indicator_ttm_sets = indicator_ttm_sets.drop(col, axis=1)
         ttm_derivation = pd.merge(indicator_ttm_sets, ttm_derivation, how='outer', on='security_code')
 
-        return tp_detivation, ttm_derivation
+        # 获取申万二级分类
+        sw_indu = get_fundamentals(query(IndustryDaily.security_code,
+                                         IndustryDaily.industry_code2,
+                                         ).filter(Industry.trade_date.in_([trade_date])))
 
-    def process_calc_factor(self, trade_date, tp_derivation, ttm_derivation):
+
+
+        return tp_detivation, ttm_derivation, sw_indu
+
+    def process_calc_factor(self, trade_date, tp_derivation, ttm_derivation, sw_industry):
         tp_derivation = tp_derivation.set_index('security_code')
         ttm_derivation = ttm_derivation.set_index('security_code')
 
@@ -196,7 +205,7 @@ class CalcEngine(object):
         # factor_derivation = derivation.FCFF(tp_derivation, factor_derivation)
         # factor_derivation = derivation.FCFE(tp_derivation, factor_derivation)
         factor_derivation = derivation.NonRecGainLoss(tp_derivation, factor_derivation)
-        factor_derivation = derivation.NetOptInc(tp_derivation, factor_derivation)
+        factor_derivation = derivation.NetOptInc(tp_derivation, factor_derivation, sw_industry)
         factor_derivation = derivation.WorkingCap(tp_derivation, factor_derivation)
         factor_derivation = derivation.TangibleAssets(tp_derivation, factor_derivation)
         factor_derivation = derivation.RetainedEarnings(tp_derivation, factor_derivation)
@@ -234,7 +243,7 @@ class CalcEngine(object):
         factor_derivation = derivation.TotalProfTTM(ttm_derivation, factor_derivation)
         factor_derivation = derivation.NetIncTTM(ttm_derivation, factor_derivation)
         factor_derivation = derivation.NetProfToPSTTM(ttm_derivation, factor_derivation)
-        # factor_derivation = derivation.NetProfAfterNonRecGainsAndLossTTM(ttm_derivation, factor_derivation)
+        factor_derivation = derivation.NetProfAfterNonRecGainsAndLossTTM(ttm_derivation, factor_derivation)
         # factor_derivation = derivation.EBITFORPTTM(ttm_derivation, factor_derivation)
         factor_derivation = derivation.EBITDATTM(ttm_derivation, factor_derivation)
         factor_derivation = derivation.CashRecForSGAndPSTTM(ttm_derivation, factor_derivation)
@@ -252,11 +261,11 @@ class CalcEngine(object):
     def local_run(self, trade_date):
         print('当前交易日: %s' % trade_date)
         tic = time.time()
-        tp_detivation, ttm_derivation = self.loading_data(trade_date)
+        tp_detivation, ttm_derivation, sw_industry = self.loading_data(trade_date)
         print('data load time %s' % (time.time()-tic))
 
         storage_engine = StorageEngine(self._url)
-        result = self.process_calc_factor(trade_date, tp_detivation, ttm_derivation)
+        result = self.process_calc_factor(trade_date, tp_detivation, ttm_derivation, sw_industry)
         print('cal_time %s' % (time.time() - tic))
         storage_engine.update_destdb(str(self._methods[-1]['packet'].split('.')[-1]), trade_date, result)
         # storage_engine.update_destdb('factor_basic_derivation', trade_date, result)
