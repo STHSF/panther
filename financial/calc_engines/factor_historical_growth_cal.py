@@ -141,22 +141,22 @@ class CalcEngine(object):
                 ttm_cash_flow_sets = ttm_cash_flow_sets.drop(column, axis=1)
         ttm_factor_sets = pd.merge(ttm_factor_sets, ttm_cash_flow_sets, how='outer', on='security_code')
 
-        # ttm_indicator_sets = engine.fetch_fundamentals_pit_extend_company_id(IndicatorTTM,
-        #                                                                      [IndicatorTTM.NPCUT,
-        #                                                                       ], dates=[trade_date])
-        #
-        # if len(ttm_indicator_sets) <= 0 or ttm_indicator_sets is None:
-        #     ttm_indicator_sets = pd.DataFrame({'security_code':[], 'NPCUT':[]})
-        #
-        # for column in columns:
-        #     if column in list(ttm_indicator_sets.keys()):
-        #         ttm_indicator_sets = ttm_indicator_sets.drop(column, axis=1)
-        #
-        # ttm_indicator_sets = ttm_indicator_sets.rename(columns={'NPCUT': 'ni_attr_p_cut'})
-        # ttm_factor_sets = pd.merge(ttm_factor_sets, ttm_indicator_sets, how='outer', on='security_code')
-        # # field_key = ttm_cash_flow_sets.keys()
-        # # for i in field_key:
-        # #     ttm_factor_sets[i] = ttm_cash_flow_sets[i]
+        ttm_indicator_sets = engine.fetch_fundamentals_pit_extend_company_id(IndicatorTTM,
+                                                                             [IndicatorTTM.NPCUT,
+                                                                              ], dates=[trade_date])
+
+        if len(ttm_indicator_sets) <= 0 or ttm_indicator_sets is None:
+            ttm_indicator_sets = pd.DataFrame({'security_code':[], 'NPCUT':[]})
+
+        for column in columns:
+            if column in list(ttm_indicator_sets.keys()):
+                ttm_indicator_sets = ttm_indicator_sets.drop(column, axis=1)
+
+        ttm_indicator_sets = ttm_indicator_sets.rename(columns={'NPCUT': 'ni_attr_p_cut'})
+        ttm_factor_sets = pd.merge(ttm_factor_sets, ttm_indicator_sets, how='outer', on='security_code')
+        # field_key = ttm_cash_flow_sets.keys()
+        # for i in field_key:
+        #     ttm_factor_sets[i] = ttm_cash_flow_sets[i]
 
         ttm_factor_sets = ttm_factor_sets.rename(
             columns={"BIZINCO": "operating_revenue",
@@ -197,18 +197,18 @@ class CalcEngine(object):
                      })
         ttm_factor_sets = pd.merge(ttm_factor_sets, ttm_factor_sets_pre, how='outer', on='security_code')
 
-        # ttm_indicator_sets_pre = engine.fetch_fundamentals_pit_extend_company_id(IndicatorTTM,
-        #                                                                          [IndicatorTTM.NPCUT,
-        #                                                                           ], dates=[trade_date_pre_year])
-        #
-        # if len(ttm_indicator_sets_pre) <= 0 or ttm_indicator_sets_pre is None:
-        #     ttm_indicator_sets_pre = pd.DataFrame({'security_code':[], 'NPCUT':[]})
-        #
-        # for column in columns:
-        #     if column in list(ttm_indicator_sets_pre.keys()):
-        #         ttm_indicator_sets_pre = ttm_indicator_sets_pre.drop(column, axis=1)
-        # ttm_indicator_sets_pre = ttm_indicator_sets_pre.rename(columns={'NPCUT': 'ni_attr_p_cut_pre'})
-        # ttm_factor_sets = pd.merge(ttm_factor_sets, ttm_indicator_sets_pre, how='outer', on='security_code')
+        ttm_indicator_sets_pre = engine.fetch_fundamentals_pit_extend_company_id(IndicatorTTM,
+                                                                                 [IndicatorTTM.NPCUT,
+                                                                                  ], dates=[trade_date_pre_year])
+
+        if len(ttm_indicator_sets_pre) <= 0 or ttm_indicator_sets_pre is None:
+            ttm_indicator_sets_pre = pd.DataFrame({'security_code':[], 'NPCUT':[]})
+
+        for column in columns:
+            if column in list(ttm_indicator_sets_pre.keys()):
+                ttm_indicator_sets_pre = ttm_indicator_sets_pre.drop(column, axis=1)
+        ttm_indicator_sets_pre = ttm_indicator_sets_pre.rename(columns={'NPCUT': 'ni_attr_p_cut_pre'})
+        ttm_factor_sets = pd.merge(ttm_factor_sets, ttm_indicator_sets_pre, how='outer', on='security_code')
 
         ttm_cash_flow_sets_pre = engine.fetch_fundamentals_pit_extend_company_id(CashFlowTTM,
                                                                                  [CashFlowTTM.FINNETCFLOW,
@@ -354,7 +354,7 @@ class CalcEngine(object):
         historical_growth_sets = growth.ORev3YChgTTM(growth_sets, historical_growth_sets)
         historical_growth_sets = growth.ORev5YChgTTM(growth_sets, historical_growth_sets)
         historical_growth_sets = growth.NetCF1YChgTTM(growth_sets, historical_growth_sets)
-        # historical_growth_sets = growth.NetPftAPNNRec1YChgTTM(growth_sets, historical_growth_sets)
+        historical_growth_sets = growth.NetPftAPNNRec1YChgTTM(growth_sets, historical_growth_sets)
         historical_growth_sets = growth.StdUxpErn1YTTM(growth_sets, historical_growth_sets)
         historical_growth_sets = growth.StdUxpGrPft1YTTM(growth_sets, historical_growth_sets)
         historical_growth_sets = growth.FCF1YChgTTM(growth_sets, historical_growth_sets)

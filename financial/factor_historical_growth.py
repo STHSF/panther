@@ -161,24 +161,33 @@ class FactorHistoricalGrowth(object):
         factor_historical_growth = pd.merge(factor_historical_growth, historical_growth, how='outer', on='security_code')
         return factor_historical_growth
 
-    # @staticmethod
-    # def NetPftAPNNRec1YChgTTM(tp_historical_growth, factor_historical_growth, dependencies=['ni_attr_p_cut',
-    #                                                                                         'ni_attr_p_cut_pre']):
-    #     """
-    #     :name: 归属母公司股东的净利润（扣除非经常损益）同比增长
-    #     :desc: 归属母公司股东的净利润(扣除非经常损益)TTM增长
-    #     :unit:
-    #     :view_dimension: 0.01
-    #     """
-    #     historical_growth = tp_historical_growth.loc[:, dependencies]
-    #
-    #     # fun = lambda x: ((x[0] / x[1]) - 1 if x[1] and x[1] != 0 and x[0] is not None and x[1] is not None else None)
-    #     fun = lambda x: ((x[0] - x[1]) / abs(x[1]) if x[1] and x[1] != 0 and x[0] is not None and x[1] is not None else None)
-    #     historical_growth['NetPftAPNNRec1YChgTTM'] = historical_growth[dependencies].apply(fun, axis=1)
-    #
-    #     historical_growth = historical_growth.drop(dependencies, axis=1)
-    #     factor_historical_growth = pd.merge(factor_historical_growth, historical_growth, how='outer', on='security_code')
-    #     return factor_historical_growth
+    @staticmethod
+    def NetPftAPNNRec1YChgTTM(tp_historical_growth, factor_historical_growth, dependencies=['np_parent_company_owners',
+                                                                                            'net_profit',
+                                                                                            'ni_attr_p_cut',
+                                                                                            'np_parent_company_owners_pre_year',
+                                                                                            'net_profit_pre_year',
+                                                                                            'ni_attr_p_cut_pre',
+                                                                                            ]):
+        """
+        :name: 归属母公司股东的净利润（扣除非经常损益）同比增长
+        :desc: 归属母公司股东的净利润(扣除非经常损益)TTM增长
+        :unit:
+        :view_dimension: 0.01
+        """
+        historical_growth = tp_historical_growth.loc[:, dependencies]
+        fun = lambda x: x[0] - x[1] + x[2] if x[0] is not None and x[1] is not None and x[2] is not None else None
+
+        historical_growth['net'] = historical_growth[['np_parent_company_owners', 'net_profit', 'ni_attr_p_cut']].apply(fun, axis=1)
+        historical_growth['net_pre'] = historical_growth[['np_parent_company_owners_pre_year', 'net_profit_pre_year', 'ni_attr_p_cut_pre']].apply(fun, axis=1)
+
+        fun = lambda x: ((x[0] - x[1]) / abs(x[1]) if x[1] and x[1] != 0 and x[0] is not None and x[1] is not None else None)
+        historical_growth['NetPftAPNNRec1YChgTTM'] = historical_growth[['net', 'net_pre']].apply(fun, axis=1)
+
+        dependencies = dependencies + ['net', 'net_pre']
+        historical_growth = historical_growth.drop(dependencies, axis=1)
+        factor_historical_growth = pd.merge(factor_historical_growth, historical_growth, how='outer', on='security_code')
+        return factor_historical_growth
 
     @staticmethod
     def NetPft1YChgTTM(tp_historical_growth, factor_historical_growth, dependencies=['net_profit',
