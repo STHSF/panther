@@ -268,29 +268,30 @@ class FactorBasicDerivation(object):
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
 
-    # @staticmethod
-    # def InterestFreeCurLb(tp_derivation, factor_derivation, dependencies=['NOTESPAYA',
-    #                                                                       'ACCOPAYA',
-    #                                                                       'ADVAPAYM',
-    #                                                                       'INTEPAYA',
-    #                                                                       ]):
-    #     """
-    #     缺预收账款， 应交税费， 其他应付款， 其他流动负债
-    #     :name: 无息流动负债(MRQ)
-    #     :desc: 无息流动负债包括应付票据、应付账款、预收账款、应交税费、应付利息、其他应付款、其他流动负债
-    #     :unit: 元
-    #     :view_dimension: 10000
-    #     """
-    #     management = tp_derivation.loc[:, dependencies]
-    #     if len(management) <= 0:
-    #         return None
-    #     func = lambda x: x[0] + x[1] + x[2] + x[3] + x[4]
-    #
-    #     management['InterestFreeCurLb'] = management[dependencies].apply(func, axis=1)
-    #     management = management.drop(dependencies, axis=1)
-    #
-    #     factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
-    #     return factor_derivation
+    @staticmethod
+    def InterestFreeCurLb(tp_derivation, factor_derivation, dependencies=['NOTESPAYA',
+                                                                          'ACCOPAYA',
+                                                                          'ADVAPAYM',
+                                                                          'INTEPAYA',
+                                                                          'TAXESPAYA',
+                                                                          'OTHERPAY'
+                                                                          ]):
+        """
+        :name: 无息流动负债(MRQ)
+        :desc: 无息流动负债包括应付票据、应付账款、预收账款、应交税费、应付利息、其他应付款、其他流动负债
+        :unit: 元
+        :view_dimension: 10000
+        """
+        management = tp_derivation.loc[:, dependencies]
+        if len(management) <= 0:
+            return None
+        func = lambda x: x[0] + x[1] + x[2] + x[3] + x[4] + x[5]
+
+        management['InterestFreeCurLb'] = management[dependencies].apply(func, axis=1)
+        management = management.drop(dependencies, axis=1)
+
+        factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
+        return factor_derivation
 
     @staticmethod
     def InterestFreeNonCurLb(tp_derivation, factor_derivation, dependencies=['TOTALNONCLIAB',
@@ -344,28 +345,29 @@ class FactorBasicDerivation(object):
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
 
-    # @staticmethod
-    # def TotalInvestedCap(tp_derivation, factor_derivation, dependencies=['RIGHAGGR',
-    #                                                                      'NOTESPAYA',
-    #                                                                      'ACCOPAYA',
-    #                                                                      'ADVAPAYM',
-    #                                                                      'INTEPAYA',
-    #                                                                      ]):
-    #     """
-    #     缺无息长期负债
-    #     :name: 全部投入资本(MRQ)
-    #     :desc: 股东权益+（负债合计-无息流动负债-无息长期负债）
-    #     :unit: 元
-    #     :view_dimension: 10000
-    #     """
-    #     management = tp_derivation.loc[:, dependencies]
-    #     if len(management) <= 0:
-    #         return None
-    #     func = lambda x: x[0] - x[1] - x[2] - x[3] -x[4]
-    #     management['TotalInvestedCap'] = management[dependencies].apply(func, axis=1)
-    #     management = management.drop(dependencies, axis=1)
-    #     factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
-    #     return factor_derivation
+    @staticmethod
+    def TotalInvestedCap(tp_derivation, factor_derivation, dependencies=['RIGHAGGR',
+                                                                         'NOTESPAYA',
+                                                                         'ACCOPAYA',
+                                                                         'ADVAPAYM',
+                                                                         'INTEPAYA',
+                                                                         ]):
+        """
+        :name: 全部投入资本(MRQ)
+        :desc: 股东权益+（负债合计-无息流动负债-无息长期负债）
+        :unit: 元
+        :view_dimension: 10000
+        """
+        management = tp_derivation.loc[:, dependencies]
+        if len(management) <= 0:
+            return None
+        func = lambda x: x[0] + x[1] - x[2] - x[3]
+
+
+        management['TotalInvestedCap'] = management[dependencies].apply(func, axis=1)
+        management = management.drop(dependencies, axis=1)
+        factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
+        return factor_derivation
 
     @staticmethod
     def TotalAssets(tp_derivation, factor_derivation, dependencies=['TOTASSET']):

@@ -84,6 +84,8 @@ class CalcEngine(object):
                                                                         BalanceMRQ.NOTESPAYA,  # 应付票据
                                                                         BalanceMRQ.INTEPAYA,  # 应付利息
                                                                         BalanceMRQ.TOTALNONCLIAB,  # 非流动负债合计
+                                                                        BalanceMRQ.TAXESPAYA,  # 应交税费
+                                                                        BalanceMRQ.OTHERPAY,  # 其他应付款
                                                                         ], dates=[trade_date])
         for col in columns:
             if col in list(balance_sets.keys()):
@@ -211,7 +213,7 @@ class CalcEngine(object):
         factor_derivation = derivation.RetainedEarnings(tp_derivation, factor_derivation)
         factor_derivation = derivation.InterestBearingLiabilities(tp_derivation, factor_derivation)
         factor_derivation = derivation.NetDebt(tp_derivation, factor_derivation)
-        # factor_derivation = derivation.InterestFreeCurLb(tp_derivation, factor_derivation)
+        factor_derivation = derivation.InterestFreeCurLb(tp_derivation, factor_derivation)
         factor_derivation = derivation.InterestFreeNonCurLb(tp_derivation, factor_derivation)
         factor_derivation = derivation.DepAndAmo(tp_derivation, factor_derivation)
         factor_derivation = derivation.EquityPC(tp_derivation, factor_derivation)

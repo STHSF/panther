@@ -134,3 +134,4 @@ dmypy.json
 /client_bk.py
 config.py
 /config.py
+*/config.py
