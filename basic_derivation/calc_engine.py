@@ -111,11 +111,11 @@ class CalcEngine(object):
 
         income_sets = engine.fetch_fundamentals_pit_extend_company_id(IncomeMRQ,
                                                                       [IncomeMRQ.INCOTAXEXPE,
-                                                                       IncomeMRQ.BIZTOTCOST,  # 营业总成本
-                                                                       IncomeMRQ.BIZTOTINCO,  # 营业总收入
-                                                                       IncomeMRQ.NETPROFIT,   # 净利润
-                                                                       IncomeMRQ.TOTPROFIT,  # 利润总额
-                                                                       IncomeMRQ.INTEEXPE,  # 利息支出
+                                                                       IncomeMRQ.BIZTOTCOST,    # 营业总成本
+                                                                       IncomeMRQ.BIZTOTINCO,    # 营业总收入
+                                                                       IncomeMRQ.NETPROFIT,     # 净利润
+                                                                       IncomeMRQ.TOTPROFIT,     # 利润总额
+                                                                       IncomeMRQ.INTEEXPE,      # 利息支出
                                                                        ], dates=[trade_date])
         for col in columns:
             if col in list(income_sets.keys()):
@@ -124,28 +124,28 @@ class CalcEngine(object):
 
         # income ttm
         income_ttm_sets = engine.fetch_fundamentals_pit_extend_company_id(IncomeTTM,
-                                                                          [IncomeTTM.BIZTOTINCO,  # 营业总收入
-                                                                           IncomeTTM.BIZTOTCOST,  # 营业总成本
-                                                                           IncomeTTM.BIZINCO,  # 营业收入
-                                                                           IncomeTTM.BIZCOST,  # 营业成本
-                                                                           IncomeTTM.SALESEXPE,  # 销售费用
-                                                                           IncomeTTM.MANAEXPE,  # 管理费用
-                                                                           IncomeTTM.FINEXPE,
-                                                                           IncomeTTM.INTEEXPE,  # 利息支出
-                                                                           IncomeTTM.DEVEEXPE,  # 研发费用
-                                                                           IncomeTTM.ASSEIMPALOSS,
-                                                                           IncomeTTM.PERPROFIT,
-                                                                           IncomeTTM.TOTPROFIT,  # 利润总额
-                                                                           IncomeTTM.NETPROFIT,
-                                                                           IncomeTTM.PARENETP,
-                                                                           IncomeTTM.BIZTAX,  # 营业税金及附加
+                                                                          [IncomeTTM.BIZTOTINCO,      # 营业总收入
+                                                                           IncomeTTM.BIZTOTCOST,      # 营业总成本
+                                                                           IncomeTTM.BIZINCO,         # 营业收入
+                                                                           IncomeTTM.BIZCOST,         # 营业成本
+                                                                           IncomeTTM.SALESEXPE,       # 销售费用
+                                                                           IncomeTTM.MANAEXPE,        # 管理费用
+                                                                           IncomeTTM.FINEXPE,         # 财务费用
+                                                                           IncomeTTM.INTEEXPE,        # 利息支出
+                                                                           IncomeTTM.DEVEEXPE,        # 研发费用
+                                                                           IncomeTTM.ASSEIMPALOSS,    # 资产减值损失
+                                                                           IncomeTTM.PERPROFIT,       # 营业利润
+                                                                           IncomeTTM.TOTPROFIT,       # 利润总额
+                                                                           IncomeTTM.NETPROFIT,       # 净利润
+                                                                           IncomeTTM.PARENETP,        # 归属母公司股东的净利润
+                                                                           IncomeTTM.BIZTAX,          # 营业税金及附加
                                                                            IncomeTTM.NONOREVE,
                                                                            IncomeTTM.NONOEXPE,
-                                                                           IncomeTTM.MINYSHARRIGH,  # 少数股东权益
+                                                                           IncomeTTM.MINYSHARRIGH,    # 少数股东权益
                                                                            IncomeTTM.INCOTAXEXPE,
-                                                                           IncomeTTM.VALUECHGLOSS,  # 公允价值变动收益
-                                                                           IncomeTTM.INVEINCO,  # 投资收益
-                                                                           IncomeTTM.EXCHGGAIN,  # 汇兑收益
+                                                                           IncomeTTM.VALUECHGLOSS,    # 公允价值变动收益
+                                                                           IncomeTTM.INVEINCO,        # 投资收益
+                                                                           IncomeTTM.EXCHGGAIN,       # 汇兑收益
 
                                                                            ], dates=[trade_date])
         for col in columns:
