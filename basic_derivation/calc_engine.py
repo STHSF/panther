@@ -15,7 +15,7 @@ from basic_derivation import factor_basic_derivation
 
 from data.model import BalanceMRQ
 from data.model import CashFlowMRQ, CashFlowTTM
-from data.model import IncomeMRQ, IncomeTTM, IndicatorTTM
+from data.model import IncomeMRQ, IncomeTTM, IndicatorTTM, IndicatorMRQ
 
 from vision.db.signletion_engine import *
 from vision.table.industry_daily import IndustryDaily
@@ -102,24 +102,13 @@ class CalcEngine(object):
         })
         tp_detivation = pd.merge(cash_flow_sets, balance_sets, how='outer', on='security_code')
 
-        # indicator_sets = engine.fetch_fundamentals_pit_extend_company_id(IndicatorMRQ,
-        #                                                                  [IndicatorMRQ.FCFF,
-        #                                                                   IndicatorMRQ.FCFE,
-        #                                                                   IndicatorMRQ.NEGAL,
-        #                                                                   IndicatorMRQ.NOPI,
-        #                                                                   IndicatorMRQ.WORKCAP,
-        #                                                                   IndicatorMRQ.RETAINEDEAR,
-        #                                                                   IndicatorMRQ.NDEBT,
-        #                                                                   IndicatorMRQ.NONINTCURLIABS,
-        #                                                                   IndicatorMRQ.NONINTNONCURLIAB,
-        #                                                                   IndicatorMRQ.CURDEPANDAMOR,
-        #                                                                   IndicatorMRQ.TOTIC,
-        #                                                                   IndicatorMRQ.EBIT,
-        #                                                                   ], dates=[trade_date])
-        # for col in columns:
-        #     if col in list(indicator_sets.keys()):
-        #         indicator_sets = indicator_sets.drop(col, axis=1)
-        # tp_detivation = pd.merge(indicator_sets, tp_detivation, how='outer', on='security_code')
+        indicator_sets = engine.fetch_fundamentals_pit_extend_company_id(IndicatorMRQ,
+                                                                         [IndicatorMRQ.NPCUT,
+                                                                          ], dates=[trade_date])
+        for col in columns:
+            if col in list(indicator_sets.keys()):
+                indicator_sets = indicator_sets.drop(col, axis=1)
+        tp_detivation = pd.merge(indicator_sets, tp_detivation, how='outer', on='security_code')
 
         income_sets = engine.fetch_fundamentals_pit_extend_company_id(IncomeMRQ,
                                                                       [IncomeMRQ.INCOTAXEXPE,

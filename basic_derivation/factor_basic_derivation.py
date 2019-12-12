@@ -14,7 +14,6 @@ sys.path.append('../')
 sys.path.append('../../')
 sys.path.append('../../../')
 import six
-import json
 import pandas as pd
 from pandas.io.json import json_normalize
 from utilities.singleton import Singleton
@@ -80,8 +79,7 @@ class FactorBasicDerivation(object):
         return factor_derivation
 
     @staticmethod
-    def NonRecGainLoss(tp_derivation, factor_derivation, dependencies=['NETPROFIT',
-                                                                       'NPCUT']):
+    def NonRecGainLoss(tp_derivation, factor_derivation, dependencies=['NETPROFIT', 'NPCUT']):
         """
         :name: 非经常性损益(MRQ)
         :desc: 净利润(MRQ) - 扣非净利润(MRQ)
