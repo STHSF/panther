@@ -839,7 +839,6 @@ class FactorBasicDerivation(object):
     #                                                                 'SALESEXPE',
     #                                                                 'MANAEXPE',
     #                                                                 'DEVEEXPE',
-    #
     #                                                                 ]):
     #     """
     #     缺手续费及佣金支出， 坏账损失， 存货跌价损失， 其他收益
