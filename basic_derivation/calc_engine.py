@@ -18,7 +18,6 @@ from data.model import CashFlowMRQ, CashFlowTTM
 from data.model import IncomeMRQ, IncomeTTM, IndicatorTTM
 
 from vision.db.signletion_engine import *
-from vision.table.industry import Industry
 from vision.table.industry_daily import IndustryDaily
 from data.sqlengine import sqlEngine
 # pd.set_option('display.max_columns', None)
@@ -191,7 +190,7 @@ class CalcEngine(object):
         # 获取申万二级分类
         sw_indu = get_fundamentals(query(IndustryDaily.security_code,
                                          IndustryDaily.industry_code2,
-                                         ).filter(Industry.trade_date.in_([trade_date])))
+                                         ).filter(IndustryDaily.trade_date.in_([trade_date])))
 
 
 
