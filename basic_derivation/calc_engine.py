@@ -64,7 +64,6 @@ class CalcEngine(object):
                                                                         BalanceMRQ.DUENONCLIAB,
                                                                         BalanceMRQ.LONGBORR,
                                                                         BalanceMRQ.BDSPAYA,
-                                                                        BalanceMRQ.INTEPAYA,
                                                                         BalanceMRQ.PARESHARRIGH,
                                                                         BalanceMRQ.TOTASSET,
                                                                         BalanceMRQ.FIXEDASSECLEATOT,  # 固定资产合计

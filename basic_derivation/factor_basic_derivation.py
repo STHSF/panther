@@ -270,7 +270,7 @@ class FactorBasicDerivation(object):
     def InterestFreeCurLb(tp_derivation, factor_derivation, dependencies=['NOTESPAYA',
                                                                           'ACCOPAYA',
                                                                           'ADVAPAYM',
-                                                                          'INTEPAYA',
+                                                                          'interest_payable',
                                                                           'TAXESPAYA',
                                                                           'OTHERPAY'
                                                                           ]):
