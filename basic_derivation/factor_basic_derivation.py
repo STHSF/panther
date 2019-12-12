@@ -37,33 +37,39 @@ class FactorBasicDerivation(object):
         self.factor_type2 = '基础衍生'
         self.description = '基础衍生类因子'
 
-    # @staticmethod
-    # def FCFF(tp_derivation, factor_derivation, dependencies=['TOTPROFIT',
-    #                                                          'INTEEXPE',
-    #                                                          'ASSEDEPR',
-    #                                                          'INTAASSEAMOR',
-    #                                                          'LONGDEFEEXPENAMOR'
-    #                                                          ]):
-    #     """
-    #     缺营运资本增加，资本支出
-    #     :name: 企业自由现金流量(MRQ)
-    #     :desc: 息前税利润+折旧与摊销-营运资本增加-资本支出 = 息税前利润(1-所得税率)+ 折旧与摊销-营运资本增加-构建固定无形和长期资产支付的现金
-    #     :unit: 元
-    #     :view_dimension: 10000
-    #     """
-    #     management = tp_derivation.loc[:, dependencies]
-    #     if len(management) <= 0:
-    #         return None
-    #     func = lambda x: x[0] + x[1] + x[2] + x[3] + x[4]
-    #     management['FCFF'] = management[dependencies].apply(func, axis=1)
-    #     management = management.drop(dependencies, axis=1)
-    #     factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
-    #     return factor_derivation
+    @staticmethod
+    def FCFF(tp_derivation, factor_derivation, dependencies=['EBIT',
+                                                             'INCOTAXEXPE',
+                                                             'TOTPROFIT',
+                                                             'INTEEXPE',
+                                                             'ASSEDEPR',
+                                                             'INTAASSEAMOR',
+                                                             'LONGDEFEEXPENAMOR',
+                                                             'TOTCURRASSET',
+                                                             'TOTALCURRLIAB',
+
+                                                             'ACQUASSETCASH',
+                                                             ]):
+        """
+        :name: 企业自由现金流量(MRQ)
+        :desc: 息前税后利润+折旧与摊销-营运资本增加-资本支出 = 息税前利润(1-所得税率)+ 折旧与摊销-营运资本增加-构建固定无形和长期资产支付的现金， 营运资本增加 = 流动资产-流动负债
+        :unit: 元
+        :view_dimension: 10000
+        """
+        management = tp_derivation.loc[:, dependencies]
+        if len(management) <= 0:
+            return None
+        func = lambda x: x[0] + x[1] + x[2] + x[3] + x[4]
+        management['FCFF'] = management[dependencies].apply(func, axis=1)
+        management = management.drop(dependencies, axis=1)
+        factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
+        return factor_derivation
 
     @staticmethod
-    def FCFE(tp_derivation, factor_derivation, dependencies=['FCFE']):
+    def FCFE(tp_derivation, factor_derivation, dependencies=['DEBTPAYCASH',
+                                                             'RECEFROMLOAN',
+                                                             'ISSBDRECECASH']):
         """
-        缺偿还债务所支付的现金，取得借款收到的现金， 发行债券所收到的现金
         :name: 股东自由现金流量(MRQ)
         :desc: 企业自由现金流量-偿还债务所支付的现金+取得借款收到的现金+发行债券所收到的现金（MRQ)
         :unit: 元
@@ -98,8 +104,8 @@ class FactorBasicDerivation(object):
     @staticmethod
     def NetOptInc(tp_derivation, factor_derivation, sw_industry,
                   dependencies=['BIZTOTINCO', 'BIZTOTCOST'],
-                  dependencies_yh=['POUNINCO', 'NETPROFIT', '', 'BIZCOST'],
-                  dependencies_zq=['POUNINCO', 'NETPROFIT', '', 'BIZCOST'],
+                  dependencies_yh=['POUNINCO', 'NETPROFIT', 'OTHERBIZPROF', 'BIZCOST'],
+                  dependencies_zq=['POUNINCO', 'NETPROFIT', 'OTHERBIZINCO', 'BIZCOST'],
                   dependencies_bx=['BIZINCO', 'BIZCOST', 'VALUECHGLOSS', 'INVEINCO', 'EXCHGGAIN']):
         """
         :name: 经营活动净收益(MRQ)
@@ -158,8 +164,8 @@ class FactorBasicDerivation(object):
         management_tm.append(management_er)
 
         dependencies = dependencies + dependencies_yh + dependencies_bx + dependencies_zq
-        management = management.drop(dependencies, axis=1)
-        factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
+        management_tm = management_tm.drop(dependencies, axis=1)
+        factor_derivation = pd.merge(factor_derivation, management_tm, how='outer', on="security_code")
         return factor_derivation
 
     @staticmethod
@@ -840,9 +846,13 @@ class FactorBasicDerivation(object):
     #                                                                 'SALESEXPE',
     #                                                                 'MANAEXPE',
     #                                                                 'DEVEEXPE',
+    #                                                                 'POUNEXPE',
+    #                                                                 '',
+    #                                                                 '',
+    #                                                                 'OTHERINCO',
     #                                                                 ]):
     #     """
-    #     缺手续费及佣金支出， 坏账损失， 存货跌价损失， 其他收益
+    #     缺坏账损失， 存货跌价损失
     #     :name: EBIT(TTM)
     #     :desc: (营业收入-营业税金及附加)-(营业成本+利息支出+手续费及佣金支出+销售费用+管理费用+研发费用+坏账损失+存货跌价损失) +其他收益
     #     :unit: 元

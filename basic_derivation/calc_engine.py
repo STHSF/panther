@@ -54,6 +54,10 @@ class CalcEngine(object):
                                                                           CashFlowMRQ.ASSEDEPR,  # 固定资产折旧
                                                                           CashFlowMRQ.INTAASSEAMOR,  # 无形资产摊销
                                                                           CashFlowMRQ.LONGDEFEEXPENAMOR,  # 长期待摊费用摊销
+                                                                          CashFlowMRQ.DEBTPAYCASH,        # 偿还债务支付的现金
+                                                                          CashFlowMRQ.RECEFROMLOAN,       # 取得借款收到的现金
+                                                                          CashFlowMRQ.ISSBDRECECASH,      # 发行债券所收到的现金
+
                                                                           ], dates=[trade_date])
         for col in columns:
             if col in list(cash_flow_sets.keys()):
@@ -68,7 +72,7 @@ class CalcEngine(object):
                                                                         BalanceMRQ.TOTASSET,
                                                                         BalanceMRQ.FIXEDASSECLEATOT,  # 固定资产合计
                                                                         BalanceMRQ.TOTLIAB,
-                                                                        BalanceMRQ.RIGHAGGR,        # 股东权益合计
+                                                                        BalanceMRQ.RIGHAGGR,          # 股东权益合计
                                                                         BalanceMRQ.INTAASSET,
                                                                         # BalanceMRQ.DEVEEXPE,        # 研发费用, Income 中也有
                                                                         BalanceMRQ.GOODWILL,
@@ -95,11 +99,16 @@ class CalcEngine(object):
         balance_sets = balance_sets.rename(columns={
             'SHORTTERMBORR': 'shortterm_loan',  # 短期借款
             'DUENONCLIAB': 'non_current_liability_in_one_year',  # 一年内到期的非流动负债
-            'LONGBORR': 'longterm_loan',  # 长期借款
-            'BDSPAYA': 'bonds_payable',  # 应付债券
-            'INTEPAYA': 'interest_payable',  # 应付利息
+            'LONGBORR': 'longterm_loan',      # 长期借款
+            'BDSPAYA': 'bonds_payable',       # 应付债券
+            'INTEPAYA': 'interest_payable',   # 应付利息
         })
         tp_detivation = pd.merge(cash_flow_sets, balance_sets, how='outer', on='security_code')
+
+
+
+
+
 
         indicator_sets = engine.fetch_fundamentals_pit_extend_company_id(IndicatorMRQ,
                                                                          [IndicatorMRQ.NPCUT,
@@ -124,6 +133,9 @@ class CalcEngine(object):
                                                                        IncomeMRQ.BIZINCO,           # 营业收入
                                                                        IncomeMRQ.POUNINCO,          #
                                                                        IncomeMRQ.NETPROFIT,         #
+                                                                       IncomeMRQ.POUNEXPE,          # 手续费及佣金支出
+                                                                       IncomeMRQ.OTHERINCO,         # 其他收益
+                                                                       IncomeMRQ.OTHERBIZPROF,      # 其他业务利润
                                                                        ], dates=[trade_date])
         for col in columns:
             if col in list(income_sets.keys()):
@@ -206,7 +218,7 @@ class CalcEngine(object):
         # factor_derivation = derivation.FCFF(tp_derivation, factor_derivation)
         # factor_derivation = derivation.FCFE(tp_derivation, factor_derivation)
         factor_derivation = derivation.NonRecGainLoss(tp_derivation, factor_derivation)
-        # factor_derivation = derivation.NetOptInc(tp_derivation, factor_derivation, sw_industry)
+        factor_derivation = derivation.NetOptInc(tp_derivation, factor_derivation, sw_industry)
         factor_derivation = derivation.WorkingCap(tp_derivation, factor_derivation)
         factor_derivation = derivation.TangibleAssets(tp_derivation, factor_derivation)
         factor_derivation = derivation.RetainedEarnings(tp_derivation, factor_derivation)
