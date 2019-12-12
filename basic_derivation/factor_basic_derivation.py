@@ -61,23 +61,23 @@ class FactorBasicDerivation(object):
     #     factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
     #     return factor_derivation
 
-    # @staticmethod
-    # def FCFE(tp_derivation, factor_derivation, dependencies=['FCFE']):
-    #     """
-    #     缺偿还债务所支付的现金，取得借款收到的现金， 发行债券所收到的现金
-    #     :name: 股东自由现金流量(MRQ)
-    #     :desc: 企业自由现金流量-偿还债务所支付的现金+取得借款收到的现金+发行债券所收到的现金（MRQ)
-    #     :unit: 元
-    #     :view_dimension: 10000
-    #     """
-    #     management = tp_derivation.loc[:, dependencies]
-    #     if len(management) <= 0:
-    #         return None
-    #     func = lambda x: x[0] + x[1] + x[2] + x[3] + x[4]
-    #     management['FCFE'] = management[dependencies].apply(func, axis=1)
-    #     management = management.drop(dependencies, axis=1)
-    #     factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
-    #     return factor_derivation
+    @staticmethod
+    def FCFE(tp_derivation, factor_derivation, dependencies=['FCFE']):
+        """
+        缺偿还债务所支付的现金，取得借款收到的现金， 发行债券所收到的现金
+        :name: 股东自由现金流量(MRQ)
+        :desc: 企业自由现金流量-偿还债务所支付的现金+取得借款收到的现金+发行债券所收到的现金（MRQ)
+        :unit: 元
+        :view_dimension: 10000
+        """
+        management = tp_derivation.loc[:, dependencies]
+        if len(management) <= 0:
+            return None
+        func = lambda x: x[0] + x[1] + x[2] + x[3] + x[4]
+        management['FCFE'] = management[dependencies].apply(func, axis=1)
+        management = management.drop(dependencies, axis=1)
+        factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
+        return factor_derivation
 
     @staticmethod
     def NonRecGainLoss(tp_derivation, factor_derivation, dependencies=['NETPROFIT',
@@ -285,7 +285,12 @@ class FactorBasicDerivation(object):
         management = tp_derivation.loc[:, dependencies]
         if len(management) <= 0:
             return None
-        func = lambda x: x[0] + x[1] + x[2] + x[3] + x[4] + x[5]
+        func = lambda x: x[0] + x[1] + x[2] + x[3] + x[4] + x[5] if x[0] is not None and\
+                                                                    x[1] is not None and\
+                                                                    x[2] is not None and\
+                                                                    x[3] is not None and\
+                                                                    x[4] is not None and\
+                                                                    x[5] is not None else None
 
         management['InterestFreeCurLb'] = management[dependencies].apply(func, axis=1)
         management = management.drop(dependencies, axis=1)
@@ -306,7 +311,7 @@ class FactorBasicDerivation(object):
         management = tp_derivation.loc[:, dependencies]
         if len(management) <= 0:
             return None
-        func = lambda x: x[0] - x[1] - x[2]
+        func = lambda x: x[0] - x[1] - x[2] if x[0] is not None and x[1] is not None and x[2] is not None else None
         management['InterestFreeNonCurLb'] = management[dependencies].apply(func, axis=1)
         management = management.drop(dependencies, axis=1)
 
@@ -347,10 +352,16 @@ class FactorBasicDerivation(object):
 
     @staticmethod
     def TotalInvestedCap(tp_derivation, factor_derivation, dependencies=['RIGHAGGR',
+                                                                         'TOTLIAB',
                                                                          'NOTESPAYA',
                                                                          'ACCOPAYA',
                                                                          'ADVAPAYM',
                                                                          'INTEPAYA',
+                                                                         'TAXESPAYA',
+                                                                         'OTHERPAY',
+                                                                         'TOTALNONCLIAB',
+                                                                         'longterm_loan',
+                                                                         'bonds_payable',
                                                                          ]):
         """
         :name: 全部投入资本(MRQ)
@@ -361,9 +372,18 @@ class FactorBasicDerivation(object):
         management = tp_derivation.loc[:, dependencies]
         if len(management) <= 0:
             return None
-        func = lambda x: x[0] + x[1] - x[2] - x[3]
-
-
+        func = lambda x: x[0] + x[1] - (x[2] + x[3] + x[4] + x[5] + x[6] + x[7]) - (x[8] - x[9] - x[10]) \
+            if x[0] is not None and \
+               x[1] is not None and \
+               x[2] is not None and \
+               x[3] is not None and \
+               x[4] is not None and \
+               x[5] is not None and \
+               x[6] is not None and \
+               x[7] is not None and \
+               x[8] is not None and \
+               x[9] is not None and \
+               x[10] is not None else None
         management['TotalInvestedCap'] = management[dependencies].apply(func, axis=1)
         management = management.drop(dependencies, axis=1)
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")

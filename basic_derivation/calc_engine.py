@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-
+import sys
+sys.path.append('../')
+sys.path.append('../../')
+sys.path.append('../../../')
 import pdb,importlib,inspect,time,datetime,json
 # from PyFin.api import advanceDateByCalendar
 # from data.polymerize import DBPolymerize
@@ -12,7 +15,7 @@ from basic_derivation import factor_basic_derivation
 
 from data.model import BalanceMRQ
 from data.model import CashFlowMRQ, CashFlowTTM
-from data.model import IncomeMRQ, IncomeTTM, IndicatorTTM, IndicatorMRQ, BalanceTTM
+from data.model import IncomeMRQ, IncomeTTM, IndicatorTTM
 
 from vision.db.signletion_engine import *
 from vision.table.industry import Industry
@@ -75,6 +78,7 @@ class CalcEngine(object):
                                                                         BalanceMRQ.DEFETAXASSET,
                                                                         BalanceMRQ.MINYSHARRIGH,  # 少数股东权益[MINYSHARRIGH]利润表中也有
                                                                         BalanceMRQ.TOTCURRASSET,  # 流动资产合计
+                                                                        BalanceMRQ.TOTLIAB, # 负债合计
                                                                         BalanceMRQ.TOTALCURRLIAB,  # 流动负债合计
                                                                         BalanceMRQ.RESE,  # 盈余公积
                                                                         BalanceMRQ.UNDIPROF,  # 未分配利润
@@ -217,7 +221,7 @@ class CalcEngine(object):
         factor_derivation = derivation.InterestFreeNonCurLb(tp_derivation, factor_derivation)
         factor_derivation = derivation.DepAndAmo(tp_derivation, factor_derivation)
         factor_derivation = derivation.EquityPC(tp_derivation, factor_derivation)
-        # factor_derivation = derivation.TotalInvestedCap(tp_derivation, factor_derivation)
+        factor_derivation = derivation.TotalInvestedCap(tp_derivation, factor_derivation)
         factor_derivation = derivation.TotalAssets(tp_derivation, factor_derivation)
         factor_derivation = derivation.TotalFixedAssets(tp_derivation, factor_derivation)
         factor_derivation = derivation.TotalLib(tp_derivation, factor_derivation)
