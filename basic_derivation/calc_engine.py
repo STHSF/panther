@@ -51,9 +51,9 @@ class CalcEngine(object):
         engine = sqlEngine()
         cash_flow_sets = engine.fetch_fundamentals_pit_extend_company_id(CashFlowMRQ,
                                                                          [CashFlowMRQ.FINALCASHBALA,
-                                                                          CashFlowMRQ.ASSEDEPR,
-                                                                          CashFlowMRQ.INTAASSEAMOR,
-                                                                          CashFlowMRQ.LONGDEFEEXPENAMOR,
+                                                                          CashFlowMRQ.ASSEDEPR,  # 固定资产折旧
+                                                                          CashFlowMRQ.INTAASSEAMOR,  # 无形资产摊销
+                                                                          CashFlowMRQ.LONGDEFEEXPENAMOR,  # 长期待摊费用摊销
                                                                           ], dates=[trade_date])
         for col in columns:
             if col in list(cash_flow_sets.keys()):

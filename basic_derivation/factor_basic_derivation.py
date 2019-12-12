@@ -190,6 +190,8 @@ class FactorBasicDerivation(object):
         """
         :name: 有形资产(MRQ)
         :desc: 股东权益（不含少数股东权益）-无形资产+开发支出+商誉+长期待摊费用+递延所得税资产）
+        :unit: 元
+        :view_dimension: 10000
         """
         management = tp_derivation.loc[:, dependencies]
         if len(management) <= 0:
@@ -227,7 +229,7 @@ class FactorBasicDerivation(object):
                                                                                    'interest_payable']):
         """
         :name: 带息负债(MRQ)
-        :desc: 带息负债 = 短期借款+一年内到期的长期负债+长期借款+应付债券+应付利息
+        :desc: 带息负债 = 短期借款 + 一年内到期的长期负债 + 长期借款 + 应付债券 + 应付利息
         :unit: 元
         :view_dimension: 10000
         """
@@ -330,6 +332,8 @@ class FactorBasicDerivation(object):
         """
         :name: 折旧和摊销(MRQ)
         :desc: 固定资产折旧+无形资产摊销+长期待摊费用摊销
+        :unit: 元
+        :view_dimension: 10000
         """
         management = tp_derivation.loc[:, dependencies]
         if len(management) <= 0:
@@ -619,9 +623,10 @@ class FactorBasicDerivation(object):
     @staticmethod
     def InterestExpTTM(tp_derivation, factor_derivation, dependencies=['INTEEXPE']):
         """
-        缺少利息支出
         :name: 利息支出(TTM)
         :desc: 根据截止指定日已披露的最新报告期“利息支出”计算：（1）最新报告期是年报。则TTM=年报；（2）最新报告期不是年报，Q则TTM=本期+（上年年报-上年同期合并数），如果上年年报非空，本期、上年同期台并数存在空值，则返回上年年报。
+        :unit: 元
+        :view_dimension: 10000
         """
         management = tp_derivation.loc[:, dependencies]
         if len(management) <= 0:
