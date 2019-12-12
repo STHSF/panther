@@ -68,26 +68,26 @@ class CalcEngine(object):
                                                                         BalanceMRQ.TOTASSET,
                                                                         BalanceMRQ.FIXEDASSECLEATOT,  # 固定资产合计
                                                                         BalanceMRQ.TOTLIAB,
-                                                                        BalanceMRQ.RIGHAGGR,  # 股东权益合计
+                                                                        BalanceMRQ.RIGHAGGR,        # 股东权益合计
                                                                         BalanceMRQ.INTAASSET,
                                                                         BalanceMRQ.DEVEEXPE,
                                                                         BalanceMRQ.GOODWILL,
                                                                         BalanceMRQ.LOGPREPEXPE,
                                                                         BalanceMRQ.DEFETAXASSET,
-                                                                        BalanceMRQ.MINYSHARRIGH,  # 少数股东权益[MINYSHARRIGH]利润表中也有
-                                                                        BalanceMRQ.TOTCURRASSET,  # 流动资产合计
-                                                                        BalanceMRQ.TOTLIAB, # 负债合计
-                                                                        BalanceMRQ.TOTALCURRLIAB,  # 流动负债合计
-                                                                        BalanceMRQ.RESE,  # 盈余公积
-                                                                        BalanceMRQ.UNDIPROF,  # 未分配利润
-                                                                        BalanceMRQ.CURFDS,  # 货币资金
-                                                                        BalanceMRQ.ACCOPAYA,  # 应付帐款
-                                                                        BalanceMRQ.ADVAPAYM,  # 预收款项
-                                                                        BalanceMRQ.NOTESPAYA,  # 应付票据
-                                                                        BalanceMRQ.INTEPAYA,  # 应付利息
-                                                                        BalanceMRQ.TOTALNONCLIAB,  # 非流动负债合计
-                                                                        BalanceMRQ.TAXESPAYA,  # 应交税费
-                                                                        BalanceMRQ.OTHERPAY,  # 其他应付款
+                                                                        BalanceMRQ.MINYSHARRIGH,    # 少数股东权益[MINYSHARRIGH]利润表中也有
+                                                                        BalanceMRQ.TOTCURRASSET,    # 流动资产合计
+                                                                        BalanceMRQ.TOTLIAB,         # 负债合计
+                                                                        BalanceMRQ.TOTALCURRLIAB,   # 流动负债合计
+                                                                        BalanceMRQ.RESE,            # 盈余公积
+                                                                        BalanceMRQ.UNDIPROF,        # 未分配利润
+                                                                        BalanceMRQ.CURFDS,          # 货币资金
+                                                                        BalanceMRQ.ACCOPAYA,        # 应付帐款
+                                                                        BalanceMRQ.ADVAPAYM,        # 预收款项
+                                                                        BalanceMRQ.NOTESPAYA,       # 应付票据
+                                                                        BalanceMRQ.INTEPAYA,        # 应付利息
+                                                                        BalanceMRQ.TOTALNONCLIAB,   # 非流动负债合计
+                                                                        BalanceMRQ.TAXESPAYA,       # 应交税费
+                                                                        BalanceMRQ.OTHERPAY,        # 其他应付款
                                                                         ], dates=[trade_date])
         for col in columns:
             if col in list(balance_sets.keys()):
@@ -215,7 +215,7 @@ class CalcEngine(object):
         factor_derivation = derivation.ShEquity(tp_derivation, factor_derivation)
         factor_derivation = derivation.CashAndCashEqu(tp_derivation, factor_derivation)
         factor_derivation = derivation.EBIT(tp_derivation, factor_derivation)
-
+        # TTM
         factor_derivation = derivation.SalesTTM(ttm_derivation, factor_derivation)
         factor_derivation = derivation.TotalOptCostTTM(ttm_derivation, factor_derivation)
         factor_derivation = derivation.OptIncTTM(ttm_derivation, factor_derivation)
