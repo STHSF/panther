@@ -38,35 +38,44 @@ class FactorBasicDerivation(object):
         self.description = '基础衍生类因子'
 
     @staticmethod
-    def FCFF(tp_derivation, factor_derivation, dependencies=['EBIT',
+    def FCFF(tp_derivation, factor_derivation, dependencies=['ebit_mrq',
                                                              'INCOTAXEXPE',
-                                                             'TOTPROFIT',
-                                                             'INTEEXPE',
                                                              'ASSEDEPR',
                                                              'INTAASSEAMOR',
-                                                             'LONGDEFEEXPENAMOR',
+                                                             'LONGDEFEEXPENAMOR'
                                                              'TOTCURRASSET',
                                                              'TOTALCURRLIAB',
-
+                                                             'TOTCURRASSET_PRE',
+                                                             'TOTALCURRLIAB_PRE',
                                                              'ACQUASSETCASH',
                                                              ]):
         """
         :name: 企业自由现金流量(MRQ)
-        :desc: 息前税后利润+折旧与摊销-营运资本增加-资本支出 = 息税前利润(1-所得税率)+ 折旧与摊销-营运资本增加-构建固定无形和长期资产支付的现金， 营运资本增加 = 流动资产-流动负债
+        :desc: 息前税后利润+折旧与摊销-营运资本增加-资本支出 = 息税前利润(1-所得税率)+ 折旧与摊销-营运资本增加-构建固定无形和长期资产支付的现金， 营运资本 = 流动资产-流动负债
         :unit: 元
         :view_dimension: 10000
         """
         management = tp_derivation.loc[:, dependencies]
         if len(management) <= 0:
             return None
-        func = lambda x: x[0] + x[1] + x[2] + x[3] + x[4]
+        func = lambda x: x[0] - x[1] + x[2] + x[3] + x[4] - (x[5] - x[6]) + (x[7] - x[8]) - x[9]
         management['FCFF'] = management[dependencies].apply(func, axis=1)
         management = management.drop(dependencies, axis=1)
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
 
     @staticmethod
-    def FCFE(tp_derivation, factor_derivation, dependencies=['DEBTPAYCASH',
+    def FCFE(tp_derivation, factor_derivation, dependencies=['ebit_mrq',
+                                                             'INCOTAXEXPE',
+                                                             'ASSEDEPR',
+                                                             'INTAASSEAMOR',
+                                                             'LONGDEFEEXPENAMOR'
+                                                             'TOTCURRASSET',
+                                                             'TOTALCURRLIAB',
+                                                             'TOTCURRASSET_PRE',
+                                                             'TOTALCURRLIAB_PRE',
+                                                             'ACQUASSETCASH',
+                                                             'DEBTPAYCASH',
                                                              'RECEFROMLOAN',
                                                              'ISSBDRECECASH']):
         """
@@ -78,7 +87,7 @@ class FactorBasicDerivation(object):
         management = tp_derivation.loc[:, dependencies]
         if len(management) <= 0:
             return None
-        func = lambda x: x[0] + x[1] + x[2] + x[3] + x[4]
+        func = lambda x: x[0] - x[1] + x[2] + x[3] + x[4] - (x[5] -x[6]) + (x[7] - x[8]) - x[9] - x[10] + x[11] + x[12]
         management['FCFE'] = management[dependencies].apply(func, axis=1)
         management = management.drop(dependencies, axis=1)
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
@@ -750,7 +759,7 @@ class FactorBasicDerivation(object):
                                                                 'INTEEXPE']):
         """
         :name: 息税前利润(TTM)
-        :desc: [EBIT_反推]息税前利润=利润总额+利息支出
+        :desc: [EBIT_反推]息税前利润 = 利润总额+利息支出
         :unit: 元
         :view_dimension: 10000
         """
