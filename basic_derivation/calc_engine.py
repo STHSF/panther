@@ -117,6 +117,13 @@ class CalcEngine(object):
                                                                        IncomeMRQ.TOTPROFIT,     # 利润总额
                                                                        IncomeMRQ.INTEEXPE,      # 利息支出
                                                                        IncomeMRQ.DEVEEXPE,      # 研发费用
+                                                                       IncomeMRQ.VALUECHGLOSS,      # 公允价值变动收益
+                                                                       IncomeMRQ.INVEINCO,          # 投资收益
+                                                                       IncomeMRQ.EXCHGGAIN,         # 汇兑收益
+                                                                       IncomeMRQ.BIZCOST,           # 营业成本
+                                                                       IncomeMRQ.BIZINCO,           # 营业收入
+                                                                       IncomeMRQ.POUNINCO,          #
+                                                                       IncomeMRQ.NETPROFIT,         #
                                                                        ], dates=[trade_date])
         for col in columns:
             if col in list(income_sets.keys()):

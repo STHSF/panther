@@ -96,7 +96,8 @@ class FactorBasicDerivation(object):
         return factor_derivation
 
     @staticmethod
-    def NetOptInc(tp_derivation, factor_derivation, sw_industry, dependencies=['BIZTOTINCO', 'BIZTOTCOST'],
+    def NetOptInc(tp_derivation, factor_derivation, sw_industry,
+                  dependencies=['BIZTOTINCO', 'BIZTOTCOST'],
                   dependencies_yh=['POUNINCO', 'NETPROFIT', '', 'BIZCOST'],
                   dependencies_zq=['POUNINCO', 'NETPROFIT', '', 'BIZCOST'],
                   dependencies_bx=['BIZINCO', 'BIZCOST', 'VALUECHGLOSS', 'INVEINCO', 'EXCHGGAIN']):
