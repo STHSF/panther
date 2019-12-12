@@ -16,10 +16,11 @@ import sqlalchemy.orm as orm
 from sqlalchemy.ext.declarative import declarative_base
 import sys
 
+from data.model import BalanceMRQ, BalanceTTM, IndicatorReport, IndicatorMRQ
+
 sys.path.append('../')
 sys.path.append('../../')
 sys.path.append('../../../')
-from data.model import BalanceMRQ, BalanceTTM, IndicatorReport, IndicatorMRQ
 from utilities.internal_code import InternalCode
 from utilities.sync_util import SyncUtil
 
@@ -128,8 +129,7 @@ class sqlEngine(object):
         report_date = self._sync_util.get_before_report_date(dates[0], 2)
         query = self.session.query(*db_entities, db_name.__pit_column__['pub_date'],
                                    db_name.__pit_column__['filter_date']).filter(
-            db_name.__pit_column__['pub_date'] <= dates[-1], db_name.__pit_column__['filter_date'] >= report_date,
-            db_name.REPORTTYPE == 1
+            db_name.__pit_column__['pub_date'] <= dates[-1], db_name.__pit_column__['filter_date'] >= report_date
         )
         if db_filters is not None:
             query = query.filter(*db_filters)
@@ -161,11 +161,11 @@ if __name__ == '__main__':
     # 内码转换
     df = internal.join_internal_code(a, left=['trade_date', 'COMPCODE'], right=['trade_date', 'company_id'])
     print(df)
-    df = engine.fetch_fundamentals_pit_extend_company_id(IndicatorMRQ, [IndicatorMRQ.COMPCODE,
-                                                                        IndicatorMRQ.PUBLISHDATE,
-                                                                        IndicatorMRQ.DIVCOVER,
-                                                                        IndicatorMRQ.ROE,
-                                                                        IndicatorMRQ.ENDDATE],
-                                                         # [IndicatorReport.PUBLISHDATE <= '20190801'],
-                                                         dates=['20190822', '20190818'])
-    print(df)
+    # df = engine.fetch_fundamentals_pit_extend_company_id(IndicatorMRQ, [IndicatorMRQ.COMPCODE,
+    #                                                                     IndicatorMRQ.PUBLISHDATE,
+    #                                                                     IndicatorMRQ.DIVCOVER,
+    #                                                                     IndicatorMRQ.ROE,
+    #                                                                     IndicatorMRQ.ENDDATE],
+    #                                                      # [IndicatorReport.PUBLISHDATE <= '20190801'],
+    #                                                      dates=['20190822', '20190818'])
+    # print(df)
