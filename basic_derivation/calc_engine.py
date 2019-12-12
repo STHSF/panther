@@ -70,7 +70,7 @@ class CalcEngine(object):
                                                                         BalanceMRQ.TOTLIAB,
                                                                         BalanceMRQ.RIGHAGGR,        # 股东权益合计
                                                                         BalanceMRQ.INTAASSET,
-                                                                        BalanceMRQ.DEVEEXPE,
+                                                                        # BalanceMRQ.DEVEEXPE,        # 研发费用, Income 中也有
                                                                         BalanceMRQ.GOODWILL,
                                                                         BalanceMRQ.LOGPREPEXPE,
                                                                         BalanceMRQ.DEFETAXASSET,
