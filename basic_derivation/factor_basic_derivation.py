@@ -186,7 +186,7 @@ class FactorBasicDerivation(object):
                                                               x[3] is not None and \
                                                               x[4] is not None else None
         # 保险['440400'， '490200']
-        management_bx = management[management[['industry_code2']].isin(['440400', '490200'])]
+        management_bx = management[management['industry_code2'].isin(['440400', '490200'])]
         management_bx['NetOptInc'] = management_bx[dependencies_bx].apply(func1, axis=1)
         management_tm = management_tm.append(management_bx)
 
