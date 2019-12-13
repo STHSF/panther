@@ -172,19 +172,19 @@ class FactorBasicDerivation(object):
                                                       x[2] is not None and \
                                                       x[3] is not None else None
         # 银行 ['440100', '480100']
-        management_yh = management[['industry_code2']].isin(['440100', '480100'])
+        management_yh = management[management[['industry_code2']].isin(['440100', '480100'])]
         pdb.set_trace()
         management_yh['NetOptInc'] = management_yh[dependencies_yh].apply(func, axis=1)
         management_tm.append(management_yh)
         pdb.set_trace()
 
         # 证券['440300'， '490100']
-        management_zq = management[['industry_code2']].isin(['440300', '490100'])
+        management_zq = management[management[['industry_code2']].isin(['440300', '490100'])]
         management_zq['NetOptInc'] = management_zq[dependencies_zq].apply(func, axis=1)
         management_tm.append(management_zq)
 
         # 保险['440400'， '490200']
-        management_bx = management[['industry_code2']].isin(['440400', '490200'])
+        management_bx = management[management[['industry_code2']].isin(['440400', '490200'])]
         func1 = lambda x: x[0] - x[1] - x[2] - x[3] - x[4] if x[0] is not None and \
                                                               x[1] is not None and \
                                                               x[2] is not None and \
@@ -193,7 +193,7 @@ class FactorBasicDerivation(object):
         management_bx['NetOptInc'] = management_bx[dependencies_bx].apply(func1, axis=1)
         management_tm.append(management_bx)
 
-        management_er = management[['industry_code2']].isin(industry2_set)
+        management_er = management[management[['industry_code2']].isin(industry2_set)]
         func2 = lambda x: x[0] - x[1] if x[0] is not None and x[1] is not None else None
         management_er['NetOptInc'] = management_er[dependencies_bx].apply(func2, axis=1)
         pdb.set_trace()
