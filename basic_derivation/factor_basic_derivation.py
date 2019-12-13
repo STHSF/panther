@@ -198,8 +198,9 @@ class FactorBasicDerivation(object):
         management_er['NetOptInc'] = management_er[dependencies_bx].apply(func2, axis=1)
         pdb.set_trace()
         management_tm.append(management_er)
-
+        pdb.set_trace()
         management_tm = management_tm.drop(dependencies, axis=1)
+        pdb.set_trace()
         factor_derivation = pd.merge(factor_derivation, management_tm, how='outer', on="security_code")
         return factor_derivation
 
