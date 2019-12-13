@@ -76,12 +76,12 @@ class sqlEngine(object):
         index_str = db_name.__pit_column__['index'].name
         deal_df = pd.DataFrame()
         for trade_date in dates:
-            report_date = self._sync_util.get_before_report_date(trade_date, 2)
             trade_date = datetime.strptime(str(trade_date), '%Y%m%d').date()
-            filter_date = datetime.strptime(str(report_date), '%Y%m%d').date()
+            # report_date = self._sync_util.get_before_report_date(trade_date, 2)
+            # filter_date = datetime.strptime(str(report_date), '%Y%m%d').date()
             trades_date_fundamentals = fundamentals_sets[
-                (fundamentals_sets[filter_date_str] >= filter_date) & (
-                        fundamentals_sets[pub_date_str] <= trade_date)]
+                # (fundamentals_sets[filter_date_str] >= filter_date) &
+                (fundamentals_sets[pub_date_str] <= trade_date)]
             trades_date_fundamentals.sort_values(by=filter_date_str, ascending=False, inplace=True)
             trades_date_fundamentals.drop_duplicates(subset=[index_str], keep='first', inplace=True)
             trades_date_fundamentals['trade_date'] = trade_date
@@ -129,10 +129,17 @@ class sqlEngine(object):
         report_date = self._sync_util.get_before_report_date(dates[0], 2)
         query = self.session.query(*db_entities, db_name.__pit_column__['pub_date'],
                                    db_name.__pit_column__['filter_date']).filter(
-            db_name.__pit_column__['pub_date'] <= dates[-1], db_name.__pit_column__['filter_date'] >= report_date
+            db_name.__pit_column__['pub_date'] <= dates[-1]
         )
+        no_filter_date = True
         if db_filters is not None:
             query = query.filter(*db_filters)
+            for db_filter in db_filters:
+                if db_name.__pit_column__['filter_date'].name == db_filter.left.name:
+                    no_filter_date = False
+                    break
+        if db_filters is None or no_filter_date:
+            query = query.filter(db_name.__pit_column__['filter_date'] >= report_date)
         df = pd.DataFrame()
         result_list = pd.read_sql(query.statement, self.session.bind)
         if not result_list.empty:
@@ -155,17 +162,16 @@ if __name__ == '__main__':
     a = engine.fetch_fundamentals_pit(BalanceMRQ, [BalanceMRQ.COMPCODE,
                                                    BalanceMRQ.PUBLISHDATE,
                                                    BalanceMRQ.ENDDATE],
-                                      # [IndicatorReport.PUBLISHDATE <= '20190801'],
+                                      [BalanceMRQ.ENDDATE == '20180630', BalanceMRQ.COMPCODE.in_(['10001310'])],
                                       dates=['20190822', '20190818'])
     print(a)
     # 内码转换
     df = internal.join_internal_code(a, left=['trade_date', 'COMPCODE'], right=['trade_date', 'company_id'])
     print(df)
-    # df = engine.fetch_fundamentals_pit_extend_company_id(IndicatorMRQ, [IndicatorMRQ.COMPCODE,
-    #                                                                     IndicatorMRQ.PUBLISHDATE,
-    #                                                                     IndicatorMRQ.DIVCOVER,
-    #                                                                     IndicatorMRQ.ROE,
-    #                                                                     IndicatorMRQ.ENDDATE],
-    #                                                      # [IndicatorReport.PUBLISHDATE <= '20190801'],
-    #                                                      dates=['20190822', '20190818'])
-    # print(df)
+    df = engine.fetch_fundamentals_pit_extend_company_id(BalanceMRQ, [BalanceMRQ.COMPCODE,
+                                                                      BalanceMRQ.PUBLISHDATE,
+                                                                      BalanceMRQ.ENDDATE],
+                                                         [BalanceMRQ.ENDDATE == '20180630',
+                                                          BalanceMRQ.COMPCODE.in_(['10001310'])],
+                                                         dates=['20190822', '20190818'])
+    print(df)
