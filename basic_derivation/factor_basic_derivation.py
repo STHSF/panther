@@ -197,7 +197,6 @@ class FactorBasicDerivation(object):
 
         dependencies = dependencies + ['industry_code2']
         management_tm = management_tm.drop(dependencies, axis=1)
-        pdb.set_trace()
         factor_derivation = pd.merge(factor_derivation, management_tm, how='outer', on="security_code")
         return factor_derivation
 
@@ -918,6 +917,7 @@ class FactorBasicDerivation(object):
                x[7] is not None and \
                x[8] is not None else None
         management['EBITFORPTTM'] = management[dependencies].apply(func, axis=1)
+        management = management.drop(dependencies, axis=1)
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
 
