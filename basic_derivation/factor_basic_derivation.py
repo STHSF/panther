@@ -13,7 +13,7 @@ import sys
 sys.path.append('../')
 sys.path.append('../../')
 sys.path.append('../../../')
-import six
+import six, pdb
 import pandas as pd
 from pandas.io.json import json_normalize
 from utilities.singleton import Singleton
@@ -159,7 +159,7 @@ class FactorBasicDerivation(object):
                          '430200', '210100', '240100', '250100', '310300', '320200', '310400', '310200', '320100',
                          '260500', '250200', '450100', '470200', '260200', '260400', '260100', '440200', '470400',
                          '310100', '260300', '220700', '470300', '470100', '340100', '340200', '230200']
-
+        dependencies = dependencies + dependencies_yh + dependencies_bx + dependencies_zq
         management = tp_derivation.loc[:, dependencies].copy()
         management = pd.merge(management, sw_industry, how='outer', on='security_code')
         if len(management) <= 0:
@@ -193,9 +193,9 @@ class FactorBasicDerivation(object):
         management_er = management[['industry_code2']].isin(industry2_set)
         func2 = lambda x: x[0] - x[1] if x[0] is not None and x[1] is not None else None
         management_er['NetOptInc'] = management_er[dependencies_bx].apply(func2, axis=1)
+        pdb.set_trace()
         management_tm.append(management_er)
 
-        dependencies = dependencies + dependencies_yh + dependencies_bx + dependencies_zq
         management_tm = management_tm.drop(dependencies, axis=1)
         factor_derivation = pd.merge(factor_derivation, management_tm, how='outer', on="security_code")
         return factor_derivation
