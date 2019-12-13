@@ -294,7 +294,7 @@ class CalcEngine(object):
         factor_derivation = derivation.NetIncTTM(ttm_derivation, factor_derivation)
         factor_derivation = derivation.NetProfToPSTTM(ttm_derivation, factor_derivation)
         factor_derivation = derivation.NetProfAfterNonRecGainsAndLossTTM(ttm_derivation, factor_derivation)
-        # factor_derivation = derivation.EBITFORPTTM(ttm_derivation, factor_derivation)
+        factor_derivation = derivation.EBITFORPTTM(ttm_derivation, factor_derivation)
         factor_derivation = derivation.EBITDATTM(ttm_derivation, factor_derivation)
         factor_derivation = derivation.CashRecForSGAndPSTTM(ttm_derivation, factor_derivation)
         factor_derivation = derivation.NCFOTTM(ttm_derivation, factor_derivation)

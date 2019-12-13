@@ -883,32 +883,42 @@ class FactorBasicDerivation(object):
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
 
-    # @staticmethod
-    # def EBITFORPTTM(tp_derivation, factor_derivation, dependencies=['BIZINCO',
-    #                                                                 'BIZTAX',
-    #                                                                 'BIZCOST',
-    #                                                                 'SALESEXPE',
-    #                                                                 'MANAEXPE',
-    #                                                                 'DEVEEXPE',
-    #                                                                 'POUNEXPE',
-    #                                                                 '',
-    #                                                                 '',
-    #                                                                 'OTHERINCO',
-    #                                                                 ]):
-    #     """
-    #     缺坏账损失， 存货跌价损失
-    #     :name: EBIT(TTM)
-    #     :desc: (营业收入-营业税金及附加)-(营业成本+利息支出+手续费及佣金支出+销售费用+管理费用+研发费用+坏账损失+存货跌价损失) +其他收益
-    #     :unit: 元
-    #     :view_dimension: 10000
-    #     """
-    #     management = tp_derivation.loc[:, dependencies]
-    #     if len(management) <= 0:
-    #         return None
-    #     func = lambda x: x[0] + x[1] if x[0] is not None and x[1] is not None else None
-    #     management['EBITFORPTTM'] = management[dependencies].apply(func, axis=1)
-    #     factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
-    #     return factor_derivation
+    @staticmethod
+    def EBITFORPTTM(tp_derivation, factor_derivation, dependencies=['BIZINCO',
+                                                                    'BIZTAX',
+                                                                    'BIZCOST',
+                                                                    'SALESEXPE',
+                                                                    'MANAEXPE',
+                                                                    'DEVEEXPE',
+                                                                    'POUNEXPE',
+                                                                    'ASSEIMPALOSS',
+                                                                    'OTHERINCO',
+                                                                    ]):
+        """
+        缺坏账损失， 存货跌价损失
+        :name: EBIT(TTM)
+        :desc: (营业收入-营业税金及附加)-(营业成本+利息支出+手续费及佣金支出+销售费用+管理费用+研发费用+坏账损失+存货跌价损失) +其他收益
+        :unit: 元
+        :view_dimension: 10000
+        """
+        management = tp_derivation.loc[:, dependencies]
+        if len(management) <= 0:
+            return None
+        func = lambda x: x[0] - x[1] - (x[2] + x[3] + x[4] + x[5] + x[6] + x[7]) + x[8] \
+            if x[0] is not None and \
+               x[1] is not None and \
+               x[2] is not None and \
+               x[3] is not None and \
+               x[4] is not None and \
+               x[5] is not None and \
+               x[6] is not None and \
+               x[7] is not None and \
+               x[8] is not None and \
+               x[9] is not None and \
+               x[10] is not None else None
+        management['EBITFORPTTM'] = management[dependencies].apply(func, axis=1)
+        factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
+        return factor_derivation
 
     @staticmethod
     def EBITDATTM(tp_derivation, factor_derivation, dependencies=['TOTPROFIT',
