@@ -161,6 +161,7 @@ class FactorBasicDerivation(object):
                          '310100', '260300', '220700', '470300', '470100', '340100', '340200', '230200']
         dependencies = dependencies + dependencies_yh + dependencies_bx + dependencies_zq
         management = tp_derivation.loc[:, dependencies].copy()
+        pdb.set_trace()
         management = pd.merge(management, sw_industry, how='outer', on='security_code')
         if len(management) <= 0:
             return None
@@ -172,8 +173,10 @@ class FactorBasicDerivation(object):
                                                       x[3] is not None else None
         # 银行 ['440100', '480100']
         management_yh = management[['industry_code2']].isin(['440100', '480100'])
+        pdb.set_trace()
         management_yh['NetOptInc'] = management_yh[dependencies_yh].apply(func, axis=1)
         management_tm.append(management_yh)
+        pdb.set_trace()
 
         # 证券['440300'， '490100']
         management_zq = management[['industry_code2']].isin(['440300', '490100'])
