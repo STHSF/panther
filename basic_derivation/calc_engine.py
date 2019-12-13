@@ -197,6 +197,8 @@ class CalcEngine(object):
                                                                            IncomeTTM.PARENETP,        # 归属母公司股东的净利润
                                                                            IncomeTTM.BIZTAX,          # 营业税金及附加
                                                                            IncomeTTM.NONOREVE,
+                                                                           IncomeTTM.OTHERINCO,       # 其他收益
+                                                                           IncomeTTM.POUNEXPE,        # 手续费及佣金支出
                                                                            IncomeTTM.NONOEXPE,
                                                                            IncomeTTM.MINYSHARRIGH,    # 少数股东权益
                                                                            IncomeTTM.INCOTAXEXPE,
