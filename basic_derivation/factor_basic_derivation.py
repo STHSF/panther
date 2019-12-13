@@ -159,7 +159,7 @@ class FactorBasicDerivation(object):
                          '430200', '210100', '240100', '250100', '310300', '320200', '310400', '310200', '320100',
                          '260500', '250200', '450100', '470200', '260200', '260400', '260100', '440200', '470400',
                          '310100', '260300', '220700', '470300', '470100', '340100', '340200', '230200']
-        dependencies = dependencies + dependencies_yh + dependencies_bx + dependencies_zq
+        dependencies = set(dependencies + dependencies_yh + dependencies_bx + dependencies_zq)
         management = tp_derivation.loc[:, dependencies].copy()
         pdb.set_trace()
         management = pd.merge(management, sw_industry, how='outer', on='security_code').set_index('security_code')
