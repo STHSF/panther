@@ -169,7 +169,6 @@ class CalcEngine(object):
                                                                        IncomeMRQ.BIZCOST,           # 营业成本
                                                                        IncomeMRQ.BIZINCO,           # 营业收入
                                                                        IncomeMRQ.POUNINCO,          #
-                                                                       IncomeMRQ.NETPROFIT,         #
                                                                        IncomeMRQ.POUNEXPE,          # 手续费及佣金支出
                                                                        IncomeMRQ.OTHERINCO,         # 其他收益
                                                                        IncomeMRQ.OTHERBIZPROF,      # 其他业务利润
