@@ -418,7 +418,7 @@ class FactorBasicDerivation(object):
                                                                          'NOTESPAYA',
                                                                          'ACCOPAYA',
                                                                          'ADVAPAYM',
-                                                                         'INTEPAYA',
+                                                                         'interest_payable',
                                                                          'TAXESPAYA',
                                                                          'OTHERPAY',
                                                                          'TOTALNONCLIAB',
