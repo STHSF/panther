@@ -173,6 +173,7 @@ class CalcEngine(object):
                                                                        IncomeMRQ.POUNEXPE,          # 手续费及佣金支出
                                                                        IncomeMRQ.OTHERINCO,         # 其他收益
                                                                        IncomeMRQ.OTHERBIZPROF,      # 其他业务利润
+                                                                       IncomeMRQ.OTHERBIZINCO,      # 其他业务收入
                                                                        ], dates=[trade_date])
         for col in columns:
             if col in list(income_sets.keys()):
