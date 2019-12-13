@@ -913,9 +913,7 @@ class FactorBasicDerivation(object):
                x[5] is not None and \
                x[6] is not None and \
                x[7] is not None and \
-               x[8] is not None and \
-               x[9] is not None and \
-               x[10] is not None else None
+               x[8] is not None else None
         management['EBITFORPTTM'] = management[dependencies].apply(func, axis=1)
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
