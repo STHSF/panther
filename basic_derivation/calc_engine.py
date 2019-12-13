@@ -12,6 +12,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 from basic_derivation import factor_basic_derivation
+from datetime import timedelta, datetime
 
 from data.model import BalanceMRQ
 from data.model import CashFlowMRQ, CashFlowTTM
@@ -32,6 +33,30 @@ class CalcEngine(object):
         self._methods = methods
         self._url = url
 
+    def get_trade_date(self, trade_date, n, days=365):
+        """
+        获取当前时间前n年的时间点，且为交易日，如果非交易日，则往前提取最近的一天。
+        :param days:
+        :param trade_date: 当前交易日
+        :param n:
+        :return:
+        """
+        syn_util = SyncUtil()
+        trade_date_sets = syn_util.get_all_trades('001002', '19900101', trade_date)
+        trade_date_sets = trade_date_sets['TRADEDATE'].values
+
+        time_array = datetime.strptime(str(trade_date), "%Y%m%d")
+        time_array = time_array - timedelta(days=days) * n
+        date_time = int(datetime.strftime(time_array, "%Y%m%d"))
+        if str(date_time) < min(trade_date_sets):
+            # print('date_time %s is out of trade_date_sets' % date_time)
+            return str(date_time)
+        else:
+            while str(date_time) not in trade_date_sets:
+                date_time = date_time - 1
+            # print('trade_date pre %s year %s' % (n, date_time))
+            return str(date_time)
+
     def _func_sets(self, method):
         # 私有函数和保护函数过滤
         return list(filter(lambda x: not x.startswith('_') and callable(getattr(method,x)), dir(method)))
@@ -46,6 +71,7 @@ class CalcEngine(object):
         # 转换时间格式
         time_array = datetime.strptime(trade_date, "%Y-%m-%d")
         trade_date = datetime.strftime(time_array, '%Y%m%d')
+        trade_date_pre = self.get_trade_date(trade_date, 3, days=31)
         # 读取目前涉及到的因子
         columns = ['COMPCODE', 'PUBLISHDATE', 'ENDDATE', 'symbol', 'company_id', 'trade_date']
         engine = sqlEngine()
@@ -105,21 +131,32 @@ class CalcEngine(object):
         })
         tp_detivation = pd.merge(cash_flow_sets, balance_sets, how='outer', on='security_code')
 
+        balance_sets_pre = engine.fetch_fundamentals_pit_extend_company_id(BalanceMRQ,
+                                                                           [BalanceMRQ.TOTCURRASSET,   # 流动资产合计
+                                                                            BalanceMRQ.TOTALCURRLIAB,   # 流动负债合计
+                                                                            ], dates=[trade_date_pre])
 
-
-
-
+        for col in columns:
+            if col in list(balance_sets_pre.keys()):
+                balance_sets_pre = balance_sets_pre.drop(col, axis=1)
+        balance_sets_pre = balance_sets_pre.rename(columns={
+            'TOTCURRASSET': 'TOTCURRASSET_PRE',
+            'TOTALCURRLIAB': 'TOTALCURRLIAB_PRE',
+        })
+        tp_detivation = pd.merge(balance_sets_pre, tp_detivation, how='outer', on='security_code')
 
         indicator_sets = engine.fetch_fundamentals_pit_extend_company_id(IndicatorMRQ,
                                                                          [IndicatorMRQ.NPCUT,
+                                                                          IndicatorMRQ.EBIT,  # 息税前利润
                                                                           ], dates=[trade_date])
         for col in columns:
             if col in list(indicator_sets.keys()):
                 indicator_sets = indicator_sets.drop(col, axis=1)
+        indicator_sets = indicator_sets.rename(columns={'EBIT': 'ebit_mrq'})
         tp_detivation = pd.merge(indicator_sets, tp_detivation, how='outer', on='security_code')
 
         income_sets = engine.fetch_fundamentals_pit_extend_company_id(IncomeMRQ,
-                                                                      [IncomeMRQ.INCOTAXEXPE,
+                                                                      [IncomeMRQ.INCOTAXEXPE,   # 所得税
                                                                        IncomeMRQ.BIZTOTCOST,    # 营业总成本
                                                                        IncomeMRQ.BIZTOTINCO,    # 营业总收入
                                                                        IncomeMRQ.NETPROFIT,     # 净利润
@@ -215,8 +252,8 @@ class CalcEngine(object):
         factor_derivation['security_code'] = tp_derivation.index
         factor_derivation = factor_derivation.set_index('security_code')
 
-        # factor_derivation = derivation.FCFF(tp_derivation, factor_derivation)
-        # factor_derivation = derivation.FCFE(tp_derivation, factor_derivation)
+        factor_derivation = derivation.FCFF(tp_derivation, factor_derivation)
+        factor_derivation = derivation.FCFE(tp_derivation, factor_derivation)
         factor_derivation = derivation.NonRecGainLoss(tp_derivation, factor_derivation)
         factor_derivation = derivation.NetOptInc(tp_derivation, factor_derivation, sw_industry)
         factor_derivation = derivation.WorkingCap(tp_derivation, factor_derivation)
