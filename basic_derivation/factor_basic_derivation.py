@@ -159,9 +159,8 @@ class FactorBasicDerivation(object):
                          '430200', '210100', '240100', '250100', '310300', '320200', '310400', '310200', '320100',
                          '260500', '250200', '450100', '470200', '260200', '260400', '260100', '440200', '470400',
                          '310100', '260300', '220700', '470300', '470100', '340100', '340200', '230200']
-        dependencies = set(dependencies + dependencies_yh + dependencies_bx + dependencies_zq)
+        dependencies = list(set(dependencies + dependencies_yh + dependencies_bx + dependencies_zq))
         management = tp_derivation.loc[:, dependencies].copy()
-        pdb.set_trace()
         management = pd.merge(management, sw_industry, how='outer', on='security_code').set_index('security_code')
         if len(management) <= 0:
             return None
@@ -173,38 +172,29 @@ class FactorBasicDerivation(object):
                                                       x[3] is not None else None
         # 银行 ['440100', '480100']
         management_yh = management[management['industry_code2'].isin(['440100', '480100'])]
-        pdb.set_trace()
         management_yh['NetOptInc'] = management_yh[dependencies_yh].apply(func, axis=1)
         management_tm = management_tm.append(management_yh)
-        pdb.set_trace()
 
         # 证券['440300'， '490100']
         management_zq = management[management['industry_code2'].isin(['440300', '490100'])]
-        pdb.set_trace()
-
         management_zq['NetOptInc'] = management_zq[dependencies_zq].apply(func, axis=1)
-        pdb.set_trace()
-
         management_tm = management_tm.append(management_zq)
 
-        # 保险['440400'， '490200']
-        management_bx = management[management[['industry_code2']].isin(['440400', '490200'])]
         func1 = lambda x: x[0] - x[1] - x[2] - x[3] - x[4] if x[0] is not None and \
                                                               x[1] is not None and \
                                                               x[2] is not None and \
                                                               x[3] is not None and \
                                                               x[4] is not None else None
+        # 保险['440400'， '490200']
+        management_bx = management[management[['industry_code2']].isin(['440400', '490200'])]
         management_bx['NetOptInc'] = management_bx[dependencies_bx].apply(func1, axis=1)
         management_tm = management_tm.append(management_bx)
 
-        management_er = management[management['industry_code2'].isin(industry2_set)]
         func2 = lambda x: x[0] - x[1] if x[0] is not None and x[1] is not None else None
+        management_er = management[management['industry_code2'].isin(industry2_set)]
         management_er['NetOptInc'] = management_er[dependencies_bx].apply(func2, axis=1)
-        pdb.set_trace()
         management_tm = management_tm.append(management_er)
-        pdb.set_trace()
         management_tm = management_tm.drop(dependencies, axis=1)
-        pdb.set_trace()
         factor_derivation = pd.merge(factor_derivation, management_tm, how='outer', on="security_code")
         return factor_derivation
 
