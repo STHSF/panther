@@ -79,11 +79,11 @@ class CalcEngine(object):
                                                                          [CashFlowMRQ.FINALCASHBALA,
                                                                           CashFlowMRQ.ASSEDEPR,  # 固定资产折旧
                                                                           CashFlowMRQ.INTAASSEAMOR,  # 无形资产摊销
+                                                                          CashFlowMRQ.ACQUASSETCASH,  # 购建固定资产、无形资产和其他...
                                                                           CashFlowMRQ.LONGDEFEEXPENAMOR,  # 长期待摊费用摊销
                                                                           CashFlowMRQ.DEBTPAYCASH,        # 偿还债务支付的现金
                                                                           CashFlowMRQ.RECEFROMLOAN,       # 取得借款收到的现金
                                                                           CashFlowMRQ.ISSBDRECECASH,      # 发行债券所收到的现金
-
                                                                           ], dates=[trade_date])
         for col in columns:
             if col in list(cash_flow_sets.keys()):
