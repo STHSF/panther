@@ -162,7 +162,7 @@ class FactorBasicDerivation(object):
         dependencies = dependencies + dependencies_yh + dependencies_bx + dependencies_zq
         management = tp_derivation.loc[:, dependencies].copy()
         pdb.set_trace()
-        management = pd.merge(management, sw_industry, how='outer', on='security_code')
+        management = pd.merge(management, sw_industry, how='outer', on='security_code').set_index('security_code')
         if len(management) <= 0:
             return None
         management_tm = pd.DataFrame()
@@ -181,10 +181,12 @@ class FactorBasicDerivation(object):
         # 证券['440300'， '490100']
         management_zq = management[management['industry_code2'].isin(['440300', '490100'])]
         pdb.set_trace()
+
         management_zq['NetOptInc'] = management_zq[dependencies_zq].apply(func, axis=1)
         pdb.set_trace()
+
         management_tm = management_tm.append(management_zq)
-        pdb.set_trace()
+
         # 保险['440400'， '490200']
         management_bx = management[management[['industry_code2']].isin(['440400', '490200'])]
         func1 = lambda x: x[0] - x[1] - x[2] - x[3] - x[4] if x[0] is not None and \
