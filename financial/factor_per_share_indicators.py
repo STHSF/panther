@@ -36,7 +36,7 @@ class FactorPerShareIndicators(object):
         self.description = '财务指标的二级指标-每股因子'
 
     @staticmethod
-    def CapticalSurplusPS(tp_share_indicators, factor_share_indicators, dependencies=['capital_reserve_fund', 'capitalization']):
+    def CapReservesPS(tp_share_indicators, factor_share_indicators, dependencies=['capital_reserve_fund', 'capitalization']):
         """
         :name: 每股资本公积金
         :desc: 资本公积（MRQ)/当日总股本
@@ -45,7 +45,7 @@ class FactorPerShareIndicators(object):
         """
         share_indicators = tp_share_indicators.loc[:, dependencies]
         fun = lambda x: (x[0] / x[1] if x[1] and x[1] != 0 else None)
-        share_indicators['CapticalSurplusPS'] = share_indicators[dependencies].apply(fun, axis=1)
+        share_indicators['CapReservesPS'] = share_indicators[dependencies].apply(fun, axis=1)
 
         share_indicators = share_indicators.drop(columns=dependencies, axis=1)
         factor_share_indicators = pd.merge(factor_share_indicators, share_indicators, how='outer', on='security_code')

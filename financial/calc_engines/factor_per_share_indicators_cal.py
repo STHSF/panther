@@ -196,7 +196,7 @@ class CalcEngine(object):
         factor_share_indicators = per_share.OptRevPS(valuation_sets, factor_share_indicators)
         factor_share_indicators = per_share.OptProfitPSTTM(valuation_sets, factor_share_indicators)
         factor_share_indicators = per_share.OptProfitPS(valuation_sets, factor_share_indicators)
-        factor_share_indicators = per_share.CapticalSurplusPS(valuation_sets, factor_share_indicators)
+        factor_share_indicators = per_share.CapReservesPS(valuation_sets, factor_share_indicators)
         factor_share_indicators = per_share.SurplusReservePS(valuation_sets, factor_share_indicators)
         factor_share_indicators = per_share.UndividedProfitPS(valuation_sets, factor_share_indicators)
         factor_share_indicators = per_share.RetainedEarningsPS(factor_share_indicators, factor_share_indicators)
