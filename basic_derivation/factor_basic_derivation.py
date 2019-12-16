@@ -220,7 +220,6 @@ class FactorBasicDerivation(object):
 
     @staticmethod
     def TangibleAssets(tp_derivation, factor_derivation, dependencies=['PARESHARRIGH',
-                                                                       'MINYSHARRIGH',
                                                                        'INTAASSET',
                                                                        'DEVEEXPE',
                                                                        'GOODWILL',
@@ -228,20 +227,19 @@ class FactorBasicDerivation(object):
                                                                        'DEFETAXASSET']):
         """
         :name: 有形资产(MRQ)
-        :desc: 股东权益（不含少数股东权益）-无形资产+开发支出+商誉+长期待摊费用+递延所得税资产）
+        :desc: 股东权益（不含少数股东权益）- （无形资产 + 开发支出 + 商誉 + 长期待摊费用 + 递延所得税资产）
         :unit: 元
         :view_dimension: 10000
         """
         management = tp_derivation.loc[:, dependencies]
         if len(management) <= 0:
             return None
-        func = lambda x: x[0] - x[1] - x[2] + x[3] + x[4] + x[5] + x[6] if x[0] is not None and \
+        func = lambda x: x[0] - (x[1] + x[2] + x[3] + x[4] + x[5]) if x[0] is not None and \
                                                                            x[1] is not None and \
                                                                            x[2] is not None and \
                                                                            x[3] is not None and \
                                                                            x[4] is not None and \
-                                                                           x[5] is not None and \
-                                                                           x[6] is not None else None
+                                                                           x[5] is not None else None
         management['TangibleAssets'] = management[dependencies].apply(func, axis=1)
 
         management = management.drop(dependencies, axis=1)
@@ -301,7 +299,7 @@ class FactorBasicDerivation(object):
                                                                 'CURFDS']):
         """
         :name: 净债务(MRQ)
-        :desc: 净债务 = 带息债务(MRQ) - 货币资金(MRQ)。 其中，带息负债 = 短期借款 + 一年内到期的长期负债+长期借款+应付债券+应付利息
+        :desc: 净债务 = 带息债务(MRQ) - 货币资金(MRQ)。 其中，带息负债 = 短期借款 + 一年内到期的长期负债 + 长期借款 + 应付债券 + 应付利息
         :unit: 元
         :view_dimension: 10000
         """
@@ -351,7 +349,6 @@ class FactorBasicDerivation(object):
                                                                     x[4] is not None or\
                                                                     x[5] is not None else None
 
-
         management['InterestFreeCurLb'] = management[dependencies].apply(func, axis=1)
         management = management.drop(dependencies, axis=1)
 
@@ -364,7 +361,7 @@ class FactorBasicDerivation(object):
                                                                              'bonds_payable']):
         """
         :name: 无息非流动负债(MRQ)
-        :desc: 非流动负债合计-长期借款-应付债券
+        :desc: 非流动负债合计 - 长期借款 - 应付债券
         :unit: 元
         :view_dimension: 10000
         """
@@ -384,7 +381,7 @@ class FactorBasicDerivation(object):
                                                                   'LONGDEFEEXPENAMOR']):
         """
         :name: 折旧和摊销(MRQ)
-        :desc: 固定资产折旧+无形资产摊销+长期待摊费用摊销
+        :desc: 固定资产折旧 + 无形资产摊销 + 长期待摊费用摊销
         :unit: 元
         :view_dimension: 10000
         """
@@ -515,7 +512,7 @@ class FactorBasicDerivation(object):
     def CashAndCashEqu(tp_derivation, factor_derivation, dependencies=['FINALCASHBALA']):
         """
         :name: 期末现金及现金等价物(MRQ)
-        :desc: 期末现金及现金等价物(MRQ) cashflow
+        :desc: 期末现金及现金等价物(MRQ)
         :unit: 元
         :view_dimension: 10000
         """
@@ -538,7 +535,7 @@ class FactorBasicDerivation(object):
         management = tp_derivation.loc[:, dependencies]
         if len(management) <= 0:
             return None
-        func = lambda x: x[0] - x[1] if x[0] is not None and x[1] is not None else None
+        func = lambda x: x[0] + x[1] if x[0] is not None and x[1] is not None else None
         management['EBIT'] = management[dependencies].apply(func, axis=1)
         management = management.drop(dependencies, axis=1)
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
