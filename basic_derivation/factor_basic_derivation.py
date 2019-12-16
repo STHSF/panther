@@ -117,10 +117,10 @@ class FactorBasicDerivation(object):
         return factor_derivation
 
     @staticmethod
-    def NonRecGainLoss(tp_derivation, factor_derivation, dependencies=['NETPROFIT', 'NPCUT']):
+    def NonRecGainLoss(tp_derivation, factor_derivation, dependencies=['PARENETP', 'NPCUT']):
         """
         :name: 非经常性损益(MRQ)
-        :desc: 净利润(MRQ) - 扣非净利润(MRQ)
+        :desc: 归属母公司净利润(MRQ) - 扣非净利润(MRQ)
         :unit: 元
         :view_dimension: 10000
         """

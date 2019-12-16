@@ -160,6 +160,7 @@ class CalcEngine(object):
                                                                        IncomeMRQ.BIZTOTCOST,    # 营业总成本
                                                                        IncomeMRQ.BIZTOTINCO,    # 营业总收入
                                                                        IncomeMRQ.NETPROFIT,     # 净利润
+                                                                       IncomeMRQ.PARENETP,      # 归属母公司股东的净利润
                                                                        IncomeMRQ.TOTPROFIT,     # 利润总额
                                                                        IncomeMRQ.INTEEXPE,      # 利息支出
                                                                        IncomeMRQ.DEVEEXPE,      # 研发费用
