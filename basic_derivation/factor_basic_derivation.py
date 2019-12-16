@@ -135,7 +135,7 @@ class FactorBasicDerivation(object):
 
     @staticmethod
     def NetOptInc(tp_derivation, factor_derivation, sw_industry,
-                  dependencies=['BIZTOTINCO', 'BIZTOTCOST'],
+                  dependencies_er=['BIZTOTINCO', 'BIZTOTCOST'],
                   dependencies_yh=['POUNINCO', 'NETPROFIT', 'OTHERBIZPROF', 'BIZCOST'],
                   dependencies_zq=['POUNINCO', 'NETPROFIT', 'OTHERBIZINCO', 'BIZCOST'],
                   dependencies_bx=['BIZINCO', 'BIZCOST', 'VALUECHGLOSS', 'INVEINCO', 'EXCHGGAIN']):
@@ -159,7 +159,7 @@ class FactorBasicDerivation(object):
                          '430200', '210100', '240100', '250100', '310300', '320200', '310400', '310200', '320100',
                          '260500', '250200', '450100', '470200', '260200', '260400', '260100', '440200', '470400',
                          '310100', '260300', '220700', '470300', '470100', '340100', '340200', '230200']
-        dependencies = list(set(dependencies + dependencies_yh + dependencies_bx + dependencies_zq))
+        dependencies = list(set(dependencies_er + dependencies_yh + dependencies_bx + dependencies_zq))
         management = tp_derivation.loc[:, dependencies]
         management = pd.merge(management, sw_industry, how='outer', on='security_code').set_index('security_code')
         if len(management) <= 0:
@@ -192,7 +192,7 @@ class FactorBasicDerivation(object):
 
         func2 = lambda x: x[0] - x[1] if x[0] is not None and x[1] is not None else None
         management_er = management[management['industry_code2'].isin(industry2_set)]
-        management_er['NetOptInc'] = management_er[management_er].apply(func2, axis=1)
+        management_er['NetOptInc'] = management_er[dependencies_er].apply(func2, axis=1)
         management_tm = management_tm.append(management_er)
 
         dependencies = dependencies + ['industry_code2']
