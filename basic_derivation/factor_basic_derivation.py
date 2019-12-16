@@ -56,6 +56,7 @@ class FactorBasicDerivation(object):
         :view_dimension: 10000
         """
         management = tp_derivation.loc[:, dependencies]
+        management = management.fillna(0)
         if len(management) <= 0:
             return None
         func = lambda x: x[0] - x[1] + x[2] + x[3] + x[4] - (x[5] - x[6]) + (x[7] - x[8]) - x[9] if x[0] is not None and \
@@ -94,6 +95,7 @@ class FactorBasicDerivation(object):
         :view_dimension: 10000
         """
         management = tp_derivation.loc[:, dependencies]
+        management = management.fillna(0)
         if len(management) <= 0:
             return None
         func = lambda x: x[0] - x[1] + x[2] + x[3] + x[4] - (x[5] -x[6]) + (x[7] - x[8]) - x[9] - x[10] + x[11] + x[12] \
@@ -125,6 +127,7 @@ class FactorBasicDerivation(object):
         :view_dimension: 10000
         """
         management = tp_derivation.loc[:, dependencies]
+        management = management.fillna(0)
         if len(management) <= 0:
             return None
         func = lambda x: x[0] - x[1] if x[0] is not None and x[1] is not None else None
@@ -161,6 +164,7 @@ class FactorBasicDerivation(object):
                          '310100', '260300', '220700', '470300', '470100', '340100', '340200', '230200']
         dependencies = list(set(dependencies_er + dependencies_yh + dependencies_bx + dependencies_zq))
         management = tp_derivation.loc[:, dependencies]
+        management = management.fillna(0)
         management = pd.merge(management, sw_industry, how='outer', on='security_code').set_index('security_code')
         if len(management) <= 0:
             return None
@@ -210,6 +214,7 @@ class FactorBasicDerivation(object):
         :view_dimension: 10000
         """
         management = tp_derivation.loc[:, dependencies]
+        management = management.fillna(0)
         if len(management) <= 0:
             return None
         func = lambda x: x[0] - x[1] if x[0] is not None and x[1] is not None else None
@@ -232,6 +237,8 @@ class FactorBasicDerivation(object):
         :view_dimension: 10000
         """
         management = tp_derivation.loc[:, dependencies]
+        management = management.fillna(0)
+
         if len(management) <= 0:
             return None
         func = lambda x: x[0] - (x[1] + x[2] + x[3] + x[4] + x[5]) if x[0] is not None and \
@@ -256,6 +263,7 @@ class FactorBasicDerivation(object):
         :view_dimension: 10000
         """
         management = tp_derivation.loc[:, dependencies]
+        management = management.fillna(0)
         if len(management) <= 0:
             return None
         func = lambda x: x[0] + x[1] if x[0] is not None and x[1] is not None else None
@@ -277,6 +285,7 @@ class FactorBasicDerivation(object):
         :view_dimension: 10000
         """
         management = tp_derivation.loc[:, dependencies]
+        management = management.fillna(0)
         if len(management) <= 0:
             return None
         func = lambda x: x[0] + x[1] + x[2] + x[3] + x[4] if x[0] is not None and \
@@ -304,6 +313,7 @@ class FactorBasicDerivation(object):
         :view_dimension: 10000
         """
         management = tp_derivation.loc[:, dependencies]
+        management = management.fillna(0)
 
         if len(management) <= 0:
             return None
@@ -334,6 +344,7 @@ class FactorBasicDerivation(object):
         :view_dimension: 10000
         """
         management = tp_derivation.loc[:, dependencies]
+        management = management.fillna(0)
         if len(management) <= 0:
             return None
         # func = lambda x: x[0] + x[1] + x[2] + x[3] + x[4] + x[5] if x[0] is not None and\
@@ -366,6 +377,7 @@ class FactorBasicDerivation(object):
         :view_dimension: 10000
         """
         management = tp_derivation.loc[:, dependencies]
+        management = management.fillna(0)
         if len(management) <= 0:
             return None
         func = lambda x: x[0] - x[1] - x[2] if x[0] is not None and x[1] is not None and x[2] is not None else None
@@ -386,6 +398,7 @@ class FactorBasicDerivation(object):
         :view_dimension: 10000
         """
         management = tp_derivation.loc[:, dependencies]
+        management = management.fillna(0)
         if len(management) <= 0:
             return None
         func = lambda x: x[0] + x[1] + x[2] if x[0] is not None and x[1] is not None and x[2] is not None else None
@@ -403,6 +416,8 @@ class FactorBasicDerivation(object):
         :view_dimension: 10000
         """
         management = tp_derivation.loc[:, dependencies]
+        management = management.fillna(0)
+
         if len(management) <= 0:
             return None
         management = management.rename(columns={'PARESHARRIGH': 'EquityPC'})
@@ -429,6 +444,8 @@ class FactorBasicDerivation(object):
         :view_dimension: 10000
         """
         management = tp_derivation.loc[:, dependencies]
+        management = management.fillna(0)
+
         if len(management) <= 0:
             return None
         func = lambda x: x[0] + x[1] - (x[2] + x[3] + x[4] + x[5] + x[6] + x[7]) - (x[8] - x[9] - x[10]) \
@@ -533,6 +550,7 @@ class FactorBasicDerivation(object):
         :view_dimension: 10000
         """
         management = tp_derivation.loc[:, dependencies]
+        management = management.fillna(0)
         if len(management) <= 0:
             return None
         func = lambda x: x[0] + x[1] if x[0] is not None and x[1] is not None else None
@@ -596,6 +614,7 @@ class FactorBasicDerivation(object):
         :view_dimension: 10000
         """
         management = tp_derivation.loc[:, dependencies]
+        management = management.fillna(0)
         if len(management) <= 0:
             return None
         func = lambda x: (x[0] - x[1]) / x[1] if x[1] != 0 and x[1] is not None else None
@@ -662,6 +681,7 @@ class FactorBasicDerivation(object):
         :view_dimension: 10000
         """
         management = tp_derivation.loc[:, dependencies]
+        management = management.fillna(0)
         if len(management) <= 0:
             return None
         func = lambda x: x[0] + x[1] + x[2] if x[0] is not None and x[1] is not None and x[2] is not None else None
@@ -725,6 +745,7 @@ class FactorBasicDerivation(object):
         :view_dimension: 10000
         """
         management = tp_derivation.loc[:, dependencies]
+        management = management.fillna(0)
         if len(management) <= 0:
             return None
         func = lambda x: x[0] - x[1] if x[0] is not None and x[1] is not None else None
@@ -746,6 +767,7 @@ class FactorBasicDerivation(object):
         :view_dimension: 10000
         """
         management = tp_derivation.loc[:, dependencies]
+        management = management.fillna(0)
         if len(management) <= 0:
             return None
         func = lambda x: x[0] + x[1] + x[2] if x[0] is not None and x[1] is not None and x[2] is not None else None
@@ -780,6 +802,7 @@ class FactorBasicDerivation(object):
         :view_dimension: 10000
         """
         management = tp_derivation.loc[:, dependencies]
+        management = management.fillna(0)
         if len(management) <= 0:
             return None
         func = lambda x: x[0] - x[1]
@@ -798,6 +821,7 @@ class FactorBasicDerivation(object):
         :view_dimension: 10000
         """
         management = tp_derivation.loc[:, dependencies]
+        management = management.fillna(0)
 
         if len(management) <= 0:
             return None
@@ -901,6 +925,8 @@ class FactorBasicDerivation(object):
         :view_dimension: 10000
         """
         management = tp_derivation.loc[:, dependencies]
+        management = management.fillna(0)
+
         if len(management) <= 0:
             return None
         func = lambda x: x[0] - x[1] - (x[2] + x[3] + x[4] + x[5] + x[6] + x[7]) + x[8] \
@@ -931,6 +957,8 @@ class FactorBasicDerivation(object):
         :view_dimension: 10000
         """
         management = tp_derivation.loc[:, dependencies]
+        management = management.fillna(0)
+
         if len(management) <= 0:
             return None
         func = lambda x: x[0] + x[1] + x[2] + x[3] if x[0] is not None and x[1] is not None and x[2] is not None and x[
