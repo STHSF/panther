@@ -42,7 +42,7 @@ class FactorBasicDerivation(object):
                                                              'INCOTAXEXPE',
                                                              'ASSEDEPR',
                                                              'INTAASSEAMOR',
-                                                             'LONGDEFEEXPENAMOR'
+                                                             'LONGDEFEEXPENAMOR',
                                                              'TOTCURRASSET',
                                                              'TOTALCURRLIAB',
                                                              'TOTCURRASSET_PRE',
@@ -79,7 +79,7 @@ class FactorBasicDerivation(object):
                                                              'INCOTAXEXPE',
                                                              'ASSEDEPR',
                                                              'INTAASSEAMOR',
-                                                             'LONGDEFEEXPENAMOR'
+                                                             'LONGDEFEEXPENAMOR',
                                                              'TOTCURRASSET',
                                                              'TOTALCURRLIAB',
                                                              'TOTCURRASSET_PRE',
