@@ -75,6 +75,7 @@ class CalcEngine(object):
         # 读取目前涉及到的因子
         columns = ['COMPCODE', 'PUBLISHDATE', 'ENDDATE', 'symbol', 'company_id', 'trade_date']
         engine = sqlEngine()
+        # cash flow mrq
         cash_flow_sets = engine.fetch_fundamentals_pit_extend_company_id(CashFlowMRQ,
                                                                          [CashFlowMRQ.FINALCASHBALA,
                                                                           CashFlowMRQ.ASSEDEPR,  # 固定资产折旧
@@ -89,6 +90,7 @@ class CalcEngine(object):
             if col in list(cash_flow_sets.keys()):
                 cash_flow_sets = cash_flow_sets.drop(col, axis=1)
 
+        # balance mrq
         balance_sets = engine.fetch_fundamentals_pit_extend_company_id(BalanceMRQ,
                                                                        [BalanceMRQ.SHORTTERMBORR,
                                                                         BalanceMRQ.DUENONCLIAB,
@@ -131,11 +133,11 @@ class CalcEngine(object):
         })
         tp_detivation = pd.merge(cash_flow_sets, balance_sets, how='outer', on='security_code')
 
+        # Balance MRQ数据
         balance_sets_pre = engine.fetch_fundamentals_pit_extend_company_id(BalanceMRQ,
                                                                            [BalanceMRQ.TOTCURRASSET,   # 流动资产合计
                                                                             BalanceMRQ.TOTALCURRLIAB,   # 流动负债合计
                                                                             ], dates=[trade_date_pre])
-
         for col in columns:
             if col in list(balance_sets_pre.keys()):
                 balance_sets_pre = balance_sets_pre.drop(col, axis=1)
@@ -145,6 +147,7 @@ class CalcEngine(object):
         })
         tp_detivation = pd.merge(balance_sets_pre, tp_detivation, how='outer', on='security_code')
 
+        # incicator mrq 数据
         indicator_sets = engine.fetch_fundamentals_pit_extend_company_id(IndicatorMRQ,
                                                                          [IndicatorMRQ.NPCUT,
                                                                           IndicatorMRQ.EBIT,  # 息税前利润
@@ -155,6 +158,7 @@ class CalcEngine(object):
         indicator_sets = indicator_sets.rename(columns={'EBIT': 'ebit_mrq'})
         tp_detivation = pd.merge(indicator_sets, tp_detivation, how='outer', on='security_code')
 
+        # income mrq数据
         income_sets = engine.fetch_fundamentals_pit_extend_company_id(IncomeMRQ,
                                                                       [IncomeMRQ.INCOTAXEXPE,   # 所得税
                                                                        IncomeMRQ.BIZTOTCOST,    # 营业总成本
@@ -180,7 +184,7 @@ class CalcEngine(object):
                 income_sets = income_sets.drop(col, axis=1)
         tp_detivation = pd.merge(income_sets, tp_detivation, how='outer', on='security_code')
 
-        # income ttm
+        # income ttm数据
         income_ttm_sets = engine.fetch_fundamentals_pit_extend_company_id(IncomeTTM,
                                                                           [IncomeTTM.BIZTOTINCO,      # 营业总收入
                                                                            IncomeTTM.BIZTOTCOST,      # 营业总成本
