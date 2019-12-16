@@ -192,7 +192,7 @@ class FactorBasicDerivation(object):
 
         func2 = lambda x: x[0] - x[1] if x[0] is not None and x[1] is not None else None
         management_er = management[management['industry_code2'].isin(industry2_set)]
-        management_er['NetOptInc'] = management_er[dependencies_bx].apply(func2, axis=1)
+        management_er['NetOptInc'] = management_er[management_er].apply(func2, axis=1)
         management_tm = management_tm.append(management_er)
 
         dependencies = dependencies + ['industry_code2']
