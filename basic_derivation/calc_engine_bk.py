@@ -14,8 +14,10 @@ from datetime import datetime
 from basic_derivation import factor_basic_derivation
 from datetime import timedelta, datetime
 
-from data.model import BalanceReport, IncomeReport, CashFlowReport, IndicatorReport
-from data.model import CashFlowTTM, IncomeTTM, IndicatorTTM
+from data.model import BalanceMRQ
+from data.model import CashFlowMRQ, CashFlowTTM
+from data.model import IncomeMRQ, IncomeTTM, IndicatorTTM, IndicatorMRQ
+
 from vision.db.signletion_engine import *
 from vision.table.industry_daily import IndustryDaily
 from data.sqlengine import sqlEngine
@@ -73,51 +75,51 @@ class CalcEngine(object):
         # 读取目前涉及到的因子
         columns = ['COMPCODE', 'PUBLISHDATE', 'ENDDATE', 'symbol', 'company_id', 'trade_date']
         engine = sqlEngine()
-        # cash flow report
-        cash_flow_sets = engine.fetch_fundamentals_pit_extend_company_id(CashFlowReport,
-                                                                         [CashFlowReport.FINALCASHBALA,
-                                                                          CashFlowReport.ASSEDEPR,  # 固定资产折旧
-                                                                          CashFlowReport.INTAASSEAMOR,  # 无形资产摊销
-                                                                          CashFlowReport.ACQUASSETCASH,  # 购建固定资产、无形资产和其他...
-                                                                          CashFlowReport.LONGDEFEEXPENAMOR,  # 长期待摊费用摊销
-                                                                          CashFlowReport.DEBTPAYCASH,        # 偿还债务支付的现金
-                                                                          CashFlowReport.RECEFROMLOAN,       # 取得借款收到的现金
-                                                                          CashFlowReport.ISSBDRECECASH,      # 发行债券所收到的现金
+        # cash flow mrq
+        cash_flow_sets = engine.fetch_fundamentals_pit_extend_company_id(CashFlowMRQ,
+                                                                         [CashFlowMRQ.FINALCASHBALA,
+                                                                          CashFlowMRQ.ASSEDEPR,  # 固定资产折旧
+                                                                          CashFlowMRQ.INTAASSEAMOR,  # 无形资产摊销
+                                                                          CashFlowMRQ.ACQUASSETCASH,  # 购建固定资产、无形资产和其他...
+                                                                          CashFlowMRQ.LONGDEFEEXPENAMOR,  # 长期待摊费用摊销
+                                                                          CashFlowMRQ.DEBTPAYCASH,        # 偿还债务支付的现金
+                                                                          CashFlowMRQ.RECEFROMLOAN,       # 取得借款收到的现金
+                                                                          CashFlowMRQ.ISSBDRECECASH,      # 发行债券所收到的现金
                                                                           ], dates=[trade_date])
         for col in columns:
             if col in list(cash_flow_sets.keys()):
                 cash_flow_sets = cash_flow_sets.drop(col, axis=1)
 
         # balance mrq
-        balance_sets = engine.fetch_fundamentals_pit_extend_company_id(BalanceReport,
-                                                                       [BalanceReport.SHORTTERMBORR,
-                                                                        BalanceReport.DUENONCLIAB,
-                                                                        BalanceReport.LONGBORR,
-                                                                        BalanceReport.BDSPAYA,
-                                                                        BalanceReport.PARESHARRIGH,
-                                                                        BalanceReport.TOTASSET,
-                                                                        BalanceReport.FIXEDASSECLEATOT,  # 固定资产合计
-                                                                        BalanceReport.TOTLIAB,
-                                                                        BalanceReport.RIGHAGGR,          # 股东权益合计
-                                                                        BalanceReport.INTAASSET,         # 无形资产
-                                                                        # BalanceReport.DEVEEXPE,        # 研发费用, Income 中也有
-                                                                        BalanceReport.GOODWILL,
-                                                                        BalanceReport.LOGPREPEXPE,
-                                                                        BalanceReport.DEFETAXASSET,
-                                                                        BalanceReport.MINYSHARRIGH,    # 少数股东权益[MINYSHARRIGH]利润表中也有
-                                                                        BalanceReport.TOTCURRASSET,    # 流动资产合计
-                                                                        BalanceReport.TOTLIAB,         # 负债合计
-                                                                        BalanceReport.TOTALCURRLIAB,   # 流动负债合计
-                                                                        BalanceReport.RESE,            # 盈余公积
-                                                                        BalanceReport.UNDIPROF,        # 未分配利润
-                                                                        BalanceReport.CURFDS,          # 货币资金
-                                                                        BalanceReport.ACCOPAYA,        # 应付帐款
-                                                                        BalanceReport.ADVAPAYM,        # 预收款项
-                                                                        BalanceReport.NOTESPAYA,       # 应付票据
-                                                                        BalanceReport.INTEPAYA,        # 应付利息
-                                                                        BalanceReport.TOTALNONCLIAB,   # 非流动负债合计
-                                                                        BalanceReport.TAXESPAYA,       # 应交税费
-                                                                        BalanceReport.OTHERPAY,        # 其他应付款
+        balance_sets = engine.fetch_fundamentals_pit_extend_company_id(BalanceMRQ,
+                                                                       [BalanceMRQ.SHORTTERMBORR,
+                                                                        BalanceMRQ.DUENONCLIAB,
+                                                                        BalanceMRQ.LONGBORR,
+                                                                        BalanceMRQ.BDSPAYA,
+                                                                        BalanceMRQ.PARESHARRIGH,
+                                                                        BalanceMRQ.TOTASSET,
+                                                                        BalanceMRQ.FIXEDASSECLEATOT,  # 固定资产合计
+                                                                        BalanceMRQ.TOTLIAB,
+                                                                        BalanceMRQ.RIGHAGGR,          # 股东权益合计
+                                                                        BalanceMRQ.INTAASSET,         # 无形资产
+                                                                        # BalanceMRQ.DEVEEXPE,        # 研发费用, Income 中也有
+                                                                        BalanceMRQ.GOODWILL,
+                                                                        BalanceMRQ.LOGPREPEXPE,
+                                                                        BalanceMRQ.DEFETAXASSET,
+                                                                        BalanceMRQ.MINYSHARRIGH,    # 少数股东权益[MINYSHARRIGH]利润表中也有
+                                                                        BalanceMRQ.TOTCURRASSET,    # 流动资产合计
+                                                                        BalanceMRQ.TOTLIAB,         # 负债合计
+                                                                        BalanceMRQ.TOTALCURRLIAB,   # 流动负债合计
+                                                                        BalanceMRQ.RESE,            # 盈余公积
+                                                                        BalanceMRQ.UNDIPROF,        # 未分配利润
+                                                                        BalanceMRQ.CURFDS,          # 货币资金
+                                                                        BalanceMRQ.ACCOPAYA,        # 应付帐款
+                                                                        BalanceMRQ.ADVAPAYM,        # 预收款项
+                                                                        BalanceMRQ.NOTESPAYA,       # 应付票据
+                                                                        BalanceMRQ.INTEPAYA,        # 应付利息
+                                                                        BalanceMRQ.TOTALNONCLIAB,   # 非流动负债合计
+                                                                        BalanceMRQ.TAXESPAYA,       # 应交税费
+                                                                        BalanceMRQ.OTHERPAY,        # 其他应付款
                                                                         ], dates=[trade_date])
         for col in columns:
             if col in list(balance_sets.keys()):
@@ -132,9 +134,9 @@ class CalcEngine(object):
         tp_detivation = pd.merge(cash_flow_sets, balance_sets, how='outer', on='security_code')
 
         # Balance MRQ数据
-        balance_sets_pre = engine.fetch_fundamentals_pit_extend_company_id(BalanceReport,
-                                                                           [BalanceReport.TOTCURRASSET,   # 流动资产合计
-                                                                            BalanceReport.TOTALCURRLIAB,   # 流动负债合计
+        balance_sets_pre = engine.fetch_fundamentals_pit_extend_company_id(BalanceMRQ,
+                                                                           [BalanceMRQ.TOTCURRASSET,   # 流动资产合计
+                                                                            BalanceMRQ.TOTALCURRLIAB,   # 流动负债合计
                                                                             ], dates=[trade_date_pre])
         for col in columns:
             if col in list(balance_sets_pre.keys()):
@@ -146,9 +148,9 @@ class CalcEngine(object):
         tp_detivation = pd.merge(balance_sets_pre, tp_detivation, how='outer', on='security_code')
 
         # incicator mrq 数据
-        indicator_sets = engine.fetch_fundamentals_pit_extend_company_id(IndicatorReport,
-                                                                         [IndicatorReport.NPCUT,
-                                                                          IndicatorReport.EBIT,  # 息税前利润
+        indicator_sets = engine.fetch_fundamentals_pit_extend_company_id(IndicatorMRQ,
+                                                                         [IndicatorMRQ.NPCUT,
+                                                                          IndicatorMRQ.EBIT,  # 息税前利润
                                                                           ], dates=[trade_date])
         for col in columns:
             if col in list(indicator_sets.keys()):
@@ -157,25 +159,25 @@ class CalcEngine(object):
         tp_detivation = pd.merge(indicator_sets, tp_detivation, how='outer', on='security_code')
 
         # income mrq数据
-        income_sets = engine.fetch_fundamentals_pit_extend_company_id(IncomeReport,
-                                                                      [IncomeReport.INCOTAXEXPE,   # 所得税
-                                                                       IncomeReport.BIZTOTCOST,    # 营业总成本
-                                                                       IncomeReport.BIZTOTINCO,    # 营业总收入
-                                                                       IncomeReport.NETPROFIT,     # 净利润
-                                                                       IncomeReport.PARENETP,      # 归属母公司股东的净利润
-                                                                       IncomeReport.TOTPROFIT,     # 利润总额
-                                                                       IncomeReport.INTEEXPE,      # 利息支出
-                                                                       IncomeReport.DEVEEXPE,      # 研发费用
-                                                                       IncomeReport.VALUECHGLOSS,      # 公允价值变动收益
-                                                                       IncomeReport.INVEINCO,          # 投资收益
-                                                                       IncomeReport.EXCHGGAIN,         # 汇兑收益
-                                                                       IncomeReport.BIZCOST,           # 营业成本
-                                                                       IncomeReport.BIZINCO,           # 营业收入
-                                                                       IncomeReport.POUNINCO,          #
-                                                                       IncomeReport.POUNEXPE,          # 手续费及佣金支出
-                                                                       IncomeReport.OTHERINCO,         # 其他收益
-                                                                       IncomeReport.OTHERBIZPROF,      # 其他业务利润
-                                                                       IncomeReport.OTHERBIZINCO,      # 其他业务收入
+        income_sets = engine.fetch_fundamentals_pit_extend_company_id(IncomeMRQ,
+                                                                      [IncomeMRQ.INCOTAXEXPE,   # 所得税
+                                                                       IncomeMRQ.BIZTOTCOST,    # 营业总成本
+                                                                       IncomeMRQ.BIZTOTINCO,    # 营业总收入
+                                                                       IncomeMRQ.NETPROFIT,     # 净利润
+                                                                       IncomeMRQ.PARENETP,      # 归属母公司股东的净利润
+                                                                       IncomeMRQ.TOTPROFIT,     # 利润总额
+                                                                       IncomeMRQ.INTEEXPE,      # 利息支出
+                                                                       IncomeMRQ.DEVEEXPE,      # 研发费用
+                                                                       IncomeMRQ.VALUECHGLOSS,      # 公允价值变动收益
+                                                                       IncomeMRQ.INVEINCO,          # 投资收益
+                                                                       IncomeMRQ.EXCHGGAIN,         # 汇兑收益
+                                                                       IncomeMRQ.BIZCOST,           # 营业成本
+                                                                       IncomeMRQ.BIZINCO,           # 营业收入
+                                                                       IncomeMRQ.POUNINCO,          #
+                                                                       IncomeMRQ.POUNEXPE,          # 手续费及佣金支出
+                                                                       IncomeMRQ.OTHERINCO,         # 其他收益
+                                                                       IncomeMRQ.OTHERBIZPROF,      # 其他业务利润
+                                                                       IncomeMRQ.OTHERBIZINCO,      # 其他业务收入
                                                                        ], dates=[trade_date])
         for col in columns:
             if col in list(income_sets.keys()):
