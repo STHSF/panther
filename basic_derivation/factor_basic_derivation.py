@@ -219,7 +219,7 @@ class FactorBasicDerivation(object):
         return factor_derivation
 
     @staticmethod
-    def TangibleAssets(tp_derivation, factor_derivation, dependencies=['RIGHAGGR',
+    def TangibleAssets(tp_derivation, factor_derivation, dependencies=['PARESHARRIGH',
                                                                        'MINYSHARRIGH',
                                                                        'INTAASSET',
                                                                        'DEVEEXPE',
