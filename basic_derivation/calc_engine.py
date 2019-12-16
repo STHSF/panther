@@ -99,7 +99,7 @@ class CalcEngine(object):
                                                                         BalanceMRQ.FIXEDASSECLEATOT,  # 固定资产合计
                                                                         BalanceMRQ.TOTLIAB,
                                                                         BalanceMRQ.RIGHAGGR,          # 股东权益合计
-                                                                        BalanceMRQ.INTAASSET,
+                                                                        BalanceMRQ.INTAASSET,         # 无形资产
                                                                         # BalanceMRQ.DEVEEXPE,        # 研发费用, Income 中也有
                                                                         BalanceMRQ.GOODWILL,
                                                                         BalanceMRQ.LOGPREPEXPE,

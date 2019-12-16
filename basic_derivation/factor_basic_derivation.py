@@ -235,11 +235,11 @@ class FactorBasicDerivation(object):
         if len(management) <= 0:
             return None
         func = lambda x: x[0] - (x[1] + x[2] + x[3] + x[4] + x[5]) if x[0] is not None and \
-                                                                           x[1] is not None and \
-                                                                           x[2] is not None and \
-                                                                           x[3] is not None and \
-                                                                           x[4] is not None and \
-                                                                           x[5] is not None else None
+                                                                      x[1] is not None and \
+                                                                      x[2] is not None and \
+                                                                      x[3] is not None and \
+                                                                      x[4] is not None and \
+                                                                      x[5] is not None else None
         management['TangibleAssets'] = management[dependencies].apply(func, axis=1)
 
         management = management.drop(dependencies, axis=1)
