@@ -499,7 +499,7 @@ class FactorBasicDerivation(object):
     def TotalLib(tp_derivation, factor_derivation, dependencies=['TOTLIAB']):
         """
         :name: 负债合计(MRQ)
-        :desc: 负债合计(MRQ)balance
+        :desc: 负债合计(MRQ)
         :unit: 元
         :view_dimension: 10000
         """
@@ -514,7 +514,7 @@ class FactorBasicDerivation(object):
     def ShEquity(tp_derivation, factor_derivation, dependencies=['RIGHAGGR']):
         """
         :name: 股东权益(MRQ)
-        :desc: 股东权益(MRQ) balance
+        :desc: 股东权益(MRQ)
         :unit: 元
         :view_dimension: 10000
         """
