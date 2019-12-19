@@ -542,10 +542,11 @@ class FactorBasicDerivation(object):
 
     @staticmethod
     def EBIT(tp_derivation, factor_derivation, dependencies=['TOTPROFIT',
-                                                             'INTEEXPE']):
+                                                             'INTEEXPE',
+                                                             'INCOTAXEXPE']):
         """
-        :name: 息税前利润(MRQ)[EBIT_反推]
-        :desc: [EBIT_反推]息税前利润 = 利润总额 + 利息支出
+        :name: 息税后利润(MRQ)
+        :desc: 息前税后利润＝息税前利润－息税前利润所得税， 息税前利润 = 利润总额 + 利息支出, 息税前利润所得税 = 息税前利润 * 所得税税率,  所得税税率 = 所得税/ 利润总额
         :unit: 元
         :view_dimension: 10000
         """
@@ -553,7 +554,12 @@ class FactorBasicDerivation(object):
         management = management.fillna(0)
         if len(management) <= 0:
             return None
-        func = lambda x: x[0] + x[1] if x[0] is not None and x[1] is not None else None
+
+        func = lambda x: (x[0] + x[1]) - (x[0] + x[1]) * x[2] / x[0] if x[0] is not None and\
+                                                                        x[1] is not None and\
+                                                                        x[2] is not None and\
+                                                                        x[3] is not None and\
+                                                                        x[0] != 0 else None
         management['EBIT'] = management[dependencies].apply(func, axis=1)
         management = management.drop(dependencies, axis=1)
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")

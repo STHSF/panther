@@ -221,7 +221,7 @@ class CalcEngine(object):
                                                                               CashFlowTTM.LABORGETCASH,
                                                                               CashFlowTTM.INVNETCASHFLOW,
                                                                               CashFlowTTM.FINNETCFLOW,
-                                                                              CashFlowTTM.CASHNETI,
+                                                                              CashFlowTTM.CASHNETI,  # 现金及现金等价物的净增加额
                                                                               ], dates=[trade_date])
         for col in columns:
             if col in list(cash_flow_ttm_sets.keys()):
