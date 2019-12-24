@@ -70,7 +70,6 @@ class FactorBasicDerivation(object):
         management = management.fillna(0)
         if len(management) <= 0:
             return None
-
         dependencies = dependencies.append(dependency)
 
         func = lambda x: None if x[0] is None or x[1] is None or x[2] is None or x[0] == 0 else ((x[0] + x[1]) * (1 - x[2] / x[0]) if x[0] >0 and x[1] >0 else 1)

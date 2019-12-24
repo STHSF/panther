@@ -79,8 +79,7 @@ class CalcEngine(object):
         trade_date = datetime.strftime(time_array, '%Y%m%d')
         trade_date_pre = self.get_trade_date(trade_date, 3, days=31)
         # 读取目前涉及到的因子
-        columns = ['COMPCODE', 'PUBLISHDATE', 'ENDDATE', 'symbol', 'company_id', 'trade_date']
-        engine = sqlEngine()
+        columns = ['COMPCODE', 'publish_date', 'report_date', 'symbol', 'company_id', 'trade_date']
         # cash flow report
         cash_flow_sets = get_fin_consolidated_statements_pit(FinCashFlow,
                                                              [FinCashFlow.cash_and_equivalents_at_end,
@@ -96,6 +95,7 @@ class CalcEngine(object):
         for col in columns:
             if col in list(cash_flow_sets.keys()):
                 cash_flow_sets = cash_flow_sets.drop(col, axis=1)
+        pdb.set_trace()
 
         # balance mrq
         balance_sets = get_fin_consolidated_statements_pit(FinBalance,
@@ -131,6 +131,7 @@ class CalcEngine(object):
             if col in list(balance_sets.keys()):
                 balance_sets = balance_sets.drop(col, axis=1)
         tp_detivation = pd.merge(cash_flow_sets, balance_sets, how='outer', on='security_code')
+        pdb.set_trace()
 
         # Balance MRQ数据
         balance_sets_pre = get_fin_consolidated_statements_pit(FinBalance,
@@ -146,6 +147,7 @@ class CalcEngine(object):
             'total_current_liability': 'total_current_liability_PRE',
         })
         tp_detivation = pd.merge(balance_sets_pre, tp_detivation, how='outer', on='security_code')
+        pdb.set_trace()
 
         # incicator mrq 数据
         indicator_sets = get_fin_consolidated_statements_pit(FinIndicator,
@@ -155,6 +157,7 @@ class CalcEngine(object):
             if col in list(indicator_sets.keys()):
                 indicator_sets = indicator_sets.drop(col, axis=1)
         tp_detivation = pd.merge(indicator_sets, tp_detivation, how='outer', on='security_code')
+        pdb.set_trace()
 
         # income mrq数据
         income_sets = get_fin_consolidated_statements_pit(FinIncome,
@@ -183,6 +186,7 @@ class CalcEngine(object):
             if col in list(income_sets.keys()):
                 income_sets = income_sets.drop(col, axis=1)
         tp_detivation = pd.merge(income_sets, tp_detivation, how='outer', on='security_code')
+        pdb.set_trace()
 
         # # income ttm数据
         # income_ttm_sets = engine.fetch_fundamentals_pit_extend_company_id(IncomeTTM,
@@ -247,7 +251,8 @@ class CalcEngine(object):
                                          IndustryDaily.industry_code2,
                                          ).filter(IndustryDaily.trade_date.in_([trade_date])))
 
-        return tp_detivation, ttm_derivation, sw_indu
+        # return tp_detivation, ttm_derivation, sw_indu
+        return tp_detivation, sw_indu
 
     def process_calc_factor(self, trade_date, tp_derivation, ttm_derivation, sw_industry):
         tp_derivation = tp_derivation.set_index('security_code')
