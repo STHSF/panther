@@ -156,14 +156,13 @@ class CalcEngine(object):
         pdb.set_trace()
 
         # incicator mrq 数据
-        indicator_sets = get_fin_consolidated_statements_pit(FinIndicator,
-                                                             [FinIndicator.np_cut, # 扣除非经常性损益的净利润
-                                                              ], db_filters=[], dates=[trade_date])
-        for col in columns:
-            if col in list(indicator_sets.keys()):
-                indicator_sets = indicator_sets.drop(col, axis=1)
-        tp_detivation = pd.merge(indicator_sets, tp_detivation, how='outer', on='security_code')
-        pdb.set_trace()
+        # indicator_sets = get_fin_consolidated_statements_pit(FinIndicator,
+        #                                                      [FinIndicator.np_cut, # 扣除非经常性损益的净利润
+        #                                                       ], db_filters=[], dates=[trade_date])
+        # for col in columns:
+        #     if col in list(indicator_sets.keys()):
+        #         indicator_sets = indicator_sets.drop(col, axis=1)
+        # tp_detivation = pd.merge(indicator_sets, tp_detivation, how='outer', on='security_code')
 
         # income mrq数据
         income_sets = get_fin_consolidated_statements_pit(FinIncome,
