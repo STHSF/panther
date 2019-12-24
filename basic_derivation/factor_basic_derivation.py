@@ -40,8 +40,8 @@ class FactorBasicDerivation(object):
     @staticmethod
     def EBIT(tp_derivation, factor_derivation, dependencies=['total_profit', 'interest_expense', 'interest_income', 'financial_expense']):
         """
-        :name: 息前税后利润(MRQ)
-        :desc: [EBIT_反推法]息前税后利润 = 利润总额 + 利息支出 - 利息收入
+        :name: 息税前利润(MRQ)
+        :desc: [EBIT_反推法]息税前利润(MRQ) = 利润总额 + 利息支出 - 利息收入
         :unit: 元
         :view_dimension: 10000
         """
@@ -70,7 +70,7 @@ class FactorBasicDerivation(object):
         management = management.fillna(0)
         if len(management) <= 0:
             return None
-        dependencies = dependencies.append(dependency)
+        dependencies = dependencies + dependency
 
         func = lambda x: None if x[0] is None or x[1] is None or x[2] is None or x[0] == 0 else ((x[0] + x[1]) * (1 - x[2] / x[0]) if x[0] >0 and x[1] >0 else 1)
         management['EBITDA'] = management[dependencies].apply(func, axis=1)
@@ -79,9 +79,7 @@ class FactorBasicDerivation(object):
         return factor_derivation
 
     @staticmethod
-    def FCFF(tp_derivation, factor_derivation, dependencies=['total_profit',
-                                                             'interest_expense',
-                                                             'income_tax',
+    def FCFF(tp_derivation, factor_derivation, dependencies=['income_tax',
                                                              'fixed_assets_depreciation',
                                                              'intangible_assets_amortization',
                                                              'defferred_expense_amortization',
@@ -90,7 +88,8 @@ class FactorBasicDerivation(object):
                                                              'total_current_assets_PRE',
                                                              'total_current_liability_PRE',
                                                              'fix_intan_other_asset_acqui_cash',
-                                                             ]):
+                                                             ],
+             dependency=['EBITDA']):
         """
         :name: 企业自由现金流量(MRQ)
         :desc: 息前税后利润+折旧与摊销-营运资本增加-资本支出 = 息税前利润(1-所得税率)+ 折旧与摊销-营运资本增加-构建固定无形和长期资产支付的现金， 营运资本 = 流动资产-流动负债
@@ -98,9 +97,13 @@ class FactorBasicDerivation(object):
         :view_dimension: 10000
         """
         management = tp_derivation.loc[:, dependencies]
+        management2 = factor_derivation.loc[:, dependency]
+        management = pd.merge(management, management2, how='outer', on='security_code')
         management = management.fillna(0)
         if len(management) <= 0:
             return None
+        dependencies = dependency + dependencies
+
         func = lambda x: (x[0] + x[1]) - x[1] + x[2] + x[3] + x[4] - (x[5] - x[6]) + (x[7] - x[8]) - x[9] if x[0] is not None and \
                                                                                                     x[1] is not None and \
                                                                                                     x[2] is not None and \
