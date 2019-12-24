@@ -141,7 +141,7 @@ class CalcEngine(object):
                                                                 FinBalance.shortterm_bonds_payable,  # 流动负债合计
                                                                 FinBalance.shortterm_loan,  # 流动负债合计
                                                                 FinBalance.non_current_liability_in_one_year,  # 流动负债合计
-                                                                ], dates=[trade_date_pre])
+                                                                ],  db_filters=[], dates=[trade_date_pre])
 
         for col in columns:
             if col in list(balance_sets_pre.keys()):
@@ -160,7 +160,7 @@ class CalcEngine(object):
         # incicator mrq 数据
         indicator_sets = get_fin_consolidated_statements_pit(FinIndicator,
                                                              [FinIndicator.np_cut, # 扣除非经常性损益的净利润
-                                                              ], dates=[trade_date])
+                                                              ],  db_filters=[], dates=[trade_date])
         for col in columns:
             if col in list(indicator_sets.keys()):
                 indicator_sets = indicator_sets.drop(col, axis=1)
@@ -189,7 +189,7 @@ class CalcEngine(object):
                                                            FinIncome.other_earnings,  # 其他收益
                                                            FinIncome.other_business_profits,  # 其他业务利润
                                                            FinIncome.other_operating_revenue,  # 其他业务收入
-                                                           ],db_filters=[], dates=[trade_date])
+                                                           ], db_filters=[], dates=[trade_date])
         for col in columns:
             if col in list(income_sets.keys()):
                 income_sets = income_sets.drop(col, axis=1)
