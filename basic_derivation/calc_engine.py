@@ -22,6 +22,7 @@ from vision.table.fin_cash_flow import FinCashFlow
 from vision.table.fin_balance import FinBalance
 from vision.table.fin_income import FinIncome
 from vision.table.fin_indicator import FinIndicator
+from utilities.sync_util import *
 
 from data.sqlengine import sqlEngine
 
@@ -164,6 +165,8 @@ class CalcEngine(object):
                                                            FinIncome.np_parent_company_owners,  # 归属母公司股东的净利润
                                                            FinIncome.total_profit,  # 利润总额
                                                            FinIncome.interest_expense,  # 利息支出
+                                                           FinIncome.interest_income,  # 利息收入
+                                                           FinIncome.financial_expense,  # 财务费用
                                                            FinIncome.rd_expenses,  # 研发费用
                                                            FinIncome.fair_value_variable_income,  # 公允价值变动收益
                                                            FinIncome.investment_income,  # 投资收益

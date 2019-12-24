@@ -38,49 +38,50 @@ class FactorBasicDerivation(object):
         self.description = '基础衍生类因子'
 
     @staticmethod
-    def EBIT(tp_derivation, factor_derivation, dependencies=['total_profit', 'interest_expense']):
+    def EBIT(tp_derivation, factor_derivation, dependencies=['total_profit', 'interest_expense', 'interest_income', 'financial_expense']):
         """
-        :name: 息税前利润(MRQ)
-        :desc: [EBIT_反推]息税前利润 = 利润总额 + 利息支出
+        :name: 息前税后利润(MRQ)
+        :desc: [EBIT_反推法]息前税后利润 = 利润总额 + 利息支出 - 利息收入
         :unit: 元
         :view_dimension: 10000
         """
         management = tp_derivation.loc[:, dependencies]
-        management = management.fillna(0)
 
         if len(management) <= 0:
             return None
-        func = lambda x: x[0] + x[1]
+        func = lambda x: (x[0] + x[1] - x[2]) if x[1] is not None and x[2] is not None else (x[0] + x[3] if x[3] is not None else None)
         management['EBIT'] = management[dependencies].apply(func, axis=1)
         management = management.drop(dependencies, axis=1)
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
 
     @staticmethod
-    def EBITDA(tp_derivation, factor_derivation, dependencies=['total_profit', 'interest_expense', 'income_tax']):
+    def EBITDA(tp_derivation, factor_derivation, dependencies=['total_profit', 'interest_expense', 'income_tax'],
+               dependency=['EBIT']):
         """
         :name: 息前税后利润(MRQ)
-        :desc: 息前税后利润(MRQ)＝息税前利润－息税前利润所得税， 息税前利润 = 利润总额 + 利息支出, 息税前利润所得税 = 息税前利润 * 所得税税率,  所得税税率 = 所得税/ 利润总额
+        :desc: 息前税后利润(MRQ)＝EBIT(反推法)*(if 所得税&利润总额都>0，则1-所得税率，否则为1)，所得税税率 = 所得税/ 利润总额
         :unit: 元
         :view_dimension: 10000
         """
         management = tp_derivation.loc[:, dependencies]
+        management2 = factor_derivation.loc[:, dependency]
+        management = pd.merge(management, management2, how='outer', on='security_code')
         management = management.fillna(0)
         if len(management) <= 0:
             return None
 
-        func = lambda x: (x[0] + x[1]) - (x[0] + x[1]) * x[2] / x[0] if x[0] is not None and \
-                                                                        x[1] is not None and \
-                                                                        x[2] is not None and \
-                                                                        x[3] is not None and \
-                                                                        x[0] != 0 else None
+        dependencies = dependencies.append(dependency)
+
+        func = lambda x: None if x[0] is None or x[1] is None or x[2] is None or x[0] == 0 else ((x[0] + x[1]) * (1 - x[2] / x[0]) if x[0] >0 and x[1] >0 else 1)
         management['EBITDA'] = management[dependencies].apply(func, axis=1)
         management = management.drop(dependencies, axis=1)
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
 
     @staticmethod
-    def FCFF(tp_derivation, factor_derivation, dependencies=['ebit_mrq',
+    def FCFF(tp_derivation, factor_derivation, dependencies=['total_profit',
+                                                             'interest_expense',
                                                              'income_tax',
                                                              'fixed_assets_depreciation',
                                                              'intangible_assets_amortization',
@@ -101,7 +102,7 @@ class FactorBasicDerivation(object):
         management = management.fillna(0)
         if len(management) <= 0:
             return None
-        func = lambda x: x[0] - x[1] + x[2] + x[3] + x[4] - (x[5] - x[6]) + (x[7] - x[8]) - x[9] if x[0] is not None and \
+        func = lambda x: (x[0] + x[1]) - x[1] + x[2] + x[3] + x[4] - (x[5] - x[6]) + (x[7] - x[8]) - x[9] if x[0] is not None and \
                                                                                                     x[1] is not None and \
                                                                                                     x[2] is not None and \
                                                                                                     x[3] is not None and \
