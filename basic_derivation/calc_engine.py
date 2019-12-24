@@ -89,7 +89,7 @@ class CalcEngine(object):
                                                               FinCashFlow.borrowing_repayment,  # 偿还债务支付的现金
                                                               FinCashFlow.cash_from_borrowing,  # 取得借款收到的现金
                                                               FinCashFlow.cash_from_bonds_issue,  # 发行债券所收到的现金
-                                                              ], dates=[trade_date])
+                                                              ], db_filters=[], dates=[trade_date])
         for col in columns:
             if col in list(cash_flow_sets.keys()):
                 cash_flow_sets = cash_flow_sets.drop(col, axis=1)
@@ -125,7 +125,7 @@ class CalcEngine(object):
                                                             FinBalance.total_non_current_liability,  # 非流动负债合计
                                                             FinBalance.taxs_payable,  # 应交税费
                                                             FinBalance.other_payable,  # 其他应付款
-                                                            ], dates=[trade_date])
+                                                            ], db_filters=[], dates=[trade_date])
 
         for col in columns:
             if col in list(balance_sets.keys()):
@@ -189,7 +189,7 @@ class CalcEngine(object):
                                                            FinIncome.other_earnings,  # 其他收益
                                                            FinIncome.other_business_profits,  # 其他业务利润
                                                            FinIncome.other_operating_revenue,  # 其他业务收入
-                                                           ], dates=[trade_date])
+                                                           ],db_filters=[], dates=[trade_date])
         for col in columns:
             if col in list(income_sets.keys()):
                 income_sets = income_sets.drop(col, axis=1)
