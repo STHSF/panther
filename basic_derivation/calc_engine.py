@@ -118,10 +118,15 @@ class CalcEngine(object):
                                                             FinBalance.cash_equivalents,  # 货币资金
                                                             FinBalance.accounts_payable,  # 应付帐款
                                                             FinBalance.advance_peceipts,  # 预收款项
+                                                            FinBalance.salaries_payable,  # 应付职工薪酬
                                                             FinBalance.notes_payable,  # 应付票据
+                                                            FinBalance.bill_receivable,  # 应收票据
                                                             FinBalance.interest_payable,  # 应付利息
                                                             FinBalance.total_non_current_liability,  # 非流动负债合计
                                                             FinBalance.taxs_payable,  # 应交税费
+                                                            FinBalance.accrued_expenses,  # 预提费用
+                                                            FinBalance.long_term_deferred_income,  # 长期递延收益
+                                                            FinBalance.other_current_liability,  # 其他流动负债
                                                             FinBalance.other_payable,  # 其他应付款
                                                             ], db_filters=[], dates=[trade_date])
 
