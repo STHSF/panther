@@ -56,7 +56,7 @@ class FactorBasicDerivation(object):
         return factor_derivation
 
     @staticmethod
-    def EBITDA(tp_derivation, factor_derivation, dependencies=['total_profit', 'interest_expense', 'income_tax'],
+    def EBITDA(tp_derivation, factor_derivation, dependencies=['total_profit', 'income_tax'],
                dependency=['EBIT']):
         """
         :name: 息前税后利润(MRQ)
@@ -70,29 +70,52 @@ class FactorBasicDerivation(object):
         management = management.fillna(0)
         if len(management) <= 0:
             return None
-        dependencies = dependencies + dependency
+        dependencies = dependency + dependencies
 
-        func = lambda x: None if x[0] is None or x[1] is None or x[2] is None or x[0] == 0 else ((x[0] + x[1]) * (1 - x[2] / x[0]) if x[0] >0 and x[1] >0 else 1)
+        func = lambda x: None if x[0] is None or x[1] is None or x[2] is None or x[1] == 0 else (x[0] * (1 - x[2] / x[1]) if x[1] > 0 and x[2] > 0 else x[0])
         management['EBITDA'] = management[dependencies].apply(func, axis=1)
         management = management.drop(dependencies, axis=1)
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
 
     @staticmethod
-    def FCFF(tp_derivation, factor_derivation, dependencies=['income_tax',
-                                                             'fixed_assets_depreciation',
-                                                             'intangible_assets_amortization',
-                                                             'defferred_expense_amortization',
-                                                             'total_current_assets',
+    def DepAndAmo(tp_derivation, factor_derivation, dependencies=['fixed_assets_depreciation',
+                                                                  'intangible_assets_amortization',
+                                                                  'defferred_expense_amortization']):
+        """
+        :name: 折旧和摊销(MRQ)
+        :desc: 固定资产折旧 + 无形资产摊销 + 长期待摊费用摊销
+        :unit: 元
+        :view_dimension: 10000
+        """
+        management = tp_derivation.loc[:, dependencies]
+        management = management.fillna(0)
+        if len(management) <= 0:
+            return None
+        func = lambda x: x[0] + x[1] + x[2] if x[0] is not None and x[1] is not None and x[2] is not None else None
+        management['DepAndAmo'] = management[dependencies].apply(func, axis=1)
+        management = management.drop(dependencies, axis=1)
+        factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
+        return factor_derivation
+
+    @staticmethod
+    def FCFF(tp_derivation, factor_derivation, dependencies=['total_current_assets',
+                                                             'cash_equivalents',
                                                              'total_current_liability',
-                                                             'total_current_assets_PRE',
-                                                             'total_current_liability_PRE',
+                                                             'shortterm_loan',
+                                                             'shortterm_bonds_payable',
+                                                             'non_current_liability_in_one_year',
+                                                             'total_current_assets_pre',
+                                                             'cash_equivalents_pre',
+                                                             'shortterm_loan_pre',
+                                                             'shortterm_bonds_payable_pre',
+                                                             'non_current_liability_in_one_year_pre',
                                                              'fix_intan_other_asset_acqui_cash',
                                                              ],
-             dependency=['EBITDA']):
+             dependency=['EBITDA', 'DepAndAmo']):
         """
         :name: 企业自由现金流量(MRQ)
-        :desc: 息前税后利润+折旧与摊销-营运资本增加-资本支出 = 息税前利润(1-所得税率)+ 折旧与摊销-营运资本增加-构建固定无形和长期资产支付的现金， 营运资本 = 流动资产-流动负债
+        :desc: 息前税后利润+折旧与摊销-营运资本增加-资本支出 = 息前税后利润+ 折旧与摊销-营运资本增加-构建固定无形和长期资产支付的现金， 营运资本 = 流动资产-流动负债， 营运资金=（流动资产-货币资金）-（流动负债-短期借款-应付短期债券-一年内到期的长期借款-一年内到期的应付债券）
         :unit: 元
         :view_dimension: 10000
         """
@@ -104,7 +127,12 @@ class FactorBasicDerivation(object):
             return None
         dependencies = dependency + dependencies
 
-        func = lambda x: (x[0] + x[1]) - x[1] + x[2] + x[3] + x[4] - (x[5] - x[6]) + (x[7] - x[8]) - x[9] if x[0] is not None and \
+        # func = lambda x: None if x[0] is None else (if x[])
+
+
+
+
+        func = lambda x: (x[0] + x[1]) - x[1] +(x[2] + x[3] + x[4]) - (x[5] - x[6]) + (x[7] - x[8]) - x[9] if x[0] is not None and \
                                                                                                     x[1] is not None and \
                                                                                                     x[2] is not None and \
                                                                                                     x[3] is not None and \
@@ -113,8 +141,7 @@ class FactorBasicDerivation(object):
                                                                                                     x[6] is not None and \
                                                                                                     x[7] is not None and \
                                                                                                     x[8] is not None and \
-                                                                                                    x[
-                                                                                                        9] is not None else None
+                                                                                                    x[9] is not None else None
         management['FCFF'] = management[dependencies].apply(func, axis=1)
         management = management.drop(dependencies, axis=1)
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
@@ -211,7 +238,7 @@ class FactorBasicDerivation(object):
                          '310100', '260300', '220700', '470300', '470100', '340100', '340200', '230200']
         dependencies = list(set(dependencies_er + dependencies_yh + dependencies_bx + dependencies_zq))
         management = tp_derivation.loc[:, dependencies]
-        management = management.fillna(0)
+        # management = management.fillna(0)
         management = pd.merge(management, sw_industry, how='outer', on='security_code').set_index('security_code')
         if len(management) <= 0:
             return None
@@ -241,7 +268,7 @@ class FactorBasicDerivation(object):
         management_bx['NetOptInc'] = management_bx[dependencies_bx].apply(func1, axis=1)
         management_tm = management_tm.append(management_bx)
 
-        func2 = lambda x: x[0] - x[1] if x[0] is not None and x[1] is not None else None
+        func2 = lambda x: None if x[0] is None else (x[0] if x[1] is None else x[0] - x[1])
         management_er = management[management['industry_code2'].isin(industry2_set)]
         management_er['NetOptInc'] = management_er[dependencies_er].apply(func2, axis=1)
         management_tm = management_tm.append(management_er)
@@ -434,25 +461,7 @@ class FactorBasicDerivation(object):
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
 
-    @staticmethod
-    def DepAndAmo(tp_derivation, factor_derivation, dependencies=['fixed_assets_depreciation',
-                                                                  'intangible_assets_amortization',
-                                                                  'defferred_expense_amortization']):
-        """
-        :name: 折旧和摊销(MRQ)
-        :desc: 固定资产折旧 + 无形资产摊销 + 长期待摊费用摊销
-        :unit: 元
-        :view_dimension: 10000
-        """
-        management = tp_derivation.loc[:, dependencies]
-        management = management.fillna(0)
-        if len(management) <= 0:
-            return None
-        func = lambda x: x[0] + x[1] + x[2] if x[0] is not None and x[1] is not None and x[2] is not None else None
-        management['DepAndAmo'] = management[dependencies].apply(func, axis=1)
-        management = management.drop(dependencies, axis=1)
-        factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
-        return factor_derivation
+
 
     @staticmethod
     def EquityPC(tp_derivation, factor_derivation, dependencies=['equities_parent_company_owners']):

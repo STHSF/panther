@@ -84,8 +84,7 @@ class CalcEngine(object):
                                                              [FinCashFlow.cash_and_equivalents_at_end,
                                                               FinCashFlow.fixed_assets_depreciation,  # 固定资产折旧
                                                               FinCashFlow.intangible_assets_amortization,  # 无形资产摊销
-                                                              FinCashFlow.fix_intan_other_asset_acqui_cash,
-                                                              # 购建固定资产、无形资产和其他...
+                                                              FinCashFlow.fix_intan_other_asset_acqui_cash, # 购建固定资产、无形资产和其他...
                                                               FinCashFlow.defferred_expense_amortization,  # 长期待摊费用摊销
                                                               FinCashFlow.borrowing_repayment,  # 偿还债务支付的现金
                                                               FinCashFlow.cash_from_borrowing,  # 取得借款收到的现金
@@ -102,7 +101,8 @@ class CalcEngine(object):
                                                             FinBalance.non_current_liability_in_one_year,  # 一年内到期的非流动负债
                                                             FinBalance.longterm_loan,  # 长期借款
                                                             FinBalance.bonds_payable,  # 应付债券
-                                                            FinBalance.equities_parent_company_owners,
+                                                            FinBalance.equities_parent_company_owners,  # 归属于母公司股东权益合计
+                                                            FinBalance.shortterm_bonds_payable,  # 应付短期债券
                                                             FinBalance.total_assets,  # 资产总计
                                                             FinBalance.total_fixed_assets_liquidation,  # 固定资产及清理合计
                                                             FinBalance.total_owner_equities,  # 所有者权益(或股东权益)合计
@@ -126,7 +126,6 @@ class CalcEngine(object):
                                                             FinBalance.taxs_payable,  # 应交税费
                                                             FinBalance.other_payable,  # 其他应付款
                                                             ], dates=[trade_date])
-        pdb.set_trace()
 
         for col in columns:
             if col in list(balance_sets.keys()):
@@ -134,61 +133,68 @@ class CalcEngine(object):
         tp_detivation = pd.merge(cash_flow_sets, balance_sets, how='outer', on='security_code')
         pdb.set_trace()
 
-        # # Balance MRQ数据
-        # balance_sets_pre = get_fin_consolidated_statements_pit(FinBalance,
-        #                                                        [FinBalance.total_current_assets,  # 流动资产合计
-        #                                                         FinBalance.total_current_liability,  # 流动负债合计
-        #                                                         ], dates=[trade_date_pre])
-        # pdb.set_trace()
-        #
-        # for col in columns:
-        #     if col in list(balance_sets_pre.keys()):
-        #         balance_sets_pre = balance_sets_pre.drop(col, axis=1)
-        # balance_sets_pre = balance_sets_pre.rename(columns={
-        #     'total_current_assets': 'total_current_assets_PRE',
-        #     'total_current_liability': 'total_current_liability_PRE',
-        # })
-        # tp_detivation = pd.merge(balance_sets_pre, tp_detivation, how='outer', on='security_code')
-        # pdb.set_trace()
-        #
-        # # incicator mrq 数据
-        # indicator_sets = get_fin_consolidated_statements_pit(FinIndicator,
-        #                                                      [FinIndicator.np_cut, # 扣除非经常性损益的净利润
-        #                                                       ], dates=[trade_date])
-        # for col in columns:
-        #     if col in list(indicator_sets.keys()):
-        #         indicator_sets = indicator_sets.drop(col, axis=1)
-        # tp_detivation = pd.merge(indicator_sets, tp_detivation, how='outer', on='security_code')
-        # pdb.set_trace()
-        #
-        # # income mrq数据
-        # income_sets = get_fin_consolidated_statements_pit(FinIncome,
-        #                                                   [FinIncome.income_tax,  # 所得税费用
-        #                                                    FinIncome.total_operating_cost,  # 营业总成本
-        #                                                    FinIncome.total_operating_revenue,  # 营业总收入
-        #                                                    FinIncome.net_profit,  # 净利润
-        #                                                    FinIncome.np_parent_company_owners,  # 归属母公司股东的净利润
-        #                                                    FinIncome.total_profit,  # 利润总额
-        #                                                    FinIncome.interest_expense,  # 利息支出
-        #                                                    FinIncome.interest_income,  # 利息收入
-        #                                                    FinIncome.financial_expense,  # 财务费用
-        #                                                    FinIncome.rd_expenses,  # 研发费用
-        #                                                    FinIncome.fair_value_variable_income,  # 公允价值变动收益
-        #                                                    FinIncome.investment_income,  # 投资收益
-        #                                                    FinIncome.exchange_income,  # 汇兑收益
-        #                                                    FinIncome.operating_cost,  # 营业成本
-        #                                                    FinIncome.operating_revenue,  # 营业收入
-        #                                                    FinIncome.commission_income,  # 手续费及佣金收入
-        #                                                    FinIncome.service_commission_fee,  # 手续费及佣金支出
-        #                                                    FinIncome.other_earnings,  # 其他收益
-        #                                                    FinIncome.other_business_profits,  # 其他业务利润
-        #                                                    FinIncome.other_operating_revenue,  # 其他业务收入
-        #                                                    ], dates=[trade_date])
-        # for col in columns:
-        #     if col in list(income_sets.keys()):
-        #         income_sets = income_sets.drop(col, axis=1)
-        # tp_detivation = pd.merge(income_sets, tp_detivation, how='outer', on='security_code')
-        # pdb.set_trace()
+        # Balance MRQ数据
+        balance_sets_pre = get_fin_consolidated_statements_pit(FinBalance,
+                                                               [FinBalance.total_current_assets,  # 流动资产合计
+                                                                FinBalance.cash_equivalents,  # 流动负债合计
+                                                                FinBalance.total_current_liability,  # 流动负债合计
+                                                                FinBalance.shortterm_bonds_payable,  # 流动负债合计
+                                                                FinBalance.shortterm_loan,  # 流动负债合计
+                                                                FinBalance.non_current_liability_in_one_year,  # 流动负债合计
+                                                                ], dates=[trade_date_pre])
+
+        for col in columns:
+            if col in list(balance_sets_pre.keys()):
+                balance_sets_pre = balance_sets_pre.drop(col, axis=1)
+        balance_sets_pre = balance_sets_pre.rename(columns={
+            'total_current_assets': 'total_current_assets_pre',
+            'cash_equivalents': 'cash_equivalents_pre',
+            'total_current_liability': 'total_current_liability_pre',
+            'shortterm_loan': 'shortterm_loan_pre',
+            'shortterm_bonds_payable': 'shortterm_bonds_payable_pre',
+            'non_current_liability_in_one_year': 'non_current_liability_in_one_year_pre',
+        })
+        tp_detivation = pd.merge(balance_sets_pre, tp_detivation, how='outer', on='security_code')
+        pdb.set_trace()
+
+        # incicator mrq 数据
+        indicator_sets = get_fin_consolidated_statements_pit(FinIndicator,
+                                                             [FinIndicator.np_cut, # 扣除非经常性损益的净利润
+                                                              ], dates=[trade_date])
+        for col in columns:
+            if col in list(indicator_sets.keys()):
+                indicator_sets = indicator_sets.drop(col, axis=1)
+        tp_detivation = pd.merge(indicator_sets, tp_detivation, how='outer', on='security_code')
+        pdb.set_trace()
+
+        # income mrq数据
+        income_sets = get_fin_consolidated_statements_pit(FinIncome,
+                                                          [FinIncome.income_tax,  # 所得税费用
+                                                           FinIncome.total_operating_cost,  # 营业总成本
+                                                           FinIncome.total_operating_revenue,  # 营业总收入
+                                                           FinIncome.net_profit,  # 净利润
+                                                           FinIncome.np_parent_company_owners,  # 归属母公司股东的净利润
+                                                           FinIncome.total_profit,  # 利润总额
+                                                           FinIncome.interest_expense,  # 利息支出
+                                                           FinIncome.interest_income,  # 利息收入
+                                                           FinIncome.financial_expense,  # 财务费用
+                                                           FinIncome.rd_expenses,  # 研发费用
+                                                           FinIncome.fair_value_variable_income,  # 公允价值变动收益
+                                                           FinIncome.investment_income,  # 投资收益
+                                                           FinIncome.exchange_income,  # 汇兑收益
+                                                           FinIncome.operating_cost,  # 营业成本
+                                                           FinIncome.operating_revenue,  # 营业收入
+                                                           FinIncome.commission_income,  # 手续费及佣金收入
+                                                           FinIncome.service_commission_fee,  # 手续费及佣金支出
+                                                           FinIncome.other_earnings,  # 其他收益
+                                                           FinIncome.other_business_profits,  # 其他业务利润
+                                                           FinIncome.other_operating_revenue,  # 其他业务收入
+                                                           ], dates=[trade_date])
+        for col in columns:
+            if col in list(income_sets.keys()):
+                income_sets = income_sets.drop(col, axis=1)
+        tp_detivation = pd.merge(income_sets, tp_detivation, how='outer', on='security_code')
+        pdb.set_trace()
 
         # # income ttm数据
         # income_ttm_sets = engine.fetch_fundamentals_pit_extend_company_id(IncomeTTM,
@@ -327,7 +333,8 @@ class CalcEngine(object):
     def local_run(self, trade_date):
         print('当前交易日: %s' % trade_date)
         tic = time.time()
-        tp_detivation, ttm_derivation, sw_industry = self.loading_data(trade_date)
+        # tp_detivation, ttm_derivation, sw_industry = self.loading_data(trade_date)
+        tp_detivation, sw_industry = self.loading_data(trade_date)
         print('data load time %s' % (time.time() - tic))
 
         storage_engine = StorageEngine(self._url)
