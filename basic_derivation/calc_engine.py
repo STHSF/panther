@@ -15,7 +15,6 @@ from datetime import datetime
 from basic_derivation import factor_basic_derivation
 from datetime import timedelta, datetime
 
-from data.model import CashFlowTTM, IncomeTTM, IndicatorTTM
 from vision.db.signletion_engine import *
 from vision.table.industry_daily import IndustryDaily
 from vision.table.fin_cash_flow import FinCashFlow
@@ -98,39 +97,39 @@ class CalcEngine(object):
         pdb.set_trace()
 
         # balance mrq
-        balance_sets = get_fin_consolidated_statements_pit(FinBalance,
-                                                           [FinBalance.shortterm_loan,  # 短期借款
-                                                            FinBalance.non_current_liability_in_one_year,  # 一年内到期的非流动负债
-                                                            FinBalance.longterm_loan,  # 长期借款
-                                                            FinBalance.bonds_payable,  # 应付债券
-                                                            FinBalance.equities_parent_company_owners,
-                                                            FinBalance.total_assets,  # 资产总计
-                                                            FinBalance.total_fixed_assets_liquidation,  # 固定资产及清理合计
-                                                            FinBalance.total_owner_equities,  # 所有者权益(或股东权益)合计
-                                                            FinBalance.intangible_assets,  # 无形资产
-                                                            FinBalance.development_expenditure,  # 开发支出
-                                                            FinBalance.good_will,  # 商誉
-                                                            FinBalance.long_deferred_expense,  # 长期待摊费用
-                                                            FinBalance.deferred_tax_assets,  # 递延所得税资产
-                                                            FinBalance.minority_interests,  # 少数股东权益
-                                                            FinBalance.total_current_assets,  # 流动资产合计
-                                                            FinBalance.total_liability,  # 负债合计
-                                                            FinBalance.total_current_liability,  # 流动负债合计
-                                                            FinBalance.surplus_reserve_fund,  # 盈余公积
-                                                            FinBalance.retained_profit,  # 未分配利润
-                                                            FinBalance.cash_equivalents,  # 货币资金
-                                                            FinBalance.accounts_payable,  # 应付帐款
-                                                            FinBalance.advance_peceipts,  # 预收款项
-                                                            FinBalance.notes_payable,  # 应付票据
-                                                            FinBalance.interest_payable,  # 应付利息
-                                                            FinBalance.total_non_current_liability,  # 非流动负债合计
-                                                            FinBalance.taxs_payable,  # 应交税费
-                                                            FinBalance.other_payable,  # 其他应付款
-                                                            ], dates=[trade_date])
-        for col in columns:
-            if col in list(balance_sets.keys()):
-                balance_sets = balance_sets.drop(col, axis=1)
-        tp_detivation = pd.merge(cash_flow_sets, balance_sets, how='outer', on='security_code')
+        # balance_sets = get_fin_consolidated_statements_pit(FinBalance,
+        #                                                    [FinBalance.shortterm_loan,  # 短期借款
+        #                                                     FinBalance.non_current_liability_in_one_year,  # 一年内到期的非流动负债
+        #                                                     FinBalance.longterm_loan,  # 长期借款
+        #                                                     FinBalance.bonds_payable,  # 应付债券
+        #                                                     FinBalance.equities_parent_company_owners,
+        #                                                     FinBalance.total_assets,  # 资产总计
+        #                                                     FinBalance.total_fixed_assets_liquidation,  # 固定资产及清理合计
+        #                                                     FinBalance.total_owner_equities,  # 所有者权益(或股东权益)合计
+        #                                                     FinBalance.intangible_assets,  # 无形资产
+        #                                                     FinBalance.development_expenditure,  # 开发支出
+        #                                                     FinBalance.good_will,  # 商誉
+        #                                                     FinBalance.long_deferred_expense,  # 长期待摊费用
+        #                                                     FinBalance.deferred_tax_assets,  # 递延所得税资产
+        #                                                     FinBalance.minority_interests,  # 少数股东权益
+        #                                                     FinBalance.total_current_assets,  # 流动资产合计
+        #                                                     FinBalance.total_liability,  # 负债合计
+        #                                                     FinBalance.total_current_liability,  # 流动负债合计
+        #                                                     FinBalance.surplus_reserve_fund,  # 盈余公积
+        #                                                     FinBalance.retained_profit,  # 未分配利润
+        #                                                     FinBalance.cash_equivalents,  # 货币资金
+        #                                                     FinBalance.accounts_payable,  # 应付帐款
+        #                                                     FinBalance.advance_peceipts,  # 预收款项
+        #                                                     FinBalance.notes_payable,  # 应付票据
+        #                                                     FinBalance.interest_payable,  # 应付利息
+        #                                                     FinBalance.total_non_current_liability,  # 非流动负债合计
+        #                                                     FinBalance.taxs_payable,  # 应交税费
+        #                                                     FinBalance.other_payable,  # 其他应付款
+        #                                                     ], dates=[trade_date])
+        # for col in columns:
+        #     if col in list(balance_sets.keys()):
+        #         balance_sets = balance_sets.drop(col, axis=1)
+        # tp_detivation = pd.merge(cash_flow_sets, balance_sets, how='outer', on='security_code')
         pdb.set_trace()
 
         # Balance MRQ数据
