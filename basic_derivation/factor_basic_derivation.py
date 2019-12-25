@@ -331,9 +331,9 @@ class FactorBasicDerivation(object):
                                                                           'salaries_payable',
                                                                           'taxs_payable',
                                                                           'accrued_expenses',
-                                                                          'other_payable'
-                                                                          'long_term_deferred_income'
-                                                                          'other_current_liability'
+                                                                          'other_payable',
+                                                                          'long_term_deferred_income',
+                                                                          'other_current_liability',
                                                                           ]):
         """
         :name: 无息流动负债(MRQ)
