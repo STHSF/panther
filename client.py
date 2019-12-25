@@ -78,8 +78,8 @@ if __name__ == "__main__":
     parser.add_argument('--end_date', type=int, default=20180427)
     parser.add_argument('--packet_name', type=str, default='basic_derivation.factor_basic_derivation')
     parser.add_argument('--class_name', type=str, default='FactorBasicDerivation')
-    parser.add_argument('--rebuild', type=bool, default=False)
-    parser.add_argument('--update', type=bool, default=True)
+    parser.add_argument('--rebuild', type=bool, default=True)
+    parser.add_argument('--update', type=bool, default=False)
     parser.add_argument('--schedule', type=bool, default=False)
     parser.add_argument('--type', type=str, default='after')
     args = parser.parse_args()
@@ -94,7 +94,7 @@ if __name__ == "__main__":
         end_date = args.end_date
     if args.rebuild:
         rebuild.rebuild_table(args.packet_name, args.class_name)
-        # do_update(args.start_date, end_date, calc_engine)
+        do_update(args.start_date, end_date, calc_engine)
     if args.update:
         do_update(args.start_date, end_date, calc_engine, args.type)
     if args.schedule:
