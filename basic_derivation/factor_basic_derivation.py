@@ -51,7 +51,8 @@ class FactorBasicDerivation(object):
             return None
         func = lambda x: (x[0] + x[1] - x[2]) if x[1] is not None and x[2] is not None else (x[0] + x[3] if x[3] is not None else None)
         management['EBIT'] = management[dependencies].apply(func, axis=1)
-        management = management.drop(dependencies, axis=1)
+        # management = management.drop(dependencies, axis=1)
+        management = management[['EBIT']]
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
 
@@ -74,7 +75,8 @@ class FactorBasicDerivation(object):
 
         func = lambda x: None if x[0] is None or x[1] is None or x[2] is None or x[1] == 0 else (x[0] * (1 - x[2] / x[1]) if x[1] > 0 and x[2] > 0 else x[0])
         management['EBITDA'] = management[dependency].apply(func, axis=1)
-        management = management.drop(dependencies, axis=1)
+        # management = management.drop(dependencies, axis=1)
+        management = management[['EBITDA']]
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
 
@@ -94,7 +96,8 @@ class FactorBasicDerivation(object):
             return None
         func = lambda x: x[0] + x[1] + x[2] if x[0] is not None and x[1] is not None and x[2] is not None else None
         management['DepAndAmo'] = management[dependencies].apply(func, axis=1)
-        management = management.drop(dependencies, axis=1)
+        # management = management.drop(dependencies, axis=1)
+        management = management[['DepAndAmo']]
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
 
@@ -138,7 +141,7 @@ class FactorBasicDerivation(object):
                                                                                                     x[7] is not None and \
                                                                                                     x[8] is not None else None
         management['FCFF'] = management[dependency].apply(func, axis=1)
-        management = management.drop(dependencies, axis=1)
+        management = management[['FCFF']]
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
 
@@ -165,7 +168,7 @@ class FactorBasicDerivation(object):
                                                       x[2] is not None and x[3] is not None else None
 
         management['FCFE'] = management[dependency].apply(func, axis=1)
-        management = management.drop(dependencies, axis=1)
+        management = management[['FCFE']]
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
 
@@ -183,7 +186,7 @@ class FactorBasicDerivation(object):
             return None
         func = lambda x: x[0] - x[1] if x[0] is not None and x[1] is not None else None
         management['NonRecGainLoss'] = management[dependencies].apply(func, axis=1)
-        management = management.drop(dependencies, axis=1)
+        management = management[['NonRecGainLoss']]
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
 
@@ -252,7 +255,8 @@ class FactorBasicDerivation(object):
         management_tm = management_tm.append(management_er)
 
         dependencies = dependencies + ['industry_code2']
-        management_tm = management_tm.drop(dependencies, axis=1)
+        management_tm = management_tm[['NetOptInc']]
+
         factor_derivation = pd.merge(factor_derivation, management_tm, how='outer', on="security_code")
         return factor_derivation
 
@@ -271,7 +275,7 @@ class FactorBasicDerivation(object):
             return None
         func = lambda x: x[0] - x[1] if x[0] is not None and x[1] is not None else None
         management['WorkingCap'] = management[dependencies].apply(func, axis=1)
-        management = management.drop(dependencies, axis=1)
+        management = management[['WorkingCap']]
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
 
@@ -301,7 +305,7 @@ class FactorBasicDerivation(object):
                                                                       x[5] is not None else None
         management['TangibleAssets'] = management[dependencies].apply(func, axis=1)
 
-        management = management.drop(dependencies, axis=1)
+        management = management[['TangibleAssets']]
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
 
@@ -320,7 +324,7 @@ class FactorBasicDerivation(object):
             return None
         func = lambda x: x[0] + x[1] if x[0] is not None and x[1] is not None else None
         management['RetainedEarnings'] = management[dependencies].apply(func, axis=1)
-        management = management.drop(dependencies, axis=1)
+        management = management[['RetainedEarnings']]
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
 
@@ -357,7 +361,7 @@ class FactorBasicDerivation(object):
                                                                                          x[8] is not None else None
 
         management['InterestFreeCurLb'] = management[dependencies].apply(func, axis=1)
-        management = management.drop(dependencies, axis=1)
+        management = management[['InterestFreeCurLb']]
 
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
@@ -378,7 +382,7 @@ class FactorBasicDerivation(object):
             return None
         func = lambda x: x[0] - x[1] - x[2] if x[0] is not None and x[1] is not None and x[2] is not None else None
         management['InterestFreeNonCurLb'] = management[dependencies].apply(func, axis=1)
-        management = management.drop(dependencies, axis=1)
+        management = management[['InterestFreeNonCurLb']]
 
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
@@ -405,7 +409,7 @@ class FactorBasicDerivation(object):
                                                x[2] is not None else None
 
         management['InterestBearingLiabilities'] = management[dependency].apply(func, axis=1)
-        management = management.drop(dependencies, axis=1)
+        management = management[['InterestBearingLiabilities']]
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
 
@@ -424,11 +428,11 @@ class FactorBasicDerivation(object):
         management = management.fillna(0)
         if len(management) <= 0:
             return None
-
         dependency = dependency + dependencies
+
         func = lambda x: x[0] - x[1] if x[0] is not None and x[1] is not None else None
         management['NetDebt'] = management[dependency].apply(func, axis=1)
-        management = management.drop(dependencies, axis=1)
+        management = management[['NetDebt']]
 
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
@@ -469,7 +473,7 @@ class FactorBasicDerivation(object):
             return None
         func = lambda x: x[0] + x[1] if x[0] is not None and x[1] is not None else None
         management['TotalInvestedCap'] = management[dependency].apply(func, axis=1)
-        management = management.drop(dependencies, axis=1)
+        management = management[['TotalInvestedCap']]
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
 
@@ -608,7 +612,7 @@ class FactorBasicDerivation(object):
             return None
         func = lambda x: (x[0] - x[1]) / x[1] if x[1] != 0 and x[1] is not None else None
         management['GrossMarginTTM'] = management[dependencies].apply(func, axis=1)
-        management = management.drop(dependencies, axis=1)
+        management = management[['GrossMarginTTM']]
 
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
@@ -675,7 +679,7 @@ class FactorBasicDerivation(object):
             return None
         func = lambda x: x[0] + x[1] + x[2] if x[0] is not None and x[1] is not None and x[2] is not None else None
         management['PerFeeTTM'] = management[dependencies].apply(func, axis=1)
-        management = management.drop(dependencies, axis=1)
+        management = management[['PerFeeTTM']]
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
 
@@ -739,7 +743,7 @@ class FactorBasicDerivation(object):
             return None
         func = lambda x: x[0] - x[1] if x[0] is not None and x[1] is not None else None
         management['NetIncFromOptActTTM'] = management[dependencies].apply(func, axis=1)
-        management = management.drop(dependencies, axis=1)
+        management = management[['NetIncFromOptActTTM']]
 
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
@@ -761,7 +765,7 @@ class FactorBasicDerivation(object):
             return None
         func = lambda x: x[0] + x[1] + x[2] if x[0] is not None and x[1] is not None and x[2] is not None else None
         management['NetIncFromValueChgTTM'] = management[dependencies].apply(func, axis=1)
-        management = management.drop(dependencies, axis=1)
+        management = management[['NetIncFromValueChgTTM']]
 
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
@@ -796,7 +800,7 @@ class FactorBasicDerivation(object):
             return None
         func = lambda x: x[0] - x[1]
         management['NetNonOptIncAndExpTTM'] = management[dependencies].apply(func, axis=1)
-        management = management.drop(dependencies, axis=1)
+        management = management[['NetNonOptIncAndExpTTM']]
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
 
@@ -816,7 +820,7 @@ class FactorBasicDerivation(object):
             return None
         func = lambda x: x[0] + x[1]
         management['EBITTTM'] = management[dependencies].apply(func, axis=1)
-        management = management.drop(dependencies, axis=1)
+        management = management[['EBITTTM']]
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
 
@@ -929,7 +933,7 @@ class FactorBasicDerivation(object):
                x[7] is not None and \
                x[8] is not None else None
         management['EBITFORPTTM'] = management[dependencies].apply(func, axis=1)
-        management = management.drop(dependencies, axis=1)
+        management = management[['EBITFORPTTM']]
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
 
@@ -953,7 +957,7 @@ class FactorBasicDerivation(object):
         func = lambda x: x[0] + x[1] + x[2] + x[3] if x[0] is not None and x[1] is not None and x[2] is not None and x[
             3] is not None else None
         management['EBITDATTM'] = management[dependencies].apply(func, axis=1)
-        management = management.drop(dependencies, axis=1)
+        management = management[['EBITDATTM']]
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
 
