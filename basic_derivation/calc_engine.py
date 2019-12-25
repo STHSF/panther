@@ -15,7 +15,7 @@ from datetime import datetime
 from basic_derivation import factor_basic_derivation
 from datetime import timedelta, datetime
 
-from vision.db.signletion_engine import get_fin_consolidated_statements_pit, get_fundamentals
+from vision.db.signletion_engine import get_fin_consolidated_statements_pit, get_fundamentals, query
 from vision.table.industry_daily import IndustryDaily
 from vision.table.fin_cash_flow import FinCashFlow
 from vision.table.fin_balance import FinBalance
