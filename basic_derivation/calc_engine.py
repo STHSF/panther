@@ -335,7 +335,6 @@ class CalcEngine(object):
         print('当前交易日: %s' % trade_date)
         tic = time.time()
         tp_detivation, ttm_derivation, sw_industry = self.loading_data(trade_date)
-        tp_detivation, sw_industry = self.loading_data(trade_date)
         print('data load time %s' % (time.time() - tic))
 
         storage_engine = StorageEngine(self._url)
