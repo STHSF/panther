@@ -167,6 +167,7 @@ class CalcEngine(object):
         for col in columns:
             if col in list(indicator_sets.keys()):
                 indicator_sets = indicator_sets.drop(col, axis=1)
+        pdb.set_trace()
         tp_detivation = pd.merge(indicator_sets, tp_detivation, how='outer', on='security_code')
 
         # income mrq数据
