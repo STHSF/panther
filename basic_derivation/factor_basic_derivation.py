@@ -127,11 +127,6 @@ class FactorBasicDerivation(object):
             return None
         dependencies = dependency + dependencies
 
-        # func = lambda x: None if x[0] is None else (if x[])
-
-
-
-
         func = lambda x: (x[0] + x[1]) - x[1] +(x[2] + x[3] + x[4]) - (x[5] - x[6]) + (x[7] - x[8]) - x[9] if x[0] is not None and \
                                                                                                     x[1] is not None and \
                                                                                                     x[2] is not None and \
@@ -345,10 +340,6 @@ class FactorBasicDerivation(object):
         management = management.drop(dependencies, axis=1)
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
-
-
-
-
 
     @staticmethod
     def InterestFreeCurLb(tp_derivation, factor_derivation, dependencies=['bill_receivable',
