@@ -266,7 +266,7 @@ class CalcEngine(object):
 
     def process_calc_factor(self, trade_date, tp_derivation, ttm_derivation, sw_industry):
         tp_derivation = tp_derivation.set_index('security_code')
-        ttm_derivation = ttm_derivation.set_index('security_code')
+        # ttm_derivation = ttm_derivation.set_index('security_code')
 
         # 读取目前涉及到的因子
         derivation = factor_basic_derivation.FactorBasicDerivation()
