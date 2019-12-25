@@ -139,7 +139,7 @@ class CalcEngine(object):
         # Balance MRQ数据
         balance_sets_pre = get_fin_consolidated_statements_pit(FinBalance,
                                                                [FinBalance.total_current_assets,  # 流动资产合计
-                                                                FinBalance.cash_equivalents,  # 流动负债合计
+                                                                FinBalance.cash_equivalents,  # 货币资金
                                                                 FinBalance.total_current_liability,  # 流动负债合计
                                                                 FinBalance.shortterm_bonds_payable,  # 流动负债合计
                                                                 FinBalance.shortterm_loan,  # 流动负债合计

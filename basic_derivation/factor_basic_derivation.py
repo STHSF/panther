@@ -70,10 +70,10 @@ class FactorBasicDerivation(object):
         management = management.fillna(0)
         if len(management) <= 0:
             return None
-        dependencies = dependency + dependencies
+        dependency = dependency + dependencies
 
         func = lambda x: None if x[0] is None or x[1] is None or x[2] is None or x[1] == 0 else (x[0] * (1 - x[2] / x[1]) if x[1] > 0 and x[2] > 0 else x[0])
-        management['EBITDA'] = management[dependencies].apply(func, axis=1)
+        management['EBITDA'] = management[dependency].apply(func, axis=1)
         management = management.drop(dependencies, axis=1)
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
@@ -107,6 +107,7 @@ class FactorBasicDerivation(object):
                                                              'non_current_liability_in_one_year',
                                                              'total_current_assets_pre',
                                                              'cash_equivalents_pre',
+                                                             'total_current_liability_pre',
                                                              'shortterm_loan_pre',
                                                              'shortterm_bonds_payable_pre',
                                                              'non_current_liability_in_one_year_pre',
@@ -125,9 +126,9 @@ class FactorBasicDerivation(object):
         management = management.fillna(0)
         if len(management) <= 0:
             return None
-        dependencies = dependency + dependencies
+        dependency = dependency + dependencies
 
-        func = lambda x: (x[0] + x[1]) - x[1] +(x[2] + x[3] + x[4]) - (x[5] - x[6]) + (x[7] - x[8]) - x[9] if x[0] is not None and \
+        func = lambda x: x[0] + x[1] - (x[2] - x[3] - x[4] + x[5] + x[6] + x[7]) + (x[2] - x[3] - x[4] + x[5] + x[6] + x[7]) - x[8]if x[0] is not None and \
                                                                                                     x[1] is not None and \
                                                                                                     x[2] is not None and \
                                                                                                     x[3] is not None and \
@@ -135,27 +136,17 @@ class FactorBasicDerivation(object):
                                                                                                     x[5] is not None and \
                                                                                                     x[6] is not None and \
                                                                                                     x[7] is not None and \
-                                                                                                    x[8] is not None and \
-                                                                                                    x[9] is not None else None
-        management['FCFF'] = management[dependencies].apply(func, axis=1)
+                                                                                                    x[8] is not None else None
+        management['FCFF'] = management[dependency].apply(func, axis=1)
         management = management.drop(dependencies, axis=1)
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
 
     @staticmethod
-    def FCFE(tp_derivation, factor_derivation, dependencies=['ebit_mrq',
-                                                             'income_tax',
-                                                             'fixed_assets_depreciation',
-                                                             'intangible_assets_amortization',
-                                                             'defferred_expense_amortization',
-                                                             'total_current_assets',
-                                                             'total_current_liability',
-                                                             'total_current_assets_PRE',
-                                                             'total_current_liability_PRE',
-                                                             'fix_intan_other_asset_acqui_cash',
-                                                             'borrowing_repayment',
+    def FCFE(tp_derivation, factor_derivation, dependencies=['borrowing_repayment',
                                                              'cash_from_borrowing',
-                                                             'cash_from_bonds_issue']):
+                                                             'cash_from_bonds_issue'],
+             dependency=['FCFF']):
         """
         :name: 股东自由现金流量(MRQ)
         :desc: 企业自由现金流量-偿还债务所支付的现金+取得借款收到的现金+发行债券所收到的现金（MRQ)
@@ -163,25 +154,17 @@ class FactorBasicDerivation(object):
         :view_dimension: 10000
         """
         management = tp_derivation.loc[:, dependencies]
+        management2 = factor_derivation.loc[:, dependency]
+        management = pd.merge(management, management2, how='outer', on='security_code')
         management = management.fillna(0)
         if len(management) <= 0:
             return None
-        func = lambda x: x[0] - x[1] + x[2] + x[3] + x[4] - (x[5] - x[6]) + (x[7] - x[8]) - x[9] - x[10] + x[11] + x[12] \
-            if x[0] is not None and \
-               x[1] is not None and \
-               x[2] is not None and \
-               x[3] is not None and \
-               x[4] is not None and \
-               x[5] is not None and \
-               x[6] is not None and \
-               x[7] is not None and \
-               x[8] is not None and \
-               x[9] is not None and \
-               x[10] is not None and \
-               x[11] is not None and \
-               x[12] is not None else None
+        dependency = dependency + dependencies
 
-        management['FCFE'] = management[dependencies].apply(func, axis=1)
+        func = lambda x: x[0] - x[1] + x[2] + x[3] if x[0] is not None and x[1] is not None and \
+                                                      x[2] is not None and x[3] is not None else None
+
+        management['FCFE'] = management[dependency].apply(func, axis=1)
         management = management.drop(dependencies, axis=1)
         factor_derivation = pd.merge(factor_derivation, management, how='outer', on="security_code")
         return factor_derivation
