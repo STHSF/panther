@@ -99,7 +99,7 @@ class FactorSolvency(object):
 
     @staticmethod
     def DTE(tp_solvency, factor_solvency,
-            dependencies=['total_liability', 'total_current_liability', 'fixed_assets']):
+            dependencies=['total_liability', 'total_current_liability', 'fixed_assets_netbook']):
         """
         :name:有形净值债务率
         :desc:负债合计/有形净值（MRQ）
@@ -108,8 +108,8 @@ class FactorSolvency(object):
         """
         contrarian = tp_solvency.loc[:, dependencies]
         contrarian['DTE'] = np.where(
-            CalcTools.is_zero(contrarian['total_current_liability'] + contrarian['fixed_assets']), 0,
-            contrarian['total_current_liability'] / (contrarian['total_current_liability'] + contrarian['fixed_assets'])
+            CalcTools.is_zero(contrarian['total_current_liability'] + contrarian['fixed_assets_netbook']), 0,
+            contrarian['total_current_liability'] / (contrarian['total_current_liability'] + contrarian['fixed_assets_netbook'])
         )
         contrarian = contrarian.drop(dependencies, axis=1)
         factor_solvency = pd.merge(factor_solvency, contrarian, on="security_code")
@@ -199,7 +199,7 @@ class FactorSolvency(object):
                                                                'longterm_loan',
                                                                'bonds_payable',
                                                                'interest_payable',
-                                                               'fixed_assets',
+                                                               'fixed_assets_netbook',
                                                                'total_current_assets',
                                                                'total_current_liability']):
         """
@@ -215,9 +215,9 @@ class FactorSolvency(object):
                                                    contrarian['longterm_loan'] + \
                                                    contrarian['bonds_payable'] + contrarian['interest_payable']
         contrarian['IntBDToCap'] = np.where(
-            CalcTools.is_zero(contrarian['fixed_assets'] + contrarian['total_current_assets'] + \
+            CalcTools.is_zero(contrarian['fixed_assets_netbook'] + contrarian['total_current_assets'] + \
                               contrarian['total_current_liability']), 0,
-            contrarian['interest_bearing_liability'] / (contrarian['fixed_assets'] + contrarian['total_current_assets']
+            contrarian['interest_bearing_liability'] / (contrarian['fixed_assets_netbook'] + contrarian['total_current_assets']
                                                         + contrarian['total_current_liability'])
         )
         dependencies = dependencies + ['interest_bearing_liability']
@@ -230,7 +230,7 @@ class FactorSolvency(object):
                                                                 'total_current_liability',
                                                                 'total_non_current_assets']):
         """
-        :name:长期负债与营运资金比率
+        :name:长期负债与营运资金比率as
         :desc:非流动负债合计/（流动资产合计-流动负债合计）
         :unit:
         :view_dimension: 0.01
@@ -505,7 +505,7 @@ class FactorSolvency(object):
                                                                        'non_current_liability_in_one_year',
                                                                        'bonds_payable',
                                                                        'interest_payable',
-                                                                       'CURFDS'
+                                                                       'cash_equivalents'
                                                                        ]):
         """
         :name:经营活动净现金流（TTM）/净负债（MRQ）
@@ -523,7 +523,7 @@ class FactorSolvency(object):
         cash_flow['NetDebt'] = cash_flow[['shortterm_loan', 'longterm_loan',
                                           'non_current_liability_in_one_year',
                                           'bonds_payable', 'interest_payable',
-                                          'CURFDS']].apply(func, axis=1)
+                                          'cash_equivalents']].apply(func, axis=1)
 
         func2 = lambda x: x[0] / x[1] if x[0] is not None and x[1] is not None and x[1] != 0 else None
         cash_flow['OptCFToNetDebtTTM'] = cash_flow[['net_operate_cash_flow', 'NetDebt']].apply(func2, axis=1)

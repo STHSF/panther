@@ -111,7 +111,7 @@ class FactorRevenueQuality(object):
         return revenue_quality
 
     @staticmethod
-    def OptCFToCurrLiabilityTTM(ttm_revenue_quanlity, revenue_quality, dependencies=['net_operate_cash_flow', 'total_current_liability']):
+    def OptCFToCurrLiabilityTTM(ttm_revenue_quanlity, revenue_quality, dependencies=['net_operate_cash_flow_indirect', 'total_current_liability']):
         """
         :name: 经营活动产生的现金流量净额（TTM）/流动负债（TTM）
         :desc: 经营活动产生的现金流量净额（TTM）/流动负债（TTM）
@@ -121,13 +121,13 @@ class FactorRevenueQuality(object):
         cash_flow = ttm_revenue_quanlity.loc[:, dependencies]
         cash_flow['OptCFToCurrLiabilityTTM'] = np.where(
             CalcTools.is_zero(cash_flow.total_current_liability.values), 0,
-            cash_flow.net_operate_cash_flow.values / cash_flow.total_current_liability.values)
+            cash_flow.net_operate_cash_flow_indirect.values / cash_flow.total_current_liability.values)
         cash_flow = cash_flow.drop(dependencies, axis=1)
         revenue_quality = pd.merge(revenue_quality, cash_flow, how='outer', on="security_code")
         return revenue_quality
 
     @staticmethod
-    def NetInToTPTTM(ttm_revenue_quanlity, revenue_quality, dependencies=['VALUECHGLOSS',
+    def NetInToTPTTM(ttm_revenue_quanlity, revenue_quality, dependencies=['fair_value_variable_income',
                                                                           'total_profit']):
         """
         :name: 价值变动净收益/利润总额(TTM)

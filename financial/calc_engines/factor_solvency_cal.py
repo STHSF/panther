@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import pdb,importlib,inspect,time,datetime,json
+import pdb, importlib, inspect, time, datetime, json
 # from PyFin.api import advanceDateByCalendar
 # from data.polymerize import DBPolymerize
 from data.storage_engine import StorageEngine
@@ -10,20 +10,30 @@ import numpy as np
 from datetime import timedelta, datetime
 from financial import factor_solvency
 
-from data.model import BalanceMRQ, BalanceTTM
-from data.model import CashFlowMRQ, CashFlowTTM
 # from data.model import IndicatorTTM
 from data.model import IncomeTTM
+
+from vision.db.signletion_engine import get_fin_consolidated_statements_pit, get_fundamentals, query
+from vision.table.industry_daily import IndustryDaily
+from vision.table.fin_cash_flow import FinCashFlow
+from vision.table.fin_balance import FinBalance
+from vision.table.fin_income import FinIncome
+from vision.table.fin_indicator import FinIndicator
+
+from vision.table.fin_income_ttm import FinIncomeTTM
+from vision.table.fin_cash_flow_ttm import FinCashFlowTTM
+from vision.table.fin_balance_ttm import FinBalanceTTM
+
 from vision.table.valuation import Valuation
-from vision.db.signletion_engine import *
-from data.sqlengine import sqlEngine
+from utilities.sync_util import SyncUtil
+
 # pd.set_option('display.max_columns', None)
 # pd.set_option('display.max_rows', None)
 # from ultron.cluster.invoke.cache_data import cache_data
 
 
 class CalcEngine(object):
-    def __init__(self, name, url, methods=[{'packet':'financial.factor_solvency','class':'FactorSolvency'},]):
+    def __init__(self, name, url, methods=[{'packet': 'financial.factor_solvency', 'class': 'FactorSolvency'}, ]):
         self._name = name
         self._methods = methods
         self._url = url
@@ -67,117 +77,119 @@ class CalcEngine(object):
         time_array = datetime.strptime(trade_date, "%Y-%m-%d")
         trade_date = datetime.strftime(time_array, '%Y%m%d')
         # 读取目前涉及到的因子
-        engine = sqlEngine()
         columns = ['COMPCODE', 'PUBLISHDATE', 'ENDDATE', 'symbol', 'company_id', 'trade_date']
         # MRQ data
-        balance_mrq_sets = engine.fetch_fundamentals_pit_extend_company_id(BalanceMRQ,
-                                                                           [BalanceMRQ.BDSPAYA,
-                                                                            BalanceMRQ.TOTASSET,
-                                                                            BalanceMRQ.TOTALNONCLIAB,
-                                                                            BalanceMRQ.TOTCURRASSET,
-                                                                            BalanceMRQ.TOTALCURRLIAB,
-                                                                            BalanceMRQ.TOTLIAB,
-                                                                            BalanceMRQ.FIXEDASSENET,
-                                                                            BalanceMRQ.PARESHARRIGH,
-                                                                            BalanceMRQ.SHORTTERMBORR,
-                                                                            BalanceMRQ.DUENONCLIAB,
-                                                                            BalanceMRQ.LONGBORR,
-                                                                            BalanceMRQ.BDSPAYA,
-                                                                            BalanceMRQ.INTEPAYA,
-                                                                            BalanceMRQ.RIGHAGGR,
-                                                                            BalanceMRQ.TOTALNONCASSETS,
-                                                                            BalanceMRQ.INVE,
-                                                                            BalanceMRQ.INTAASSET,
-                                                                            BalanceMRQ.DEVEEXPE,
-                                                                            BalanceMRQ.GOODWILL,
-                                                                            BalanceMRQ.LOGPREPEXPE,
-                                                                            BalanceMRQ.DEFETAXASSET,
-                                                                            BalanceMRQ.CURFDS,
-                                                                            BalanceMRQ.TRADFINASSET,
-                                                                            BalanceMRQ.NOTESRECE,
-                                                                            BalanceMRQ.ACCORECE,
-                                                                            BalanceMRQ.OTHERRECE,
-                                                                            ], dates=[trade_date])
+        balance_mrq_sets = get_fin_consolidated_statements_pit(FinBalance,
+                                                               [FinBalance.bonds_payable,
+                                                                FinBalance.total_assets,  # 资产总计
+                                                                FinBalance.total_non_current_liability,  # 非流动负债合计
+                                                                FinBalance.total_current_assets,  # 流动资产合计
+                                                                FinBalance.total_current_liability,  # 流动负债合计
+                                                                FinBalance.total_liability,  # 负债合计
+                                                                FinBalance.fixed_assets_netbook,  # 固定资产
+                                                                FinBalance.equities_parent_company_owners,
+                                                                # 归属于母公司股东权益合计
+                                                                FinBalance.shortterm_loan,  # 短期借款
+                                                                FinBalance.non_current_liability_in_one_year,
+                                                                # 一年内到期的非流动负债
+                                                                FinBalance.longterm_loan,  # 长期借款
+                                                                FinBalance.interest_payable,  # 应付债券
+                                                                FinBalance.total_owner_equities,  # 所有者权益（或股东权益）合计
+                                                                FinBalance.inventories,  # 存货
+                                                                FinBalance.intangible_assets,  # 无形资产
+                                                                FinBalance.development_expenditure,  # 开发支出
+                                                                FinBalance.good_will,  # 商誉
+                                                                FinBalance.long_deferred_expense,  # 长期待摊费用
+                                                                FinBalance.deferred_tax_assets,  # 递延所得税资产
+                                                                FinBalance.cash_equivalents,  # 货币资金
+                                                                FinBalance.trading_assets,  # 交易性金融资产
+                                                                FinBalance.bill_receivable,  # 应收票据
+                                                                FinBalance.account_receivable,  # 应收账款
+                                                                FinBalance.other_receivable,  # 其他应收款
+                                                                FinBalance.total_non_current_assets,  # 非流动资产合计
+                                                                ], dates=[trade_date])
         for col in columns:
             if col in list(balance_mrq_sets.keys()):
                 balance_mrq_sets = balance_mrq_sets.drop(col, axis=1)
 
         balance_mrq_sets = balance_mrq_sets.rename(columns={
-            'TOTLIAB': 'total_liability',  # 负债合计
-            'TOTASSET': 'total_assets',  # 资产总计
-            'TOTALCURRLIAB': 'total_current_liability',  # 流动负债合计
-            'TOTCURRASSET': 'total_current_assets',  # 流动资产合计
-            'INVE': 'inventories',  # 存货
-            'CURFDS': 'cash_equivalents',  # 货币资金
-            'TRADFINASSET': 'trading_assets',  # 交易性金融资产
-            'NOTESRECE': 'bill_receivable',  # 应收票据
-            'ACCORECE': 'account_receivable',  # 应收账款
-            'OTHERRECE': 'other_receivable',  # 其他应收款
-            'PARESHARRIGH': 'equities_parent_company_owners',  # 归属于母公司股东权益合计
-            'INTAASSET': 'intangible_assets',  # 无形资产
-            'DEVEEXPE': 'development_expenditure',  # 开发支出
-            'GOODWILL': 'good_will',  # 商誉
-            'LOGPREPEXPE': 'long_deferred_expense',  # 长期待摊费用
-            'DEFETAXASSET': 'deferred_tax_assets',  # 递延所得税资产
-            'DUENONCLIAB': 'non_current_liability_in_one_year',  # 一年内到期的非流动负债
-            'SHORTTERMBORR': 'shortterm_loan',  # 短期借款
-            'LONGBORR': 'longterm_loan',  # 长期借款
-            'BDSPAYA': 'bonds_payable',  # 应付债券
-            'INTEPAYA': 'interest_payable',  # 应付利息
-            'TOTALNONCLIAB': 'total_non_current_liability',  # 非流动负债合计
-            'TOTALNONCASSETS': 'total_non_current_assets',  # 非流动资产合计
-            'FIXEDASSENET': 'fixed_assets',  # 固定资产
-            'RIGHAGGR': 'total_owner_equities',  # 所有者权益（或股东权益）合计
-            'FINALCASHBALA': 'cash_and_equivalents_at_end',  # 期末现金及现金等价物余额
+            'total_liability': 'total_liability',  # 负债合计
+            'total_assets': 'total_assets',  # 资产总计
+            'total_current_liability': 'total_current_liability',  # 流动负债合计
+            'total_current_assets': 'total_current_assets',  # 流动资产合计
+            'inventories': 'inventories',  # 存货
+            'cash_equivalents': 'cash_equivalents',  # 货币资金
+            'trading_assets': 'trading_assets',  # 交易性金融资产
+            'bill_receivable': 'bill_receivable',  # 应收票据
+            'account_receivable': 'account_receivable',  # 应收账款
+            'other_receivable': 'other_receivable',  # 其他应收款
+            'equities_parent_company_owners': 'equities_parent_company_owners',  # 归属于母公司股东权益合计
+            'intangible_assets': 'intangible_assets',  # 无形资产
+            'development_expenditure': 'development_expenditure',  # 开发支出
+            'good_will': 'good_will',  # 商誉
+            'long_deferred_expense': 'long_deferred_expense',  # 长期待摊费用
+            'deferred_tax_assets': 'deferred_tax_assets',  # 递延所得税资产
+            'non_current_liability_in_one_year': 'non_current_liability_in_one_year',  # 一年内到期的非流动负债
+            'shortterm_loan': 'shortterm_loan',  # 短期借款
+            'longterm_loan': 'longterm_loan',  # 长期借款
+            'bonds_payable': 'bonds_payable',  # 应付债券
+            'interest_payable': 'interest_payable',  # 应付利息
+            'total_non_current_liability': 'total_non_current_liability',  # 非流动负债合计
+            'total_non_current_assets': 'total_non_current_assets',  # 非流动资产合计
+            'fixed_assets_netbook': 'fixed_assets',  # 固定资产
+            'total_owner_equities': 'total_owner_equities',  # 所有者权益（或股东权益）合计
         })
-        cash_flow_mrq_sets = engine.fetch_fundamentals_pit_extend_company_id(CashFlowMRQ,
-                                                                             [CashFlowMRQ.MANANETR,
-                                                                              ], dates=[trade_date])
+        cash_flow_mrq_sets = get_fin_consolidated_statements_pit(FinCashFlow,
+                                                                 [FinCashFlow.net_operate_cash_flow,
+                                                                  ], dates=[trade_date])
         for col in columns:
             if col in list(cash_flow_mrq_sets.keys()):
                 cash_flow_mrq_sets = cash_flow_mrq_sets.drop(col, axis=1)
-        cash_flow_mrq_sets = cash_flow_mrq_sets.rename(columns={'MANANETR': 'net_operate_cash_flow_mrq',  # 经营活动现金流量净额
-                                                                })
+        cash_flow_mrq_sets = cash_flow_mrq_sets.rename(
+            columns={'net_operate_cash_flow': 'net_operate_cash_flow_mrq',  # 经营活动现金流量净额
+                     })
 
         mrq_solvency = pd.merge(cash_flow_mrq_sets, balance_mrq_sets, on='security_code')
 
         # ttm data
-        income_ttm_sets = engine.fetch_fundamentals_pit_extend_company_id(IncomeTTM,
-                                                                          [IncomeTTM.TOTPROFIT,
-                                                                           IncomeTTM.FINEXPE,
-                                                                           IncomeTTM.INTEINCO,
-                                                                           ], dates=[trade_date])
+        income_ttm_sets = get_fin_consolidated_statements_pit(FinIncomeTTM,
+                                                              [FinIncomeTTM.total_profit,  # 利润总额
+                                                               FinIncomeTTM.financial_expense,  # 财务费用
+                                                               FinIncomeTTM.interest_income,  # 利息收入
+                                                               ], dates=[trade_date])
         for col in columns:
             if col in list(income_ttm_sets.keys()):
                 income_ttm_sets = income_ttm_sets.drop(col, axis=1)
-        income_ttm_sets = income_ttm_sets.rename(columns={'TOTPROFIT': 'total_profit',  # 利润总额
-                                                          'FINEXPE': 'financial_expense',  # 财务费用
-                                                          'INTEINCO': 'interest_income',  # 利息收入
+        income_ttm_sets = income_ttm_sets.rename(columns={'total_profit': 'total_profit',  # 利润总额
+                                                          'financial_expense': 'financial_expense',  # 财务费用
+                                                          'interest_income': 'interest_income',  # 利息收入
                                                           })
 
-        balance_ttm_sets = engine.fetch_fundamentals_pit_extend_company_id(BalanceTTM,
-                                                                           [
-                                                                            BalanceTTM.TOTALCURRLIAB,
-                                                                            BalanceTTM.DUENONCLIAB,
-                                                                            ], dates=[trade_date])
+        balance_ttm_sets = get_fin_consolidated_statements_pit(FinBalanceTTM,
+                                                               [FinBalanceTTM.total_current_liability,  # 流动负债合计
+                                                                FinBalanceTTM.non_current_liability_in_one_year,
+                                                                # 一年内到期的非流动负债
+                                                                ], dates=[trade_date])
         for col in columns:
             if col in list(balance_ttm_sets.keys()):
                 balance_ttm_sets = balance_ttm_sets.drop(col, axis=1)
         balance_ttm_sets = balance_ttm_sets.rename(columns={
-            'TOTALCURRLIAB': 'total_current_liability_ttm',  # 流动负债合计
-            'DUENONCLIAB': 'non_current_liability_in_one_year_ttm',  # 一年内到期的非流动负债
+            'total_current_liability': 'total_current_liability_ttm',  # 流动负债合计
+            'non_current_liability_in_one_year': 'non_current_liability_in_one_year_ttm',  # 一年内到期的非流动负债
         })
 
-        cash_flow_ttm_sets = engine.fetch_fundamentals_pit_extend_company_id(CashFlowTTM,
-                                                                             [CashFlowTTM.MANANETR,  # 经营活动现金流量净额
-                                                                              CashFlowTTM.FINALCASHBALA,  # 期末现金及现金等价物余额
-                                                                              ], dates=[trade_date])
+        cash_flow_ttm_sets = get_fin_consolidated_statements_pit(FinCashFlowTTM,
+                                                                 [FinCashFlowTTM.net_operate_cash_flow,
+                                                                  # 经营活动现金流量净额
+                                                                  FinCashFlowTTM.cash_and_equivalents_at_end,
+                                                                  # 期末现金及现金等价物余额
+                                                                  ], dates=[trade_date])
         for col in columns:
             if col in list(cash_flow_ttm_sets.keys()):
                 cash_flow_ttm_sets = cash_flow_ttm_sets.drop(col, axis=1)
         cash_flow_ttm_sets = cash_flow_ttm_sets.rename(columns={
-            'MANANETR': 'net_operate_cash_flow',  # 经营活动现金流量净额
-            'FINALCASHBALA': 'cash_and_equivalents_at_end',  # 期末现金及现金等价物余额
+            'net_operate_cash_flow': 'net_operate_cash_flow',  # 经营活动现金流量净额
+            'cash_and_equivalents_at_end': 'cash_and_equivalents_at_end',  # 期末现金及现金等价物余额
         })
 
         # indicator_ttm_sets = engine.fetch_fundamentals_pit_extend_company_id(IndicatorTTM,
@@ -250,7 +262,7 @@ class CalcEngine(object):
         print('当前交易日: %s' % trade_date)
         tic = time.time()
         tp_solvency = self.loading_data(trade_date)
-        print('data load time %s' % (time.time()-tic))
+        print('data load time %s' % (time.time() - tic))
 
         storage_engine = StorageEngine(self._url)
         result = self.process_calc_factor(trade_date, tp_solvency)
@@ -268,7 +280,7 @@ class CalcEngine(object):
     # def distributed_factor(self, total_data):
     #     mkt_df = self.calc_factor_by_date(total_data,trade_date)
     #     result = self.calc_factor('alphax.alpha191','Alpha191',mkt_df,trade_date)
-        
+
 # @app.task
 # def distributed_factor(session, trade_date, packet_sets, name):
 #     calc_engines = CalcEngine(name, packet_sets)
@@ -287,5 +299,3 @@ class CalcEngine(object):
 #     tp_solvency.set_index('security_code', inplace=True)
 #     print("len_tp_cash_flow_data {}".format(len(tp_solvency)))
 #     calculate(date_index, tp_solvency)
-
-

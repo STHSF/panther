@@ -111,7 +111,7 @@ class FactorCapitalStructure(object):
         return factor_management
 
     @staticmethod
-    def FixAssetsRt(tp_management, factor_management, dependencies=['fixed_assets',
+    def FixAssetsRt(tp_management, factor_management, dependencies=['fixed_assets_netbook',
                                                                     'construction_materials',
                                                                     'constru_in_process',
                                                                     'total_assets']):
@@ -125,7 +125,7 @@ class FactorCapitalStructure(object):
         management = tp_management.loc[:, dependencies]
         management['FixAssetsRt'] = np.where(
             CalcTools.is_zero(management.total_assets.values), 0,
-            (management.fixed_assets.values +
+            (management.fixed_assets_netbook.values +
              management.construction_materials.values +
              management.constru_in_process.values) / management.total_assets.values)
         management = management.drop(dependencies, axis=1)
@@ -152,7 +152,7 @@ class FactorCapitalStructure(object):
 
     @staticmethod
     def EquityToFixedAsset(tp_management, factor_management, dependencies=['total_owner_equities',
-                                                                           'fixed_assets',
+                                                                           'fixed_assets_netbook',
                                                                            'construction_materials',
                                                                            'constru_in_process']):
         """
@@ -163,11 +163,11 @@ class FactorCapitalStructure(object):
         """
         management = tp_management.loc[:, dependencies]
         management['EquityToFixedAsset'] = np.where(
-            CalcTools.is_zero(management.fixed_assets.values +
+            CalcTools.is_zero(management.fixed_assets_netbook.values +
                               management.construction_materials.values +
                               management.constru_in_process.values), 0,
             management.total_owner_equities.values
-            / (management.fixed_assets.values
+            / (management.fixed_assets_netbook.values
                + management.construction_materials.values
                + management.constru_in_process.values))
         management = management.drop(dependencies, axis=1)
@@ -192,7 +192,7 @@ class FactorCapitalStructure(object):
         return factor_management
 
     @staticmethod
-    def CaptCashRecRtTTM(tp_management, factor_management, dependencies=['BIZNETCFLOWTTM',
+    def CaptCashRecRtTTM(tp_management, factor_management, dependencies=['net_operate_cash_flow_indirect',
                                                                          'total_assets']):
         """
         :name: 资金现金回收率(TTM)
@@ -208,7 +208,7 @@ class FactorCapitalStructure(object):
         return factor_earning
 
     @staticmethod
-    def AssertLibRtTTM(tp_management, factor_management, dependencies=['TOTLIAB',
+    def AssertLibRtTTM(tp_management, factor_management, dependencies=['total_liability',
                                                                        'total_assets']):
         """
         :name: 资产负债率(TTM)

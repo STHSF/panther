@@ -21,6 +21,12 @@ from vision.table.fin_cash_flow import FinCashFlow
 from vision.table.fin_balance import FinBalance
 from vision.table.fin_income import FinIncome
 from vision.table.fin_indicator import FinIndicator
+
+from vision.table.fin_balance_ttm import FinBalanceTTM
+from vision.table.fin_indicator_ttm import FinIndicatorTTM
+from vision.table.fin_income_ttm import FinIncomeTTM
+from vision.table.fin_cash_flow_ttm import FinCashFlowTTM
+
 from utilities.sync_util import SyncUtil
 
 
@@ -82,7 +88,8 @@ class CalcEngine(object):
                                                              [FinCashFlow.cash_and_equivalents_at_end,
                                                               FinCashFlow.fixed_assets_depreciation,  # 固定资产折旧
                                                               FinCashFlow.intangible_assets_amortization,  # 无形资产摊销
-                                                              FinCashFlow.fix_intan_other_asset_acqui_cash, # 购建固定资产、无形资产和其他...
+                                                              FinCashFlow.fix_intan_other_asset_acqui_cash,
+                                                              # 购建固定资产、无形资产和其他...
                                                               FinCashFlow.defferred_expense_amortization,  # 长期待摊费用摊销
                                                               FinCashFlow.borrowing_repayment,  # 偿还债务支付的现金
                                                               FinCashFlow.cash_from_borrowing,  # 取得借款收到的现金
@@ -144,7 +151,7 @@ class CalcEngine(object):
                                                                 FinBalance.shortterm_bonds_payable,  # 流动负债合计
                                                                 FinBalance.shortterm_loan,  # 流动负债合计
                                                                 FinBalance.non_current_liability_in_one_year,  # 流动负债合计
-                                                                ],  db_filters=[], dates=[trade_date_pre])
+                                                                ], db_filters=[], dates=[trade_date_pre])
 
         for col in columns:
             if col in list(balance_sets_pre.keys()):
@@ -162,7 +169,7 @@ class CalcEngine(object):
 
         # incicator mrq 数据
         indicator_sets = get_fin_consolidated_statements_pit(FinIndicator,
-                                                             [FinIndicator.np_cut, # 扣除非经常性损益的净利润
+                                                             [FinIndicator.np_cut,  # 扣除非经常性损益的净利润
                                                               ], db_filters=[], dates=[trade_date])
         for col in columns:
             if col in list(indicator_sets.keys()):
@@ -199,63 +206,64 @@ class CalcEngine(object):
         tp_detivation = pd.merge(income_sets, tp_detivation, how='outer', on='security_code')
         pdb.set_trace()
 
-        # # income ttm数据
-        # income_ttm_sets = engine.fetch_fundamentals_pit_extend_company_id(IncomeTTM,
-        #                                                                   [IncomeTTM.total_operating_revenue,  # 营业总收入
-        #                                                                    IncomeTTM.total_operating_cost,  # 营业总成本
-        #                                                                    IncomeTTM.operating_revenue,  # 营业收入
-        #                                                                    IncomeTTM.operating_cost,  # 营业成本
-        #                                                                    IncomeTTM.sale_expense,  # 销售费用
-        #                                                                    IncomeTTM.administration_expense,  # 管理费用
-        #                                                                    IncomeTTM.financial_expense,  # 财务费用
-        #                                                                    IncomeTTM.interest_expense,  # 利息支出
-        #                                                                    IncomeTTM.development_expenditure,  # 研发费用
-        #                                                                    IncomeTTM.asset_impairment_loss,  # 资产减值损失
-        #                                                                    IncomeTTM.operating_profit,  # 营业利润
-        #                                                                    IncomeTTM.total_profit,  # 利润总额
-        #                                                                    IncomeTTM.net_profit,  # 净利润
-        #                                                                    IncomeTTM.np_parent_company_owners,
-        #                                                                    # 归属母公司股东的净利润
-        #                                                                    IncomeTTM.operating_tax_surcharges,
-        #                                                                    # 营业税金及附加
-        #                                                                    IncomeTTM.non_operating_revenue,  # 营业外收入
-        #                                                                    IncomeTTM.other_earnings,  # 其他收益
-        #                                                                    IncomeTTM.service_commission_fee,  # 手续费及佣金支出
-        #                                                                    IncomeTTM.non_operating_expense,  # 营业外支出
-        #                                                                    IncomeTTM.minority_profit,  # 少数股东损益
-        #                                                                    IncomeTTM.income_tax,
-        #                                                                    IncomeTTM.fair_value_variable_income,
-        #                                                                    # 公允价值变动收益
-        #                                                                    IncomeTTM.investment_income,  # 投资收益
-        #                                                                    IncomeTTM.exchange_income,  # 汇兑收益
-        #
-        #                                                                    ], dates=[trade_date])
-        # for col in columns:
-        #     if col in list(income_ttm_sets.keys()):
-        #         income_ttm_sets = income_ttm_sets.drop(col, axis=1)
-        # income_ttm_sets = income_ttm_sets.rename(columns={'minority_profit': 'minority_profit'})
-        #
-        # # cash flow ttm
-        # cash_flow_ttm_sets = engine.fetch_fundamentals_pit_extend_company_id(CashFlowTTM,
-        #                                                                      [CashFlowTTM.net_operate_cash_flow,   #  经营活动产生的现金流量净额
-        #                                                                       CashFlowTTM.goods_sale_and_service_render_cash,  # 销售商品、提供劳务收到的现金
-        #                                                                       CashFlowTTM.net_invest_cash_flow,    #  投资活动产生的现金流量净额
-        #                                                                       CashFlowTTM.net_finance_cash_flow,   #  筹资活动产生的现金流量净额
-        #                                                                       CashFlowTTM.cash_equivalent_increase_indirect,  # 现金及现金等价物的净增加额
-        #                                                                       ], dates=[trade_date])
-        # for col in columns:
-        #     if col in list(cash_flow_ttm_sets.keys()):
-        #         cash_flow_ttm_sets = cash_flow_ttm_sets.drop(col, axis=1)
-        # ttm_derivation = pd.merge(income_ttm_sets, cash_flow_ttm_sets, how='outer', on='security_code')
-        #
-        # # indicator ttm
-        # indicator_ttm_sets = engine.fetch_fundamentals_pit_extend_company_id(IndicatorTTM,
-        #                                                                      [IndicatorTTM.np_cut,
-        #                                                                       ], dates=[trade_date])
-        # for col in columns:
-        #     if col in list(indicator_ttm_sets.keys()):
-        #         indicator_ttm_sets = indicator_ttm_sets.drop(col, axis=1)
-        # ttm_derivation = pd.merge(indicator_ttm_sets, ttm_derivation, how='outer', on='security_code')
+        # income ttm数据
+        income_ttm_sets = get_fin_consolidated_statements_pit(FinIncomeTTM,
+                                                              [FinIncomeTTM.total_operating_revenue,  # 营业总收入
+                                                               FinIncomeTTM.total_operating_cost,  # 营业总成本
+                                                               FinIncomeTTM.operating_revenue,  # 营业收入
+                                                               FinIncomeTTM.operating_cost,  # 营业成本
+                                                               FinIncomeTTM.sale_expense,  # 销售费用
+                                                               FinIncomeTTM.administration_expense,  # 管理费用
+                                                               FinIncomeTTM.financial_expense,  # 财务费用
+                                                               FinIncomeTTM.interest_expense,  # 利息支出
+                                                               FinIncomeTTM.development_expenditure,  # 研发费用
+                                                               FinIncomeTTM.asset_impairment_loss,  # 资产减值损失
+                                                               FinIncomeTTM.operating_profit,  # 营业利润
+                                                               FinIncomeTTM.total_profit,  # 利润总额
+                                                               FinIncomeTTM.net_profit,  # 净利润
+                                                               FinIncomeTTM.np_parent_company_owners,
+                                                               # 归属母公司股东的净利润
+                                                               FinIncomeTTM.operating_tax_surcharges,
+                                                               # 营业税金及附加
+                                                               FinIncomeTTM.non_operating_revenue,  # 营业外收入
+                                                               FinIncomeTTM.other_earnings,  # 其他收益
+                                                               FinIncomeTTM.service_commission_fee,  # 手续费及佣金支出
+                                                               FinIncomeTTM.non_operating_expense,  # 营业外支出
+                                                               FinIncomeTTM.minority_profit,  # 少数股东损益
+                                                               FinIncomeTTM.income_tax,
+                                                               FinIncomeTTM.fair_value_variable_income,
+                                                               # 公允价值变动收益
+                                                               FinIncomeTTM.investment_income,  # 投资收益
+                                                               FinIncomeTTM.exchange_income,  # 汇兑收益
+                                                               ], dates=[trade_date])
+        for col in columns:
+            if col in list(income_ttm_sets.keys()):
+                income_ttm_sets = income_ttm_sets.drop(col, axis=1)
+        income_ttm_sets = income_ttm_sets.rename(columns={'minority_profit': 'minority_profit'})
+
+        # cash flow ttm
+        cash_flow_ttm_sets = get_fin_consolidated_statements_pit(FinCashFlowTTM,
+                                                                 [FinCashFlowTTM.net_operate_cash_flow,  # 经营活动产生的现金流量净额
+                                                                  FinCashFlowTTM.goods_sale_and_service_render_cash,
+                                                                  # 销售商品、提供劳务收到的现金
+                                                                  FinCashFlowTTM.net_invest_cash_flow,  # 投资活动产生的现金流量净额
+                                                                  FinCashFlowTTM.net_finance_cash_flow,  # 筹资活动产生的现金流量净额
+                                                                  FinCashFlowTTM.cash_equivalent_increase_indirect,
+                                                                  # 现金及现金等价物的净增加额
+                                                                  ], dates=[trade_date])
+        for col in columns:
+            if col in list(cash_flow_ttm_sets.keys()):
+                cash_flow_ttm_sets = cash_flow_ttm_sets.drop(col, axis=1)
+        ttm_derivation = pd.merge(income_ttm_sets, cash_flow_ttm_sets, how='outer', on='security_code')
+
+        # indicator ttm
+        indicator_ttm_sets = get_fin_consolidated_statements_pit(IndicatorTTM,
+                                                                 [IndicatorTTM.np_cut,
+                                                                  ], dates=[trade_date])
+        for col in columns:
+            if col in list(indicator_ttm_sets.keys()):
+                indicator_ttm_sets = indicator_ttm_sets.drop(col, axis=1)
+        ttm_derivation = pd.merge(indicator_ttm_sets, ttm_derivation, how='outer', on='security_code')
 
         # 获取申万二级分类
         sw_indu = get_fundamentals(query(IndustryDaily.security_code,

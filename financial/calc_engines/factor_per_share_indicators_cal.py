@@ -10,14 +10,20 @@ import numpy as np
 from datetime import timedelta, datetime
 from financial import factor_per_share_indicators
 
-from data.model import BalanceMRQ, BalanceTTM, BalanceReport
-from data.model import CashFlowTTM, CashFlowReport
-from data.model import IndicatorReport
-from data.model import IncomeReport, IncomeTTM
+from data.model import BalanceMRQ, BalanceTTM, FinBalance
+from data.model import FinCashFlowTTM, FinCashFlow
+from data.model import FinIndicator
+from data.model import FinIncome, FinIncomeTTM
+
+from vision.db.signletion_engine import get_fin_consolidated_statements_pit, get_fundamentals, query
+from vision.table.industry_daily import IndustryDaily
+from vision.table.fin_cash_flow import FinCashFlow
+from vision.table.fin_balance import FinBalance
+from vision.table.fin_income import FinIncome
+from vision.table.fin_indicator import FinIndicator
 
 from vision.table.valuation import Valuation
-from vision.db.signletion_engine import *
-from data.sqlengine import sqlEngine
+from utilities.sync_util import SyncUtil
 
 # pd.set_option('display.max_columns', None)
 # pd.set_option('display.max_rows', None)
@@ -72,92 +78,94 @@ class CalcEngine(object):
         time_array = datetime.strptime(trade_date, "%Y-%m-%d")
         trade_date = datetime.strftime(time_array, '%Y%m%d')
         # 读取目前涉及到的因子
-        engine = sqlEngine()
         columns = ['COMPCODE', 'PUBLISHDATE', 'ENDDATE', 'symbol', 'company_id', 'trade_date']
         # Report data
-        cash_flow_sets = engine.fetch_fundamentals_pit_extend_company_id(CashFlowReport,
-                                                                         [CashFlowReport.FINALCASHBALA,  # 期末现金及现金等价物余额
-                                                                          ], dates=[trade_date])
+        cash_flow_sets = get_fin_consolidated_statements_pit(FinCashFlow,
+                                                             [FinCashFlow.cash_and_equivalents_at_end,  # 期末现金及现金等价物余额
+                                                              ], dates=[trade_date])
         for col in columns:
             if col in list(cash_flow_sets.keys()):
                 cash_flow_sets = cash_flow_sets.drop(col, axis=1)
-        cash_flow_sets = cash_flow_sets.rename(columns={'FINALCASHBALA': 'cash_and_equivalents_at_end',  # 期末现金及现金等价物余额
-                                                        })
+        cash_flow_sets = cash_flow_sets.rename(
+            columns={'cash_and_equivalents_at_end': 'cash_and_equivalents_at_end',  # 期末现金及现金等价物余额
+                     })
 
-        income_sets = engine.fetch_fundamentals_pit_extend_company_id(IncomeReport,
-                                                                      [IncomeReport.BIZINCO,  # 营业收入
-                                                                       IncomeReport.BIZTOTINCO,  # 营业总收入
-                                                                       IncomeReport.PERPROFIT,  # 营业利润
-                                                                       IncomeReport.DILUTEDEPS,  # 稀释每股收益
-                                                                       ], dates=[trade_date])
+        income_sets = get_fin_consolidated_statements_pit(FinIncome,
+                                                          [FinIncome.operating_revenue,  # 营业收入
+                                                           FinIncome.total_operating_revenue,  # 营业总收入
+                                                           FinIncome.operating_profit,  # 营业利润
+                                                           FinIncome.diluted_eps,  # 稀释每股收益
+                                                           ], dates=[trade_date])
         for col in columns:
             if col in list(income_sets.keys()):
                 income_sets = income_sets.drop(col, axis=1)
-        income_sets = income_sets.rename(columns={'BIZINCO': 'operating_revenue',  # 营业收入
-                                                  'BIZTOTINCO': 'total_operating_revenue',  # 营业总收入
-                                                  'PERPROFIT': 'operating_profit',  # 营业利润
-                                                  'DILUTEDEPS': 'diluted_eps',  # 稀释每股收益
+        income_sets = income_sets.rename(columns={'operating_revenue': 'operating_revenue',  # 营业收入
+                                                  'total_operating_revenue': 'total_operating_revenue',  # 营业总收入
+                                                  'operating_profit': 'operating_profit',  # 营业利润
+                                                  'diluted_eps': 'diluted_eps',  # 稀释每股收益
                                                   })
-
-        balance_sets = engine.fetch_fundamentals_pit_extend_company_id(BalanceReport,
-                                                                       [BalanceReport.PARESHARRIGH,  # 归属于母公司的所有者权益
-                                                                        BalanceReport.CAPISURP,
-                                                                        BalanceReport.RESE,
-                                                                        BalanceReport.UNDIPROF,
-                                                                        ], dates=[trade_date])
+        balance_sets = get_fin_consolidated_statements_pit(FinBalance,
+                                                           [FinBalance.equities_parent_company_owners,  # 归属于母公司的所有者权益
+                                                            FinBalance.capital_reserve_fund,
+                                                            FinBalance.surplus_reserve_fund,
+                                                            FinBalance.retained_profit,
+                                                            ], dates=[trade_date])
         for col in columns:
             if col in list(balance_sets.keys()):
                 balance_sets = balance_sets.drop(col, axis=1)
-        balance_sets = balance_sets.rename(columns={'PARESHARRIGH': 'total_owner_equities',  # 归属于母公司的所有者权益
-                                                    'CAPISURP': 'capital_reserve_fund',  # 资本公积
-                                                    'RESE': 'surplus_reserve_fund',  # 盈余公积
-                                                    'UNDIPROF': 'retained_profit',  # 未分配利润
-                                                    })
+        balance_sets = balance_sets.rename(
+            columns={'equities_parent_company_owners': 'total_owner_equities',  # 归属于母公司的所有者权益
+                     'capital_reserve_fund': 'capital_reserve_fund',  # 资本公积
+                     'surplus_reserve_fund': 'surplus_reserve_fund',  # 盈余公积
+                     'retained_profit': 'retained_profit',  # 未分配利润
+                     })
 
-        indicator_sets = engine.fetch_fundamentals_pit_extend_company_id(IndicatorReport,
-                                                                         [
-                                                                          # IndicatorReport.FCFE,  # 股东自由现金流量
-                                                                          # IndicatorReport.FCFF,  # 企业自由现金流量
-                                                                          IndicatorReport.EPSBASIC,  # 基本每股收益
-                                                                          # IndicatorReport.DPS,  # 每股股利（税前）
-                                                                          ], dates=[trade_date])
+        indicator_sets = get_fin_consolidated_statements_pit(FinIndicator,
+                                                             [
+                                                                 # FinIndicator.FCFE,  # 股东自由现金流量
+                                                                 # FinIndicator.FCFF,  # 企业自由现金流量
+                                                                 FinIndicator.eps_basic,  # 基本每股收益
+                                                                 # FinIndicator.DPS,  # 每股股利（税前）
+                                                             ], dates=[trade_date])
         for col in columns:
             if col in list(indicator_sets.keys()):
                 indicator_sets = indicator_sets.drop(col, axis=1)
         indicator_sets = indicator_sets.rename(columns={
-                                                        # 'FCFE': 'shareholder_fcfps',  # 股东自由现金流量
-                                                        # 'FCFF': 'enterprise_fcfps',  # 企业自由现金流量
-                                                        'EPSBASIC': 'basic_eps',  # 基本每股收益
-                                                        # 'DPS': 'dividend_receivable',  # 每股股利（税前）
-                                                        })
+            # 'FCFE': 'shareholder_fcfps',  # 股东自由现金流量
+            # 'FCFF': 'enterprise_fcfps',  # 企业自由现金流量
+            'eps_basic': 'basic_eps',  # 基本每股收益
+            # 'DPS': 'dividend_receivable',  # 每股股利（税前）
+        })
 
         # TTM data
-        cash_flow_ttm_sets = engine.fetch_fundamentals_pit_extend_company_id(CashFlowTTM,
-                                                                             [CashFlowTTM.CASHNETI,  # 现金及现金等价物净增加额
-                                                                              CashFlowTTM.MANANETR,  # 经营活动现金流量净额
-                                                                              ], dates=[trade_date])
+        cash_flow_ttm_sets = get_fin_consolidated_statements_pit(FinCashFlowTTM,
+                                                                 [FinCashFlowTTM.cash_equivalent_increase_indirect,
+                                                                  # 现金及现金等价物净增加额
+                                                                  FinCashFlowTTM.net_operate_cash_flow,  # 经营活动现金流量净额
+                                                                  ], dates=[trade_date])
         for col in columns:
             if col in list(cash_flow_ttm_sets.keys()):
                 cash_flow_ttm_sets = cash_flow_ttm_sets.drop(col, axis=1)
         cash_flow_ttm_sets = cash_flow_ttm_sets.rename(
-            columns={'CASHNETI': 'cash_equivalent_increase_ttm',  # 现金及现金等价物净增加额
-                     'MANANETR': 'net_operate_cash_flow_ttm',  # 经营活动现金流量净额
+            columns={'cash_equivalent_increase_indirect': 'cash_equivalent_increase_ttm',  # 现金及现金等价物净增加额
+                     'net_operate_cash_flow': 'net_operate_cash_flow_ttm',  # 经营活动现金流量净额
                      })
 
-        income_ttm_sets = engine.fetch_fundamentals_pit_extend_company_id(IncomeTTM,
-                                                                          [IncomeTTM.PARENETP,  # 归属于母公司所有者的净利润
-                                                                           IncomeTTM.PERPROFIT,  # 营业利润
-                                                                           IncomeTTM.BIZINCO,  # 营业收入
-                                                                           IncomeTTM.BIZTOTINCO,  # 营业总收入
-                                                                           ], dates=[trade_date])
+        income_ttm_sets = get_fin_consolidated_statements_pit(FinIncomeTTM,
+                                                              [FinIncomeTTM.np_parent_company_owners,  # 归属于母公司所有者的净利润
+                                                               FinIncomeTTM.operating_profit,  # 营业利润
+                                                               FinIncomeTTM.operating_revenue,  # 营业收入
+                                                               FinIncomeTTM.total_operating_revenue,  # 营业总收入
+                                                               ], dates=[trade_date])
         for col in columns:
             if col in list(income_ttm_sets.keys()):
                 income_ttm_sets = income_ttm_sets.drop(col, axis=1)
-        income_ttm_sets = income_ttm_sets.rename(columns={'PARENETP': 'np_parent_company_owners_ttm',  # 归属于母公司所有者的净利润
-                                                          'PERPROFIT': 'operating_profit_ttm',  # 营业利润
-                                                          'BIZINCO': 'operating_revenue_ttm',  # 营业收入
-                                                          'BIZTOTINCO': 'total_operating_revenue_ttm',  # 营业总收入
-                                                          })
+        income_ttm_sets = income_ttm_sets.rename(
+            columns={'np_parent_company_owners': 'np_parent_company_owners_ttm',  # 归属于母公司所有者的净利润
+                     'operating_profit': 'operating_profit_ttm',  # 营业利润
+                     'operating_revenue': 'operating_revenue_ttm',  # 营业收入
+                     'total_operating_revenue': 'total_operating_revenue_ttm',  # 营业总收入
+                     })
 
         column = ['trade_date']
         valuation_data = get_fundamentals(query(Valuation.security_code,

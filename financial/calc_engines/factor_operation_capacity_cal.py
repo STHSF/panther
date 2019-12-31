@@ -10,12 +10,19 @@ import numpy as np
 from datetime import datetime
 from financial import factor_operation_capacity
 
-from data.model import BalanceMRQ, BalanceTTM, BalanceReport
-from data.model import CashFlowTTM, CashFlowReport
-from data.model import IncomeReport, IncomeTTM
+from vision.db.signletion_engine import get_fin_consolidated_statements_pit, get_fundamentals, query
+from vision.table.industry_daily import IndustryDaily
+from vision.table.fin_cash_flow import FinCashFlow
+from vision.table.fin_balance import FinBalance
+from vision.table.fin_income import FinIncome
+from vision.table.fin_indicator import FinIndicator
+
+from vision.table.fin_income_ttm import FinIncomeTTM
+from vision.table.fin_cash_flow_ttm import FinCashFlowTTM
 
 from vision.db.signletion_engine import *
 from data.sqlengine import sqlEngine
+
 
 # pd.set_option('display.max_columns', None)
 # pd.set_option('display.max_rows', None)
@@ -47,65 +54,43 @@ class CalcEngine(object):
         # 读取目前涉及到的因子
         engine = sqlEngine()
         columns = ['COMPCODE', 'PUBLISHDATE', 'ENDDATE', 'symbol', 'company_id', 'trade_date']
-        ttm_cash_flow = engine.fetch_fundamentals_pit_extend_company_id(CashFlowTTM,
-                                                                        [CashFlowTTM.MANANETR,
-                                                                         CashFlowTTM.FINALCASHBALA,
-                                                                         ], dates=[trade_date])
+        ttm_cash_flow = get_fin_consolidated_statements_pit(FinCashFlowTTM,
+                                                            [FinCashFlowTTM.net_operate_cash_flow,
+                                                             # 经营活动现金流量净额
+                                                             FinCashFlowTTM.cash_and_equivalents_at_end,
+                                                             # 期末现金及现金等价物余额
+                                                             ], dates=[trade_date])
         for column in columns:
             if column in list(ttm_cash_flow.keys()):
                 ttm_cash_flow = ttm_cash_flow.drop(column, axis=1)
-        ttm_cash_flow = ttm_cash_flow.rename(columns={
-            'MANANETR': 'net_operate_cash_flow',  # 经营活动现金流量净额
-            'FINALCASHBALA': 'cash_and_equivalents_at_end',  # 期末现金及现金等价物余额
-        })
 
-        ttm_income = engine.fetch_fundamentals_pit_extend_company_id(IncomeTTM,
-                                                                     [IncomeTTM.BIZCOST,
-                                                                      IncomeTTM.BIZINCO,
-                                                                      IncomeTTM.BIZTOTINCO,
-                                                                      ], dates=[trade_date])
+        ttm_income = get_fin_consolidated_statements_pit(FinIncomeTTM,
+                                                         [FinIncomeTTM.operating_cost,  # 营业成本
+                                                          FinIncomeTTM.operating_revenue,  # 营业收入
+                                                          FinIncomeTTM.total_operating_revenue,  # 营业总收入
+                                                          ], dates=[trade_date])
         for column in columns:
             if column in list(ttm_income.keys()):
                 ttm_income = ttm_income.drop(column, axis=1)
-        ttm_income = ttm_income.rename(columns={
-            'BIZCOST': 'operating_cost',  # 营业成本
-            'BIZINCO': 'operating_revenue',  # 营业收入
-            'BIZTOTINCO': 'total_operating_revenue',  # 营业总收入
-        })
 
-        ttm_balance = engine.fetch_fundamentals_pit_extend_company_id(BalanceTTM,
-                                                                      [BalanceTTM.ACCORECE,
-                                                                       BalanceTTM.NOTESRECE,
-                                                                       BalanceTTM.PREP,
-                                                                       BalanceTTM.INVE,
-                                                                       BalanceTTM.TOTCURRASSET,
-                                                                       BalanceTTM.FIXEDASSENET,
-                                                                       BalanceTTM.ENGIMATE,
-                                                                       BalanceTTM.CONSPROG,
-                                                                       BalanceTTM.TOTASSET,
-                                                                       BalanceTTM.ADVAPAYM,
-                                                                       BalanceTTM.ACCOPAYA,
-                                                                       BalanceTTM.NOTESPAYA,
-                                                                       BalanceTTM.RIGHAGGR,
-                                                                       ], dates=[trade_date])
+        ttm_balance = get_fin_consolidated_statements_pit(FinBalanceTTM,
+                                                          [FinBalanceTTM.account_receivable,  # 应收账款
+                                                           FinBalanceTTM.bill_receivable,  # 应收票据
+                                                           FinBalanceTTM.advance_payment,  # 预付款项
+                                                           FinBalanceTTM.inventories,  # 存货
+                                                           FinBalanceTTM.total_current_assets,  # 流动资产合计
+                                                           FinBalanceTTM.fixed_assets_net,  # 固定资产
+                                                           FinBalanceTTM.construction_materials,  # 工程物资
+                                                           FinBalanceTTM.constru_in_process,  # 在建工程
+                                                           FinBalanceTTM.total_assets,  # 资产总计
+                                                           FinBalanceTTM.advance_peceipts,  # 预收款项
+                                                           FinBalanceTTM.accounts_payable,  # 应付账款
+                                                           FinBalanceTTM.notes_payable,  # 应付票据
+                                                           FinBalanceTTM.total_owner_equities,  # 所有者权益(或股东权益)合计
+                                                           ], dates=[trade_date])
         for column in columns:
             if column in list(ttm_balance.keys()):
                 ttm_balance = ttm_balance.drop(column, axis=1)
-        ttm_balance = ttm_balance.rename(columns={
-            'ACCORECE': 'account_receivable',  # 应收账款
-            'NOTESRECE': 'bill_receivable',  # 应收票据
-            'PREP': 'advance_payment',  # 预付款项
-            'INVE': 'inventories',  # 存货
-            'TOTCURRASSET': 'total_current_assets',  # 流动资产合计
-            'FIXEDASSENET': 'fixed_assets',  # 固定资产
-            'ENGIMATE': 'construction_materials',  # 工程物资
-            'CONSPROG': 'constru_in_process',  # 在建工程
-            'TOTASSET': 'total_assets',  # 资产总计
-            'ADVAPAYM': 'advance_peceipts',  # 预收款项
-            'ACCOPAYA': 'accounts_payable',  # 应付账款
-            'NOTESPAYA': 'notes_payable',  # 应付票据
-            'RIGHAGGR': 'total_owner_equities',
-        })
 
         ttm_operation_capacity = pd.merge(ttm_cash_flow, ttm_income, on='security_code')
         ttm_operation_capacity = pd.merge(ttm_balance, ttm_operation_capacity, on='security_code')
@@ -160,7 +145,6 @@ class CalcEngine(object):
     # def distributed_factor(self, total_data):
     #     mkt_df = self.calc_factor_by_date(total_data,trade_date)
     #     result = self.calc_factor('alphax.alpha191','Alpha191',mkt_df,trade_date)
-
 
 # @app.task
 # def distributed_factor(session, trade_date, packet_sets, name):

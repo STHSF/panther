@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import pdb,importlib,inspect,time,datetime,json
+import pdb, importlib, inspect, time, datetime, json
 # from PyFin.api import advanceDateByCalendar
 # from data.polymerize import DBPolymerize
 from data.storage_engine import StorageEngine
@@ -10,24 +10,26 @@ import pandas as pd
 from datetime import datetime
 from financial import factor_capital_structure
 
-from data.model import BalanceMRQ, CashFlowTTM, BalanceTTM
+from vision.db.signletion_engine import get_fin_consolidated_statements_pit, get_fundamentals, query
+from vision.table.fin_balance import FinBalance
+from vision.table.fin_balance_ttm import FinBalanceTTM
+from vision.table.fin_cash_flow_ttm import FinCashFlowTTM
 
-from vision.db.signletion_engine import *
-from data.sqlengine import sqlEngine
 # pd.set_option('display.max_columns', None)
 # pd.set_option('display.max_rows', None)
 # from ultron.cluster.invoke.cache_data import cache_data
 
 
 class CalcEngine(object):
-    def __init__(self, name, url, methods=[{'packet':'financial.factor_capital_structure','class':'FactorCapitalStructure'},]):
+    def __init__(self, name, url,
+                 methods=[{'packet': 'financial.factor_capital_structure', 'class': 'FactorCapitalStructure'}, ]):
         self._name = name
         self._methods = methods
         self._url = url
 
     def _func_sets(self, method):
         # 私有函数和保护函数过滤
-        return list(filter(lambda x: not x.startswith('_') and callable(getattr(method,x)), dir(method)))
+        return list(filter(lambda x: not x.startswith('_') and callable(getattr(method, x)), dir(method)))
 
     def loading_data(self, trade_date):
         """
@@ -40,48 +42,34 @@ class CalcEngine(object):
         time_array = datetime.strptime(trade_date, "%Y-%m-%d")
         trade_date = datetime.strftime(time_array, '%Y%m%d')
         columns = ['COMPCODE', 'PUBLISHDATE', 'ENDDATE', 'symbol', 'company_id', 'trade_date']
-        engine = sqlEngine()
-        balance_sets = engine.fetch_fundamentals_pit_extend_company_id(BalanceMRQ,
-                                                                       [BalanceMRQ.TOTALNONCASSETS,
-                                                                        BalanceMRQ.TOTASSET,
-                                                                        BalanceMRQ.TOTALNONCLIAB,
-                                                                        BalanceMRQ.LONGBORR,
-                                                                        BalanceMRQ.INTAASSET,
-                                                                        BalanceMRQ.DEVEEXPE,
-                                                                        BalanceMRQ.GOODWILL,
-                                                                        BalanceMRQ.FIXEDASSENET,
-                                                                        BalanceMRQ.ENGIMATE,
-                                                                        BalanceMRQ.CONSPROG,
-                                                                        BalanceMRQ.RIGHAGGR,
-                                                                        BalanceMRQ.TOTCURRASSET,
-                                                                        ], dates=[trade_date])
+        balance_sets = get_fin_consolidated_statements_pit(FinBalance,
+                                                           [FinBalance.total_non_current_assets,  # 非流动资产合计
+                                                            FinBalance.total_assets,  # 资产总计
+                                                            FinBalance.total_non_current_liability,  # 非流动负债合计
+                                                            FinBalance.longterm_loan,  # 长期借款
+                                                            FinBalance.intangible_assets,  # 无形资产
+                                                            FinBalance.development_expenditure,  # 开发支出
+                                                            FinBalance.good_will,  # 商誉
+                                                            FinBalance.fixed_assets_netbook,  # 固定资产净额
+                                                            FinBalance.construction_materials,  # 工程物资
+                                                            FinBalance.constru_in_process,  # 在建工程
+                                                            FinBalance.total_owner_equities,  # 股东权益合计
+                                                            FinBalance.total_current_assets,  # 流动资产合计
+                                                            ], dates=[trade_date])
         for col in columns:
             if col in list(balance_sets.keys()):
                 balance_sets = balance_sets.drop(col, axis=1)
-        balance_sets = balance_sets.rename(columns={
-            'TOTALNONCASSETS': 'total_non_current_assets',  # 非流动资产合计
-            'TOTASSET': 'total_assets',  # 资产总计
-            'TOTALNONCLIAB': 'total_non_current_liability',  # 非流动负债合计
-            'LONGBORR': 'longterm_loan',  # 长期借款
-            'INTAASSET': 'intangible_assets',  # 无形资产
-            'DEVEEXPE': 'development_expenditure',  # 开发支出
-            'GOODWILL': 'good_will',  # 商誉
-            'FIXEDASSENET': 'fixed_assets',  # 固定资产
-            'ENGIMATE': 'construction_materials',  # 工程物资
-            'CONSPROG': 'constru_in_process',  # 在建工程
-            'RIGHAGGR': 'total_owner_equities',  # 股东权益合计
-            'TOTCURRASSET': 'total_current_assets',  # 流动资产合计
-        })
 
         # TTM
-        cash_flow_ttm = engine.fetch_fundamentals_pit_extend_company_id(CashFlowTTM,
-                                                                        [CashFlowTTM.BIZNETCFLOW,
-                                                                         ], dates=[trade_date])
+        cash_flow_ttm = get_fin_consolidated_statements_pit(FinCashFlowTTM,
+                                                            [FinCashFlowTTM.net_operate_cash_flow_indirect,
+                                                             # 经营活动产生现金流量净额
+                                                             ], dates=[trade_date])
         balance_sets = pd.merge(balance_sets, cash_flow_ttm, how='outer', on='security_code')
 
-        balance_ttm = engine.fetch_fundamentals_pit_extend_company_id(BalanceTTM,
-                                                                      [BalanceTTM.TOTLIAB,
-                                                                       ], dates=[trade_date])
+        balance_ttm = get_fin_consolidated_statements_pit(FinBalanceTTM,
+                                                          [FinBalanceTTM.total_liability,  # 负债合计
+                                                           ], dates=[trade_date])
         balance_sets = pd.merge(balance_sets, balance_ttm, how='outer', on='security_code')
 
         return balance_sets
@@ -118,7 +106,7 @@ class CalcEngine(object):
         print('当前交易日: %s' % trade_date)
         tic = time.time()
         balance_sets = self.loading_data(trade_date)
-        print('data load time %s' % (time.time()-tic))
+        print('data load time %s' % (time.time() - tic))
 
         storage_engine = StorageEngine(self._url)
         result = self.process_calc_factor(trade_date, balance_sets)
@@ -126,7 +114,6 @@ class CalcEngine(object):
         storage_engine.update_destdb(str(self._methods[-1]['packet'].split('.')[-1]), trade_date, result)
         # storage_engine.update_destdb('factor_capital_structure', trade_date, result)
 
-        
     # def remote_run(self, trade_date):
     #     total_data = self.loading_data(trade_date)
     #     #存储数据
@@ -137,7 +124,7 @@ class CalcEngine(object):
     # def distributed_factor(self, total_data):
     #     mkt_df = self.calc_factor_by_date(total_data,trade_date)
     #     result = self.calc_factor('alphax.alpha191','Alpha191',mkt_df,trade_date)
-        
+
 # @app.task
 # def distributed_factor(session, trade_date, packet_sets, name):
 #     calc_engines = CalcEngine(name, packet_sets)
@@ -161,5 +148,3 @@ class CalcEngine(object):
 #     print("len_ttm_management_data {}".format(len(ttm_management)))
 #     total_cash_flow_data = {'tp_management': tp_management, 'ttm_management': ttm_management}
 #     calculate(date_index, total_cash_flow_data, factor_name)
-
-

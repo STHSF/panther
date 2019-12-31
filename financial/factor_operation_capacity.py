@@ -200,7 +200,7 @@ class FactorOperationCapacity(object):
 
     @staticmethod
     def FixAssetsRtTTM(ttm_management, factor_management, dependencies=['operating_revenue',
-                                                                        'fixed_assets',
+                                                                        'fixed_assets_net',
                                                                         'construction_materials',
                                                                         'constru_in_process']):
         """
@@ -211,7 +211,7 @@ class FactorOperationCapacity(object):
         """
 
         management = ttm_management.loc[:, dependencies]
-        management['fa'] = (management.fixed_assets
+        management['fa'] = (management.fixed_assets_net
                             + management.construction_materials
                             + management.constru_in_process
                             )

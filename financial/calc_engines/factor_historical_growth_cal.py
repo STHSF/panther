@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import pdb,importlib,inspect,time,datetime,json
+import pdb, importlib, inspect, time, datetime, json
 # from PyFin.api import advanceDateByCalendar
 # from data.polymerize import DBPolymerize
 from data.storage_engine import StorageEngine
@@ -10,20 +10,28 @@ import numpy as np
 from datetime import timedelta, datetime
 from financial import factor_historical_growth
 
-from data.model import BalanceMRQ, BalanceTTM, BalanceReport
-from data.model import CashFlowTTM, CashFlowReport
-from data.model import IndicatorTTM
-from data.model import IncomeReport, IncomeTTM
+from vision.db.signletion_engine import get_fin_consolidated_statements_pit, get_fundamentals, query
+from vision.table.industry_daily import IndustryDaily
+from vision.table.fin_cash_flow import FinCashFlow
+from vision.table.fin_balance import FinBalance
+from vision.table.fin_income import FinIncome
+from vision.table.fin_indicator import FinIndicator
 
-from vision.db.signletion_engine import *
-from data.sqlengine import sqlEngine
+from vision.table.fin_balance_ttm import FinBalanceTTM
+from vision.table.fin_indicator_ttm import FinIndicatorTTM
+from vision.table.fin_income_ttm import FinIncomeTTM
+from vision.table.fin_cash_flow_ttm import FinCashFlowTTM
+
+from utilities.sync_util import SyncUtil
+
 # pd.set_option('display.max_columns', None)
 # pd.set_option('display.max_rows', None)
 # from ultron.cluster.invoke.cache_data import cache_data
 
 
 class CalcEngine(object):
-    def __init__(self, name, url, methods=[{'packet':'financial.factor_historical_growth','class':'FactorHistoricalGrowth'},]):
+    def __init__(self, name, url,
+                 methods=[{'packet': 'financial.factor_historical_growth', 'class': 'FactorHistoricalGrowth'}, ]):
         self._name = name
         self._methods = methods
         self._url = url
@@ -73,188 +81,195 @@ class CalcEngine(object):
         trade_date_pre_year_4 = self.get_trade_date(trade_date, 4)
         trade_date_pre_year_5 = self.get_trade_date(trade_date, 5)
 
-        engine = sqlEngine()
         columns = ['COMPCODE', 'PUBLISHDATE', 'ENDDATE', 'symbol', 'company_id', 'trade_date']
         # report data
-        balance_sets = engine.fetch_fundamentals_pit_extend_company_id(BalanceReport,
-                                                                       [BalanceReport.TOTASSET,  # 总资产（资产合计）
-                                                                        BalanceReport.RIGHAGGR,  # 股东权益合计
-                                                                        ], dates=[trade_date])
+        balance_sets = get_fin_consolidated_statements_pit(FinBalance,
+                                                           [FinBalance.total_assets,  # 总资产（资产合计）
+                                                            FinBalance.total_owner_equities,  # 股东权益合计
+                                                            ], dates=[trade_date])
 
         if len(balance_sets) <= 0 or balance_sets is None:
-            balance_sets = pd.DataFrame({'security_code':[], 'TOTASSET':[], 'RIGHAGGR':[]})
+            balance_sets = pd.DataFrame({'security_code': [], 'total_assets': [], 'total_owner_equities': []})
 
         for column in columns:
             if column in list(balance_sets.keys()):
                 balance_sets = balance_sets.drop(column, axis=1)
-        balance_sets = balance_sets.rename(columns={'TOTASSET': 'total_assets',  # 资产总计
-                                                    'RIGHAGGR': 'total_owner_equities',  # 股东权益合计
+        balance_sets = balance_sets.rename(columns={'total_assets': 'total_assets',  # 资产总计
+                                                    'total_owner_equities': 'total_owner_equities',  # 股东权益合计
                                                     })
 
-        balance_sets_pre_year = engine.fetch_fundamentals_pit_extend_company_id(BalanceReport,
-                                                                                [BalanceReport.TOTASSET,  # 总资产（资产合计）
-                                                                                 BalanceReport.RIGHAGGR,  # 股东权益合计
-                                                                                 ], dates=[trade_date_pre_year])
+        balance_sets_pre_year = get_fin_consolidated_statements_pit(FinBalance,
+                                                                    [FinBalance.total_assets,  # 总资产（资产合计）
+                                                                     FinBalance.total_owner_equities,  # 股东权益合计
+                                                                     ], dates=[trade_date_pre_year])
         if len(balance_sets_pre_year) <= 0 or balance_sets_pre_year is None:
-            balance_sets_pre_year = pd.DataFrame({'security_code':[], 'TOTASSET':[], 'RIGHAGGR':[]})
+            balance_sets_pre_year = pd.DataFrame({'security_code': [], 'total_assets': [], 'total_owner_equities': []})
 
         for column in columns:
             if column in list(balance_sets_pre_year.keys()):
                 balance_sets_pre_year = balance_sets_pre_year.drop(column, axis=1)
-        balance_sets_pre_year = balance_sets_pre_year.rename(columns={"TOTASSET": "total_assets_pre_year",
-                                                                      "RIGHAGGR": "total_owner_equities_pre_year"})
+        balance_sets_pre_year = balance_sets_pre_year.rename(columns={"total_assets": "total_assets_pre_year",
+                                                                      "total_owner_equities": "total_owner_equities_pre_year"})
 
         balance_sets = pd.merge(balance_sets, balance_sets_pre_year, on='security_code')
         # print('get_balabce_sets')
 
         # ttm 计算
-        ttm_factor_sets = engine.fetch_fundamentals_pit_extend_company_id(IncomeTTM,
-                                                                          [IncomeTTM.BIZINCO,  # 营业收入
-                                                                           IncomeTTM.PERPROFIT,  # 营业利润
-                                                                           IncomeTTM.TOTPROFIT,  # 利润总额
-                                                                           IncomeTTM.NETPROFIT,  # 净利润
-                                                                           IncomeTTM.BIZCOST,  # 营业成本
-                                                                           IncomeTTM.PARENETP],  # 归属于母公司所有者的净利润
-                                                                          dates=[trade_date])
+        ttm_factor_sets = get_fin_consolidated_statements_pit(FinIncomeTTM,
+                                                              [FinIncomeTTM.operating_revenue,  # 营业收入
+                                                               FinIncomeTTM.operating_profit,  # 营业利润
+                                                               FinIncomeTTM.total_profit,  # 利润总额
+                                                               FinIncomeTTM.net_profit,  # 净利润
+                                                               FinIncomeTTM.operating_cost,  # 营业成本
+                                                               FinIncomeTTM.np_parent_company_owners],  # 归属于母公司所有者的净利润
+                                                              dates=[trade_date])
 
         if len(ttm_factor_sets) <= 0 or ttm_factor_sets is None:
-            ttm_factor_sets = pd.DataFrame({'security_code':[], 'BIZINCO':[], 'PERPROFIT':[], 'TOTPROFIT':[],
-                                            'NETPROFIT':[], 'BIZCOST':[], 'PARENETP':[]})
+            ttm_factor_sets = pd.DataFrame(
+                {'security_code': [], 'operating_revenue': [], 'operating_profit': [], 'total_profit': [],
+                 'net_profit': [], 'operating_cost': [], 'np_parent_company_owners': []})
 
         for column in columns:
             if column in list(ttm_factor_sets.keys()):
                 ttm_factor_sets = ttm_factor_sets.drop(column, axis=1)
 
-        ttm_cash_flow_sets = engine.fetch_fundamentals_pit_extend_company_id(CashFlowTTM,
-                                                                             [CashFlowTTM.FINNETCFLOW,  # 筹资活动产生的现金流量净额
-                                                                              CashFlowTTM.MANANETR,  # 经营活动产生的现金流量净额
-                                                                              CashFlowTTM.INVNETCASHFLOW, # 投资活动产生的现金流量净额
-                                                                              CashFlowTTM.CASHNETI,  # 现金及现金等价物的净增加额
-                                                                              ], dates=[trade_date])
+        ttm_cash_flow_sets = get_fin_consolidated_statements_pit(FinCashFlowTTM,
+                                                                 [FinCashFlowTTM.net_finance_cash_flow,  # 筹资活动产生的现金流量净额
+                                                                  FinCashFlowTTM.net_operate_cash_flow,  # 经营活动产生的现金流量净额
+                                                                  FinCashFlowTTM.net_invest_cash_flow,  # 投资活动产生的现金流量净额
+                                                                  FinCashFlowTTM.cash_equivalent_increase_indirect,
+                                                                  # 现金及现金等价物的净增加额
+                                                                  ], dates=[trade_date])
 
         if len(ttm_cash_flow_sets) <= 0 or ttm_cash_flow_sets is None:
-            ttm_cash_flow_sets = pd.DataFrame({'security_code':[], 'FINNETCFLOW':[], 'MANANETR':[],
-                                               'INVNETCASHFLOW':[], 'CASHNETI':[]})
+            ttm_cash_flow_sets = pd.DataFrame(
+                {'security_code': [], 'net_finance_cash_flow': [], 'net_operate_cash_flow': [],
+                 'net_invest_cash_flow': [], 'cash_equivalent_increase_indirect': []})
 
         for column in columns:
             if column in list(ttm_cash_flow_sets.keys()):
                 ttm_cash_flow_sets = ttm_cash_flow_sets.drop(column, axis=1)
         ttm_factor_sets = pd.merge(ttm_factor_sets, ttm_cash_flow_sets, how='outer', on='security_code')
 
-        ttm_indicator_sets = engine.fetch_fundamentals_pit_extend_company_id(IndicatorTTM,
-                                                                             [IndicatorTTM.NPCUT,
-                                                                              ], dates=[trade_date])
+        ttm_indicator_sets = get_fin_consolidated_statements_pit(FinIndicatorTTM,
+                                                                 [FinIndicatorTTM.np_cut,
+                                                                  ], dates=[trade_date])
 
         if len(ttm_indicator_sets) <= 0 or ttm_indicator_sets is None:
-            ttm_indicator_sets = pd.DataFrame({'security_code':[], 'NPCUT':[]})
+            ttm_indicator_sets = pd.DataFrame({'security_code': [], 'np_cut': []})
 
         for column in columns:
             if column in list(ttm_indicator_sets.keys()):
                 ttm_indicator_sets = ttm_indicator_sets.drop(column, axis=1)
 
-        ttm_indicator_sets = ttm_indicator_sets.rename(columns={'NPCUT': 'ni_attr_p_cut'})
+        ttm_indicator_sets = ttm_indicator_sets.rename(columns={'np_cut': 'ni_attr_p_cut'})
         ttm_factor_sets = pd.merge(ttm_factor_sets, ttm_indicator_sets, how='outer', on='security_code')
         # field_key = ttm_cash_flow_sets.keys()
         # for i in field_key:
         #     ttm_factor_sets[i] = ttm_cash_flow_sets[i]
 
         ttm_factor_sets = ttm_factor_sets.rename(
-            columns={"BIZINCO": "operating_revenue",
-                     "PERPROFIT": "operating_profit",
-                     "TOTPROFIT": "total_profit",
-                     "NETPROFIT": "net_profit",
-                     "BIZCOST": "operating_cost",
-                     "PARENETP": "np_parent_company_owners",
-                     "FINNETCFLOW": "net_finance_cash_flow",
-                     "MANANETR": "net_operate_cash_flow",
-                     "INVNETCASHFLOW": "net_invest_cash_flow",
-                     'CASHNETI': 'n_change_in_cash'
+            columns={"operating_revenue": "operating_revenue",
+                     "operating_profit": "operating_profit",
+                     "total_profit": "total_profit",
+                     "net_profit": "net_profit",
+                     "operating_cost": "operating_cost",
+                     "np_parent_company_owners": "np_parent_company_owners",
+                     "net_finance_cash_flow": "net_finance_cash_flow",
+                     "net_operate_cash_flow": "net_operate_cash_flow",
+                     "net_invest_cash_flow": "net_invest_cash_flow",
+                     'cash_equivalent_increase_indirect': 'n_change_in_cash'
                      })
-        ttm_income_sets_pre = engine.fetch_fundamentals_pit_extend_company_id(IncomeTTM,
-                                                                              [IncomeTTM.BIZINCO,  # 营业收入
-                                                                               IncomeTTM.PERPROFIT,  # 营业利润
-                                                                               IncomeTTM.TOTPROFIT,  # 利润总额
-                                                                               IncomeTTM.NETPROFIT,  # 净利润
-                                                                               IncomeTTM.BIZCOST,  # 营业成本
-                                                                               IncomeTTM.PARENETP  # 归属于母公司所有者的净利润
-                                                                               ], dates=[trade_date_pre_year])
+        ttm_income_sets_pre = get_fin_consolidated_statements_pit(FinIncomeTTM,
+                                                                  [FinIncomeTTM.operating_revenue,  # 营业收入
+                                                                   FinIncomeTTM.operating_profit,  # 营业利润
+                                                                   FinIncomeTTM.total_profit,  # 利润总额
+                                                                   FinIncomeTTM.net_profit,  # 净利润
+                                                                   FinIncomeTTM.operating_cost,  # 营业成本
+                                                                   FinIncomeTTM.np_parent_company_owners  # 归属于母公司所有者的净利润
+                                                                   ], dates=[trade_date_pre_year])
 
         if len(ttm_income_sets_pre) <= 0 or ttm_income_sets_pre is None:
-            ttm_income_sets_pre = pd.DataFrame({'security_code':[], 'BIZINCO':[], 'PERPROFIT':[], 'TOTPROFIT':[],
-                                                'NETPROFIT':[], 'BIZCOST':[], 'PARENETP':[]})
+            ttm_income_sets_pre = pd.DataFrame(
+                {'security_code': [], 'operating_revenue': [], 'operating_profit': [], 'total_profit': [],
+                 'net_profit': [], 'operating_cost': [], 'np_parent_company_owners': []})
 
         for column in columns:
             if column in list(ttm_income_sets_pre.keys()):
                 ttm_income_sets_pre = ttm_income_sets_pre.drop(column, axis=1)
 
         ttm_factor_sets_pre = ttm_income_sets_pre.rename(
-            columns={"BIZINCO": "operating_revenue_pre_year",
-                     "PERPROFIT": "operating_profit_pre_year",
-                     "TOTPROFIT": "total_profit_pre_year",
-                     "NETPROFIT": "net_profit_pre_year",
-                     "BIZCOST": "operating_cost_pre_year",
-                     "PARENETP": "np_parent_company_owners_pre_year",
+            columns={"operating_revenue": "operating_revenue_pre_year",
+                     "operating_profit": "operating_profit_pre_year",
+                     "total_profit": "total_profit_pre_year",
+                     "net_profit": "net_profit_pre_year",
+                     "operating_cost": "operating_cost_pre_year",
+                     "np_parent_company_owners": "np_parent_company_owners_pre_year",
                      })
         ttm_factor_sets = pd.merge(ttm_factor_sets, ttm_factor_sets_pre, how='outer', on='security_code')
 
-        ttm_indicator_sets_pre = engine.fetch_fundamentals_pit_extend_company_id(IndicatorTTM,
-                                                                                 [IndicatorTTM.NPCUT,
-                                                                                  ], dates=[trade_date_pre_year])
+        ttm_indicator_sets_pre = get_fin_consolidated_statements_pit(FinIndicatorTTM,
+                                                                     [FinIndicatorTTM.np_cut,
+                                                                      ], dates=[trade_date_pre_year])
 
         if len(ttm_indicator_sets_pre) <= 0 or ttm_indicator_sets_pre is None:
-            ttm_indicator_sets_pre = pd.DataFrame({'security_code':[], 'NPCUT':[]})
+            ttm_indicator_sets_pre = pd.DataFrame({'security_code': [], 'np_cut': []})
 
         for column in columns:
             if column in list(ttm_indicator_sets_pre.keys()):
                 ttm_indicator_sets_pre = ttm_indicator_sets_pre.drop(column, axis=1)
-        ttm_indicator_sets_pre = ttm_indicator_sets_pre.rename(columns={'NPCUT': 'ni_attr_p_cut_pre'})
+        ttm_indicator_sets_pre = ttm_indicator_sets_pre.rename(columns={'np_cut': 'ni_attr_p_cut_pre'})
         ttm_factor_sets = pd.merge(ttm_factor_sets, ttm_indicator_sets_pre, how='outer', on='security_code')
 
-        ttm_cash_flow_sets_pre = engine.fetch_fundamentals_pit_extend_company_id(CashFlowTTM,
-                                                                                 [CashFlowTTM.FINNETCFLOW,
-                                                                                  # 筹资活动产生的现金流量净额
-                                                                                  CashFlowTTM.MANANETR,  # 经营活动产生的现金流量净额
-                                                                                  CashFlowTTM.INVNETCASHFLOW,
-                                                                                  # 投资活动产生的现金流量净额
-                                                                                  CashFlowTTM.CASHNETI,  # 现金及现金等价物的净增加额
-                                                                                  ], dates=[trade_date_pre_year])
+        ttm_cash_flow_sets_pre = get_fin_consolidated_statements_pit(FinCashFlowTTM,
+                                                                     [FinCashFlowTTM.net_finance_cash_flow,
+                                                                      # 筹资活动产生的现金流量净额
+                                                                      FinCashFlowTTM.net_operate_cash_flow,
+                                                                      # 经营活动产生的现金流量净额
+                                                                      FinCashFlowTTM.net_invest_cash_flow,
+                                                                      # 投资活动产生的现金流量净额
+                                                                      FinCashFlowTTM.cash_equivalent_increase_indirect,
+                                                                      # 现金及现金等价物的净增加额
+                                                                      ], dates=[trade_date_pre_year])
 
         if len(ttm_cash_flow_sets_pre) <= 0 or ttm_cash_flow_sets_pre is None:
-            ttm_cash_flow_sets_pre = pd.DataFrame({'security_code':[], 'FINNETCFLOW':[],
-                                                   'MANANETR':[], 'INVNETCASHFLOW':[], 'CASHNETI':[]})
+            ttm_cash_flow_sets_pre = pd.DataFrame({'security_code': [], 'net_finance_cash_flow': [],
+                                                   'net_operate_cash_flow': [], 'net_invest_cash_flow': [],
+                                                   'cash_equivalent_increase_indirect': []})
 
         for column in columns:
             if column in list(ttm_cash_flow_sets_pre.keys()):
                 ttm_cash_flow_sets_pre = ttm_cash_flow_sets_pre.drop(column, axis=1)
 
         ttm_cash_flow_sets_pre = ttm_cash_flow_sets_pre.rename(
-            columns={"FINNETCFLOW": "net_finance_cash_flow_pre_year",
-                     "MANANETR": "net_operate_cash_flow_pre_year",
-                     "INVNETCASHFLOW": "net_invest_cash_flow_pre_year",
-                     'CASHNETI': 'n_change_in_cash_pre_year',
+            columns={"net_finance_cash_flow": "net_finance_cash_flow_pre_year",
+                     "net_operate_cash_flow": "net_operate_cash_flow_pre_year",
+                     "net_invest_cash_flow": "net_invest_cash_flow_pre_year",
+                     'cash_equivalent_increase_indirect': 'n_change_in_cash_pre_year',
                      })
 
         ttm_factor_sets = pd.merge(ttm_factor_sets, ttm_cash_flow_sets_pre, how='outer', on='security_code')
         # print('get_ttm_factor_sets_pre')
 
         # ttm 连续
-        ttm_factor_sets_pre_year_2 = engine.fetch_fundamentals_pit_extend_company_id(IncomeTTM,
-                                                                                     [IncomeTTM.NETPROFIT,
-                                                                                      IncomeTTM.BIZINCO,
-                                                                                      IncomeTTM.BIZCOST,
-                                                                                      ], dates=[trade_date_pre_year_2])
+        ttm_factor_sets_pre_year_2 = get_fin_consolidated_statements_pit(FinIncomeTTM,
+                                                                         [FinIncomeTTM.net_profit,
+                                                                          FinIncomeTTM.operating_revenue,
+                                                                          FinIncomeTTM.operating_cost,
+                                                                          ], dates=[trade_date_pre_year_2])
 
         if len(ttm_factor_sets_pre_year_2) <= 0 or ttm_factor_sets_pre_year_2 is None:
-            ttm_factor_sets_pre_year_2 = pd.DataFrame({'security_code':[], 'NETPROFIT':[], 'BIZINCO':[], 'BIZCOST':[]})
+            ttm_factor_sets_pre_year_2 = pd.DataFrame(
+                {'security_code': [], 'net_profit': [], 'operating_revenue': [], 'operating_cost': []})
 
         for column in columns:
             if column in list(ttm_factor_sets_pre_year_2.keys()):
                 ttm_factor_sets_pre_year_2 = ttm_factor_sets_pre_year_2.drop(column, axis=1)
 
         ttm_factor_sets_pre_year_2 = ttm_factor_sets_pre_year_2.rename(
-            columns={"BIZINCO": "operating_revenue_pre_year_2",
-                     "BIZCOST": "operating_cost_pre_year_2",
-                     "NETPROFIT": "net_profit_pre_year_2",
+            columns={"operating_revenue": "operating_revenue_pre_year_2",
+                     "operating_cost": "operating_cost_pre_year_2",
+                     "net_profit": "net_profit_pre_year_2",
                      })
         ttm_factor_sets = pd.merge(ttm_factor_sets, ttm_factor_sets_pre_year_2, how='outer', on="security_code")
         # field_key = ttm_factor_sets_pre_year_2.keys()
@@ -262,22 +277,23 @@ class CalcEngine(object):
         #     ttm_factor_sets[i] = ttm_factor_sets_pre_year_2[i]
         # print('get_ttm_factor_sets_2')
 
-        ttm_factor_sets_pre_year_3 = engine.fetch_fundamentals_pit_extend_company_id(IncomeTTM,
-                                                                                     [IncomeTTM.NETPROFIT,
-                                                                                      IncomeTTM.BIZINCO,
-                                                                                      IncomeTTM.BIZCOST,
-                                                                                      ], dates=[trade_date_pre_year_3])
+        ttm_factor_sets_pre_year_3 = get_fin_consolidated_statements_pit(FinIncomeTTM,
+                                                                         [FinIncomeTTM.net_profit,
+                                                                          FinIncomeTTM.operating_revenue,
+                                                                          FinIncomeTTM.operating_cost,
+                                                                          ], dates=[trade_date_pre_year_3])
 
         if len(ttm_factor_sets_pre_year_3) <= 0 or ttm_factor_sets_pre_year_3 is None:
-            ttm_factor_sets_pre_year_3 = pd.DataFrame({'security_code':[], 'NETPROFIT':[], 'BIZINCO':[], 'BIZCOST':[]})
+            ttm_factor_sets_pre_year_3 = pd.DataFrame(
+                {'security_code': [], 'net_profit': [], 'operating_revenue': [], 'operating_cost': []})
 
         for column in columns:
             if column in list(ttm_factor_sets_pre_year_3.keys()):
                 ttm_factor_sets_pre_year_3 = ttm_factor_sets_pre_year_3.drop(column, axis=1)
         ttm_factor_sets_pre_year_3 = ttm_factor_sets_pre_year_3.rename(
-            columns={"BIZINCO": "operating_revenue_pre_year_3",
-                     "BIZCOST": "operating_cost_pre_year_3",
-                     "NETPROFIT": "net_profit_pre_year_3",
+            columns={"operating_revenue": "operating_revenue_pre_year_3",
+                     "operating_cost": "operating_cost_pre_year_3",
+                     "net_profit": "net_profit_pre_year_3",
                      })
         ttm_factor_sets = pd.merge(ttm_factor_sets, ttm_factor_sets_pre_year_3, how='outer', on="security_code")
         # field_key = ttm_factor_sets_pre_year_3.keys()
@@ -285,21 +301,22 @@ class CalcEngine(object):
         #     ttm_factor_sets[i] = ttm_factor_sets_pre_year_3[i]
         # print('get_ttm_factor_sets_3')
 
-        ttm_factor_sets_pre_year_4 = engine.fetch_fundamentals_pit_extend_company_id(IncomeTTM,
-                                                                                     [IncomeTTM.NETPROFIT,
-                                                                                      IncomeTTM.BIZINCO,
-                                                                                      IncomeTTM.BIZCOST,
-                                                                                      ], dates=[trade_date_pre_year_4])
+        ttm_factor_sets_pre_year_4 = get_fin_consolidated_statements_pit(FinIncomeTTM,
+                                                                         [FinIncomeTTM.net_profit,
+                                                                          FinIncomeTTM.operating_revenue,
+                                                                          FinIncomeTTM.operating_cost,
+                                                                          ], dates=[trade_date_pre_year_4])
         if len(ttm_factor_sets_pre_year_4) <= 0 or ttm_factor_sets_pre_year_4 is None:
-            ttm_factor_sets_pre_year_4 = pd.DataFrame({'security_code':[], 'NETPROFIT':[], 'BIZINCO':[], 'BIZCOST':[]})
+            ttm_factor_sets_pre_year_4 = pd.DataFrame(
+                {'security_code': [], 'net_profit': [], 'operating_revenue': [], 'operating_cost': []})
 
         for column in columns:
             if column in list(ttm_factor_sets_pre_year_4.keys()):
                 ttm_factor_sets_pre_year_4 = ttm_factor_sets_pre_year_4.drop(column, axis=1)
         ttm_factor_sets_pre_year_4 = ttm_factor_sets_pre_year_4.rename(
-            columns={"BIZINCO": "operating_revenue_pre_year_4",
-                     "BIZCOST": "operating_cost_pre_year_4",
-                     "NETPROFIT": "net_profit_pre_year_4",
+            columns={"operating_revenue": "operating_revenue_pre_year_4",
+                     "operating_cost": "operating_cost_pre_year_4",
+                     "net_profit": "net_profit_pre_year_4",
                      })
         ttm_factor_sets = pd.merge(ttm_factor_sets, ttm_factor_sets_pre_year_4, how='outer', on="security_code")
         # field_key = ttm_factor_sets_pre_year_4.keys()
@@ -307,21 +324,22 @@ class CalcEngine(object):
         #     ttm_factor_sets[i] = ttm_factor_sets_pre_year_4[i]
         # print('get_ttm_factor_sets_4')
 
-        ttm_factor_sets_pre_year_5 = engine.fetch_fundamentals_pit_extend_company_id(IncomeTTM,
-                                                                                     [IncomeTTM.NETPROFIT,
-                                                                                      IncomeTTM.BIZINCO,
-                                                                                      IncomeTTM.BIZCOST,
-                                                                                      ], dates=[trade_date_pre_year_5])
+        ttm_factor_sets_pre_year_5 = get_fin_consolidated_statements_pit(FinIncomeTTM,
+                                                                         [FinIncomeTTM.net_profit,
+                                                                          FinIncomeTTM.operating_revenue,
+                                                                          FinIncomeTTM.operating_cost,
+                                                                          ], dates=[trade_date_pre_year_5])
         if len(ttm_factor_sets_pre_year_5) <= 0 or ttm_factor_sets_pre_year_5 is None:
-            ttm_factor_sets_pre_year_5 = pd.DataFrame({'security_code':[], 'NETPROFIT':[], 'BIZINCO':[], 'BIZCOST':[]})
+            ttm_factor_sets_pre_year_5 = pd.DataFrame(
+                {'security_code': [], 'net_profit': [], 'operating_revenue': [], 'operating_cost': []})
 
         for column in columns:
             if column in list(ttm_factor_sets_pre_year_5.keys()):
                 ttm_factor_sets_pre_year_5 = ttm_factor_sets_pre_year_5.drop(column, axis=1)
         ttm_factor_sets_pre_year_5 = ttm_factor_sets_pre_year_5.rename(
-            columns={"BIZINCO": "operating_revenue_pre_year_5",
-                     "BIZCOST": "operating_cost_pre_year_5",
-                     "NETPROFIT": "net_profit_pre_year_5",})
+            columns={"operating_revenue": "operating_revenue_pre_year_5",
+                     "operating_cost": "operating_cost_pre_year_5",
+                     "net_profit": "net_profit_pre_year_5", })
 
         ttm_factor_sets = pd.merge(ttm_factor_sets, ttm_factor_sets_pre_year_5, how='outer', on="security_code")
         # field_key = ttm_factor_sets_pre_year_5.keys()
@@ -370,7 +388,7 @@ class CalcEngine(object):
         print('当前交易日: %s' % trade_date)
         tic = time.time()
         growth_sets = self.loading_data(trade_date)
-        print('data load time %s' % (time.time()-tic))
+        print('data load time %s' % (time.time() - tic))
 
         storage_engine = StorageEngine(self._url)
         result = self.process_calc_factor(trade_date, growth_sets)
@@ -406,5 +424,3 @@ class CalcEngine(object):
 #     total_growth_data = json_normalize(json.loads(str(content, encoding='utf8')))
 #     print("len_total_growth_data {}".format(len(total_growth_data)))
 #     calculate(date_index, total_growth_data)
-
-

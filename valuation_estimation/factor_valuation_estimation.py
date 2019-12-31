@@ -90,15 +90,15 @@ class FactorValuationEstimation(object):
     @staticmethod
     def MrktCapToCorFreeCashFlow(valuation_sets, factor_historical_value, dependencies=['tot_market_cap',
                                                                                         'ebit_mrq',
-                                                                                        'INCOTAXEXPE',
-                                                                                        'ASSEDEPR',
-                                                                                        'INTAASSEAMOR',
-                                                                                        'LONGDEFEEXPENAMOR'
-                                                                                        'TOTCURRASSET',
-                                                                                        'TOTALCURRLIAB',
-                                                                                        'TOTCURRASSET_PRE',
-                                                                                        'TOTALCURRLIAB_PRE',
-                                                                                        'ACQUASSETCASH',
+                                                                                        'income_tax',
+                                                                                        'fixed_assets_depreciation',
+                                                                                        'intangible_assets_amortization',
+                                                                                        'defferred_expense_amortization'
+                                                                                        'total_current_assets',
+                                                                                        'total_current_liability',
+                                                                                        'total_current_assets_pre',
+                                                                                        'total_current_liability_pre',
+                                                                                        'fix_intan_other_asset_acqui_cash',
                                                                                         ]):
         """
         :name: 市值/企业自由现金流

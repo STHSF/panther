@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import pdb,importlib,inspect,time,datetime,json
+import pdb, importlib, inspect, time, datetime, json
 # from PyFin.api import advanceDateByCalendar
 # from data.polymerize import DBPolymerize
 from data.storage_engine import StorageEngine
@@ -10,24 +10,33 @@ import numpy as np
 from datetime import timedelta, datetime
 from valuation_estimation import factor_valuation_estimation
 
-from data.model import BalanceMRQ, BalanceReport, IncomeMRQ
-from data.model import CashFlowMRQ, CashFlowTTM
-from data.model import IndicatorReport, IndicatorTTM, IndicatorMRQ
-from data.model import IncomeTTM
+from vision.db.signletion_engine import get_fin_consolidated_statements_pit, get_fundamentals, query
+from vision.table.industry_daily import IndustryDaily
+from vision.table.fin_cash_flow import FinCashFlow
+from vision.table.fin_balance import FinBalance
+from vision.table.fin_income import FinIncome
+from vision.table.fin_indicator import FinIndicator
+
+from vision.table.fin_indicator_ttm import FinIndicatorTTM
+from vision.table.fin_income_ttm import FinIncomeTTM
+from vision.table.fin_cash_flow_ttm import FinCashFlowTTM
 
 from vision.db.signletion_engine import *
 from vision.table.valuation import Valuation
 from vision.table.industry import Industry
-from vision.table.sk_daily_price import SkDailyPrice
+from vision.table.stk_daily_price import SkDailyPrice
 from data.sqlengine import sqlEngine
 from utilities.sync_util import SyncUtil
+
+
 # pd.set_option('display.max_columns', None)
 # pd.set_option('display.max_rows', None)
 # from ultron.cluster.invoke.cache_data import cache_data
 
 
 class CalcEngine(object):
-    def __init__(self, name, url, methods=[{'packet': 'valuation_estimation.factor_valuation_estimation', 'class': 'FactorValuationEstimation'}]):
+    def __init__(self, name, url, methods=[
+        {'packet': 'valuation_estimation.factor_valuation_estimation', 'class': 'FactorValuationEstimation'}]):
         self._name = name
         self._methods = methods
         self._url = url
@@ -55,7 +64,7 @@ class CalcEngine(object):
                 date_time = date_time - 1
             # print('trade_date pre %s year %s' % (n, date_time))
             return str(date_time)
-    
+
     def _func_sets(self, method):
         # 私有函数和保护函数过滤
         return list(filter(lambda x: not x.startswith('_') and callable(getattr(method, x)), dir(method)))
@@ -79,199 +88,191 @@ class CalcEngine(object):
 
         # report data
         columns = ['COMPCODE', 'PUBLISHDATE', 'ENDDATE', 'symbol', 'company_id', 'trade_date']
-        # indicator_sets = engine.fetch_fundamentals_pit_extend_company_id(IndicatorReport,
-        #                                                                  [IndicatorReport.FCFF,
-        #                                                                   ], dates=[trade_date])
-        #
-        # if len(indicator_sets) <= 0 or indicator_sets is None:
-        #     indicator_sets = pd.DataFrame({'security_code':[], 'FCFF':[]})
-        #
-        # for column in columns:
-        #     if column in list(indicator_sets.keys()):
-        #         indicator_sets = indicator_sets.drop(column, axis=1)
-        # indicator_sets = indicator_sets.rename(columns={
-        #     'FCFF': 'enterprise_fcfps',  # 企业自由现金流
-        # })
-
-        balance_report = engine.fetch_fundamentals_pit_extend_company_id(BalanceReport,
-                                                                       [BalanceReport.TOTASSET,
-                                                                        ], dates=[trade_date])
+        balance_report = engine.fetch_fundamentals_pit_extend_company_id(FinBalance,
+                                                                         [FinBalance.total_assets,
+                                                                          ], dates=[trade_date])
         if len(balance_report) <= 0 or balance_report is None:
-            balance_report = pd.DataFrame({'security_code':[], 'TOTASSET':[]})
+            balance_report = pd.DataFrame({'security_code': [], 'total_assets': []})
 
         for column in columns:
             if column in list(balance_report.keys()):
                 balance_report = balance_report.drop(column, axis=1)
         balance_report = balance_report.rename(columns={
-            'TOTASSET': 'total_assets_report',  # 资产总计
+            'total_assets': 'total_assets_report',  # 资产总计
         })
         # valuation_report_sets = pd.merge(indicator_sets, balance_report, how='outer', on='security_code')
 
-
         # MRQ data
-        cash_flow_mrq = engine.fetch_fundamentals_pit_extend_company_id(CashFlowMRQ,
-                                                                        [CashFlowMRQ.FINALCASHBALA,
+        cash_flow_mrq = engine.fetch_fundamentals_pit_extend_company_id(FinCashFlow,
+                                                                        [FinCashFlow.cash_and_equivalents_at_end,
                                                                          ], dates=[trade_date])
         if len(cash_flow_mrq) <= 0 or cash_flow_mrq is None:
-            cash_flow_mrq = pd.DataFrame({'security_code':[], 'FINALCASHBALA':[]})
+            cash_flow_mrq = pd.DataFrame({'security_code': [], 'cash_and_equivalents_at_end': []})
 
         for column in columns:
             if column in list(cash_flow_mrq.keys()):
                 cash_flow_mrq = cash_flow_mrq.drop(column, axis=1)
         cash_flow_mrq = cash_flow_mrq.rename(columns={
-            'FINALCASHBALA': 'cash_and_equivalents_at_end',  # 期末现金及现金等价物余额
+            'cash_and_equivalents_at_end': 'cash_and_equivalents_at_end',  # 期末现金及现金等价物余额
         })
 
-        balance_mrq = engine.fetch_fundamentals_pit_extend_company_id(BalanceMRQ,
-                                                                      [BalanceMRQ.LONGBORR,
-                                                                       BalanceMRQ.TOTASSET,
-                                                                       BalanceMRQ.SHORTTERMBORR,
-                                                                       BalanceMRQ.PARESHARRIGH,
+        balance_mrq = engine.fetch_fundamentals_pit_extend_company_id(FinBalance,
+                                                                      [FinBalance.longterm_loan,  # 短期借款
+                                                                       FinBalance.total_assets,  # 资产总计
+                                                                       FinBalance.shortterm_loan,  # 短期借款
+                                                                       FinBalance.equities_parent_company_owners,
+                                                                       # 归属于母公司股东权益合计
                                                                        ], dates=[trade_date])
         if len(balance_mrq) <= 0 or balance_mrq is None:
-            balance_mrq = pd.DataFrame({'security_code':[], 'LONGBORR':[], 'TOTASSET':[], 'SHORTTERMBORR':[],
-                                        'PARESHARRIGH':[]})
+            balance_mrq = pd.DataFrame(
+                {'security_code': [], 'longterm_loan': [], 'total_assets': [], 'shortterm_loan': [],
+                 'equities_parent_company_owners': []})
         for column in columns:
             if column in list(balance_mrq.keys()):
                 balance_mrq = balance_mrq.drop(column, axis=1)
 
         balance_mrq = balance_mrq.rename(columns={
-            'SHORTTERMBORR': 'shortterm_loan',  # 短期借款
-            'LONGBORR': 'longterm_loan',  # 长期借款
-            'TOTASSET': 'total_assets',  # 资产总计
-            'PARESHARRIGH': 'equities_parent_company_owners',  # 归属于母公司股东权益合计
+            'shortterm_loan': 'shortterm_loan',  # 短期借款
+            'longterm_loan': 'longterm_loan',  # 长期借款
+            'total_assets': 'total_assets',  # 资产总计
+            'equities_parent_company_owners': 'equities_parent_company_owners',  # 归属于母公司股东权益合计
         })
         valuation_mrq = pd.merge(cash_flow_mrq, balance_mrq, on='security_code')
 
-        indicator_sets = engine.fetch_fundamentals_pit_extend_company_id(IndicatorMRQ,
-                                                                         [IndicatorMRQ.NPCUT,
-                                                                          IndicatorMRQ.EBIT,  # 息税前利润
+        indicator_sets = engine.fetch_fundamentals_pit_extend_company_id(FinIndicator,
+                                                                         [FinIndicator.np_cut,
                                                                           ], dates=[trade_date])
         for col in columns:
             if col in list(indicator_sets.keys()):
                 indicator_sets = indicator_sets.drop(col, axis=1)
-        indicator_sets = indicator_sets.rename(columns={'EBIT': 'ebit_mrq'})
+        # indicator_sets = indicator_sets.rename(columns={'EBIT': 'ebit_mrq'})
         valuation_mrq = pd.merge(indicator_sets, valuation_mrq, how='outer', on='security_code')
 
-        income_sets = engine.fetch_fundamentals_pit_extend_company_id(IncomeMRQ,
-                                                                      [IncomeMRQ.INCOTAXEXPE,   # 所得税
+        income_sets = engine.fetch_fundamentals_pit_extend_company_id(FinIncome,
+                                                                      [FinIncome.income_tax,  # 所得税
                                                                        ], dates=[trade_date])
         for col in columns:
             if col in list(income_sets.keys()):
                 income_sets = income_sets.drop(col, axis=1)
         valuation_mrq = pd.merge(income_sets, valuation_mrq, how='outer', on='security_code')
 
-
-        cash_flow_sets = engine.fetch_fundamentals_pit_extend_company_id(CashFlowMRQ,
-                                                                         [CashFlowMRQ.ASSEDEPR,  # 固定资产折旧
-                                                                          CashFlowMRQ.INTAASSEAMOR,  # 无形资产摊销
-                                                                          CashFlowMRQ.ACQUASSETCASH,  # 购建固定资产、无形资产和其他...
-                                                                          CashFlowMRQ.LONGDEFEEXPENAMOR,  # 长期待摊费用摊销
-                                                                          CashFlowMRQ.DEBTPAYCASH,        # 偿还债务支付的现金
-                                                                          CashFlowMRQ.RECEFROMLOAN,       # 取得借款收到的现金
-                                                                          CashFlowMRQ.ISSBDRECECASH,      # 发行债券所收到的现金
+        cash_flow_sets = engine.fetch_fundamentals_pit_extend_company_id(FinCashFlow,
+                                                                         [FinCashFlow.fixed_assets_depreciation,
+                                                                          # 固定资产折旧
+                                                                          FinCashFlow.intangible_assets_amortization,
+                                                                          # 无形资产摊销
+                                                                          FinCashFlow.fix_intan_other_asset_acqui_cash,
+                                                                          # 购建固定资产、无形资产和其他...
+                                                                          FinCashFlow.defferred_expense_amortization,
+                                                                          # 长期待摊费用摊销
+                                                                          FinCashFlow.borrowing_repayment,  # 偿还债务支付的现金
+                                                                          FinCashFlow.cash_from_borrowing,  # 取得借款收到的现金
+                                                                          FinCashFlow.cash_from_bonds_issue,
+                                                                          # 发行债券所收到的现金
                                                                           ], dates=[trade_date])
         for col in columns:
             if col in list(cash_flow_sets.keys()):
                 cash_flow_sets = cash_flow_sets.drop(col, axis=1)
         valuation_mrq = pd.merge(cash_flow_sets, valuation_mrq, how='outer', on='security_code')
 
-        balance_sets = engine.fetch_fundamentals_pit_extend_company_id(BalanceMRQ,
-                                                                       [BalanceMRQ.SHORTTERMBORR,
-                                                                        BalanceMRQ.TOTCURRASSET,    # 流动资产合计
-                                                                        BalanceMRQ.TOTALCURRLIAB,  # 流动负债合计
+        balance_sets = engine.fetch_fundamentals_pit_extend_company_id(FinBalance,
+                                                                       [FinBalance.shortterm_loan,
+                                                                        FinBalance.total_current_assets,  # 流动资产合计
+                                                                        FinBalance.total_current_liability,  # 流动负债合计
                                                                         ], dates=[trade_date])
         for col in columns:
             if col in list(balance_sets.keys()):
                 balance_sets = balance_sets.drop(col, axis=1)
         valuation_mrq = pd.merge(balance_sets, valuation_mrq, how='outer', on='security_code')
 
-        balance_sets_pre = engine.fetch_fundamentals_pit_extend_company_id(BalanceMRQ,
-                                                                           [BalanceMRQ.TOTCURRASSET,   # 流动资产合计
-                                                                            BalanceMRQ.TOTALCURRLIAB,   # 流动负债合计
+        balance_sets_pre = engine.fetch_fundamentals_pit_extend_company_id(FinBalance,
+                                                                           [FinBalance.total_current_assets,  # 流动资产合计
+                                                                            FinBalance.total_current_liability,
+                                                                            # 流动负债合计
                                                                             ], dates=[trade_date_pre])
 
         for col in columns:
             if col in list(balance_sets_pre.keys()):
                 balance_sets_pre = balance_sets_pre.drop(col, axis=1)
         balance_sets_pre = balance_sets_pre.rename(columns={
-            'TOTCURRASSET': 'TOTCURRASSET_PRE',
-            'TOTALCURRLIAB': 'TOTALCURRLIAB_PRE',
+            'total_current_assets': 'total_current_assets_pre',
+            'total_current_liability': 'total_current_liability_pre',
         })
         valuation_mrq = pd.merge(balance_sets_pre, valuation_mrq, how='outer', on='security_code')
 
         # TTM data
         # 总市值合并到TTM数据中，
-        cash_flow_ttm_sets = engine.fetch_fundamentals_pit_extend_company_id(CashFlowTTM,
-                                                                             [CashFlowTTM.MANANETR,
+        cash_flow_ttm_sets = engine.fetch_fundamentals_pit_extend_company_id(FinCashFlowTTM,
+                                                                             [FinCashFlowTTM.net_operate_cash_flow,
                                                                               ], dates=[trade_date])
 
         if len(cash_flow_ttm_sets) <= 0 or cash_flow_ttm_sets is None:
-            cash_flow_ttm_sets = pd.DataFrame({'security_code':[], 'MANANETR':[]})
+            cash_flow_ttm_sets = pd.DataFrame({'security_code': [], 'net_operate_cash_flow': []})
 
         for column in columns:
             if column in list(cash_flow_ttm_sets.keys()):
                 cash_flow_ttm_sets = cash_flow_ttm_sets.drop(column, axis=1)
         cash_flow_ttm_sets = cash_flow_ttm_sets.rename(columns={
-            'MANANETR': 'net_operate_cash_flow',  # 经营活动现金流量净额
+            'net_operate_cash_flow': 'net_operate_cash_flow',  # 经营活动现金流量净额
         })
 
-        indicator_ttm_sets = engine.fetch_fundamentals_pit_extend_company_id(IndicatorTTM,
-                                                                             [IndicatorTTM.NPCUT,
+        indicator_ttm_sets = engine.fetch_fundamentals_pit_extend_company_id(FinIndicatorTTM,
+                                                                             [FinIndicatorTTM.np_cut,
                                                                               ], dates=[trade_date_1y])
         if len(indicator_ttm_sets) <= 0 or indicator_ttm_sets is None:
-            indicator_ttm_sets = pd.DataFrame({'security_code':[], 'NPCUT':[]})
+            indicator_ttm_sets = pd.DataFrame({'security_code': [], 'np_cut': []})
 
         for column in columns:
             if column in list(indicator_ttm_sets.keys()):
                 indicator_ttm_sets = indicator_ttm_sets.drop(column, axis=1)
 
-        income_ttm_sets = engine.fetch_fundamentals_pit_extend_company_id(IncomeTTM,
-                                                                          [IncomeTTM.NETPROFIT,
-                                                                           IncomeTTM.PARENETP,
-                                                                           IncomeTTM.BIZTOTINCO,
-                                                                           IncomeTTM.BIZINCO,
-                                                                           IncomeTTM.TOTPROFIT,
+        income_ttm_sets = engine.fetch_fundamentals_pit_extend_company_id(FinIncomeTTM,
+                                                                          [FinIncomeTTM.net_profit,
+                                                                           FinIncomeTTM.np_parent_company_owners,
+                                                                           FinIncomeTTM.total_operating_revenue,
+                                                                           FinIncomeTTM.operating_revenue,
+                                                                           FinIncomeTTM.total_profit,
                                                                            ], dates=[trade_date])
         if len(income_ttm_sets) <= 0 or income_ttm_sets is None:
-            income_ttm_sets = pd.DataFrame({'security_code':[], 'NETPROFIT':[], 'PARENETP':[], 'BIZTOTINCO':[],
-                                            'BIZINCO':[], 'TOTPROFIT':[]})
+            income_ttm_sets = pd.DataFrame(
+                {'security_code': [], 'net_profit': [], 'np_parent_company_owners': [], 'total_operating_revenue': [],
+                 'operating_revenue': [], 'total_profit': []})
 
         for column in columns:
             if column in list(income_ttm_sets.keys()):
                 income_ttm_sets = income_ttm_sets.drop(column, axis=1)
         income_ttm_sets = income_ttm_sets.rename(columns={
-            'TOTPROFIT': 'total_profit',  # 利润总额 ttm
-            'NETPROFIT': 'net_profit',  # 净利润
-            'PARENETP': 'np_parent_company_owners',  # 归属于母公司所有者的净利润
-            'BIZTOTINCO': 'total_operating_revenue',  # 营业总收入
-            'BIZINCO': 'operating_revenue',  # 营业收入
+            'total_profit': 'total_profit',  # 利润总额 ttm
+            'net_profit': 'net_profit',  # 净利润
+            'np_parent_company_owners': 'np_parent_company_owners',  # 归属于母公司所有者的净利润
+            'total_operating_revenue': 'total_operating_revenue',  # 营业总收入
+            'operating_revenue': 'operating_revenue',  # 营业收入
         })
 
-        income_ttm_sets_3 = engine.fetch_fundamentals_pit_extend_company_id(IncomeTTM,
-                                                                            [IncomeTTM.PARENETP,
+        income_ttm_sets_3 = engine.fetch_fundamentals_pit_extend_company_id(FinIncomeTTM,
+                                                                            [FinIncomeTTM.np_parent_company_owners,
                                                                              ], dates=[trade_date_3y])
         if len(income_ttm_sets_3) <= 0 or income_ttm_sets_3 is None:
-            income_ttm_sets_3 = pd.DataFrame({'security_code':[], 'PARENETP':[]})
+            income_ttm_sets_3 = pd.DataFrame({'security_code': [], 'np_parent_company_owners': []})
 
         for column in columns:
             if column in list(income_ttm_sets_3.keys()):
                 income_ttm_sets_3 = income_ttm_sets_3.drop(column, axis=1)
         income_ttm_sets_3 = income_ttm_sets_3.rename(columns={
-            'PARENETP': 'np_parent_company_owners_3',  # 归属于母公司所有者的净利润
+            'np_parent_company_owners': 'np_parent_company_owners_3',  # 归属于母公司所有者的净利润
         })
 
-        income_ttm_sets_5 = engine.fetch_fundamentals_pit_extend_company_id(IncomeTTM,
-                                                                            [IncomeTTM.PARENETP,
+        income_ttm_sets_5 = engine.fetch_fundamentals_pit_extend_company_id(FinIncomeTTM,
+                                                                            [FinIncomeTTM.np_parent_company_owners,
                                                                              ], dates=[trade_date_5y])
         if len(income_ttm_sets_5) <= 0 or income_ttm_sets_5 is None:
-            income_ttm_sets_5 = pd.DataFrame({'security_code':[], 'PARENETP':[]})
+            income_ttm_sets_5 = pd.DataFrame({'security_code': [], 'np_parent_company_owners': []})
 
         for column in columns:
             if column in list(income_ttm_sets_5.keys()):
                 income_ttm_sets_5 = income_ttm_sets_5.drop(column, axis=1)
         income_ttm_sets_5 = income_ttm_sets_5.rename(columns={
-            'PARENETP': 'np_parent_company_owners_5',  # 归属于母公司所有者的净利润
+            'np_parent_company_owners': 'np_parent_company_owners_5',  # 归属于母公司所有者的净利润
         })
 
         valuation_ttm_sets = pd.merge(cash_flow_ttm_sets, income_ttm_sets, how='outer', on='security_code')
@@ -293,7 +294,6 @@ class CalcEngine(object):
         for col in column:
             if col in list(sk_daily_price_sets.keys()):
                 sk_daily_price_sets = sk_daily_price_sets.drop(col, axis=1)
-
 
         # PS, PE, PB, PCF
         column = ['trade_date']
@@ -324,7 +324,7 @@ class CalcEngine(object):
                                         Valuation.pe,
                                         ).filter(Valuation.trade_date.in_([trade_date])))
         if len(pe_set) <= 0 or pe_set is None:
-            pe_set = pd.DataFrame({'security_code':[], 'pe':[]})
+            pe_set = pd.DataFrame({'security_code': [], 'pe': []})
         for col in column:
             if col in list(pe_set.keys()):
                 pe_set = pe_set.drop(col, axis=1)
@@ -334,7 +334,7 @@ class CalcEngine(object):
                                             Valuation.pe)
                                       .filter(Valuation.trade_date.between(trade_date_6m, trade_date)))
         if len(pe_sets_6m) <= 0 or pe_sets_6m is None:
-            pe_sets_6m = pd.DataFrame({'security_code':[], 'pe':[]})
+            pe_sets_6m = pd.DataFrame({'security_code': [], 'pe': []})
         for col in column:
             if col in list(pe_sets_6m.keys()):
                 pe_sets_6m = pe_sets_6m.drop(col, axis=1)
@@ -347,7 +347,7 @@ class CalcEngine(object):
                                       .filter(Valuation.trade_date.between(trade_date_3m, trade_date)))
 
         if len(pe_sets_3m) <= 0 or pe_sets_3m is None:
-            pe_sets_3m = pd.DataFrame({'security_code':[], 'pe':[]})
+            pe_sets_3m = pd.DataFrame({'security_code': [], 'pe': []})
 
         for col in column:
             if col in list(pe_sets_3m.keys()):
@@ -361,7 +361,7 @@ class CalcEngine(object):
                                       .filter(Valuation.trade_date.between(trade_date_1m, trade_date)))
 
         if len(pe_sets_2m) <= 0 or pe_sets_2m is None:
-            pe_sets_2m = pd.DataFrame({'security_code':[], 'pe':[]})
+            pe_sets_2m = pd.DataFrame({'security_code': [], 'pe': []})
 
         for col in column:
             if col in list(pe_sets_2m.keys()):
@@ -375,7 +375,7 @@ class CalcEngine(object):
                                       .filter(Valuation.trade_date.between(trade_date_1y, trade_date)))
 
         if len(pe_sets_1y) <= 0 or pe_sets_1y is None:
-            pe_sets_1y = pd.DataFrame({'security_code':[], 'pe':[]})
+            pe_sets_1y = pd.DataFrame({'security_code': [], 'pe': []})
 
         for col in column:
             if col in list(pe_sets_1y.keys()):
@@ -453,8 +453,10 @@ class CalcEngine(object):
         factor_historical_value = historical_value.PEIndu(valuation_sets, factor_historical_value)
         factor_historical_value = historical_value.PSIndu(valuation_sets, factor_historical_value)
         factor_historical_value = historical_value.PCFIndu(valuation_sets, factor_historical_value)
-        factor_historical_value = historical_value.TotalMrktAVGToEBIDAOnSW1(valuation_sets, sw_industry, factor_historical_value)
-        factor_historical_value = historical_value.TotalMrktSTDToEBIDAOnSW1(valuation_sets, sw_industry, factor_historical_value)
+        factor_historical_value = historical_value.TotalMrktAVGToEBIDAOnSW1(valuation_sets, sw_industry,
+                                                                            factor_historical_value)
+        factor_historical_value = historical_value.TotalMrktSTDToEBIDAOnSW1(valuation_sets, sw_industry,
+                                                                            factor_historical_value)
         factor_historical_value = historical_value.TotalMrktToEBIDATTM(valuation_sets, factor_historical_value)
         factor_historical_value = historical_value.PEG3YTTM(valuation_sets, factor_historical_value)
         factor_historical_value = historical_value.PEG5YTTM(valuation_sets, factor_historical_value)
@@ -466,12 +468,12 @@ class CalcEngine(object):
         factor_historical_value['trade_date'] = str(trade_date)
         factor_historical_value.replace([-np.inf, np.inf, None], np.nan, inplace=True)
         return factor_historical_value
-    
+
     def local_run(self, trade_date):
         print('当前交易日； %s' % trade_date)
         tic = time.time()
         valuation_sets, sw_industry, pe_sets = self.loading_data(trade_date)
-        print('data load time %s' % (time.time()-tic))
+        print('data load time %s' % (time.time() - tic))
         # 保存
         storage_engine = StorageEngine(self._url)
         result = self.process_calc_factor(trade_date, valuation_sets, pe_sets, sw_industry)
@@ -490,7 +492,7 @@ class CalcEngine(object):
     # def distributed_factor(self, total_data):
     #     mkt_df = self.calc_factor_by_date(total_data,trade_date)
     #     result = self.calc_factor('alphax.alpha191','Alpha191',mkt_df,trade_date)
-        
+
 # @app.task
 # def distributed_factor(session, trade_date, packet_sets, name):
 #     calc_engines = CalcEngine(name, packet_sets)
@@ -508,4 +510,3 @@ class CalcEngine(object):
 #     total_history_data = json_normalize(json.loads(str(content, encoding='utf8')))
 #     print("len_history_value_data {}".format(len(total_history_data)))
 #     calculate(date_index, total_history_data)
-
