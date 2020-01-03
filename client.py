@@ -74,11 +74,11 @@ def do_update(start_date, end_date, calc_engine, type='after'):
 if __name__ == "__main__":
     print('in client exe')
     parser = argparse.ArgumentParser()
-    parser.add_argument('--start_date', type=int, default=20180427)
-    parser.add_argument('--end_date', type=int, default=20180427)
+    parser.add_argument('--start_date', type=int, default=20120101)
+    parser.add_argument('--end_date', type=int, default=0)
     parser.add_argument('--packet_name', type=str, default='basic_derivation.factor_basic_derivation')
     parser.add_argument('--class_name', type=str, default='FactorBasicDerivation')
-    parser.add_argument('--rebuild', type=bool, default=True)
+    parser.add_argument('--rebuild', type=bool, default=False)
     parser.add_argument('--update', type=bool, default=False)
     parser.add_argument('--schedule', type=bool, default=False)
     parser.add_argument('--type', type=str, default='after')
@@ -99,4 +99,3 @@ if __name__ == "__main__":
         do_update(args.start_date, end_date, calc_engine, args.type)
     if args.schedule:
         do_schedule(factor_name, calc_engine, args.type)
-
