@@ -134,5 +134,5 @@ dmypy.json
 /client_bk.py
 config.py
 /config.py
-*/config.py
+config.py
 /basic_derivation/calc_engine_bk.py

@@ -112,33 +112,6 @@ class CalcEngine(object):
             if col in list(balance_mrq_sets.keys()):
                 balance_mrq_sets = balance_mrq_sets.drop(col, axis=1)
 
-        balance_mrq_sets = balance_mrq_sets.rename(columns={
-            'total_liability': 'total_liability',  # 负债合计
-            'total_assets': 'total_assets',  # 资产总计
-            'total_current_liability': 'total_current_liability',  # 流动负债合计
-            'total_current_assets': 'total_current_assets',  # 流动资产合计
-            'inventories': 'inventories',  # 存货
-            'cash_equivalents': 'cash_equivalents',  # 货币资金
-            'trading_assets': 'trading_assets',  # 交易性金融资产
-            'bill_receivable': 'bill_receivable',  # 应收票据
-            'account_receivable': 'account_receivable',  # 应收账款
-            'other_receivable': 'other_receivable',  # 其他应收款
-            'equities_parent_company_owners': 'equities_parent_company_owners',  # 归属于母公司股东权益合计
-            'intangible_assets': 'intangible_assets',  # 无形资产
-            'development_expenditure': 'development_expenditure',  # 开发支出
-            'good_will': 'good_will',  # 商誉
-            'long_deferred_expense': 'long_deferred_expense',  # 长期待摊费用
-            'deferred_tax_assets': 'deferred_tax_assets',  # 递延所得税资产
-            'non_current_liability_in_one_year': 'non_current_liability_in_one_year',  # 一年内到期的非流动负债
-            'shortterm_loan': 'shortterm_loan',  # 短期借款
-            'longterm_loan': 'longterm_loan',  # 长期借款
-            'bonds_payable': 'bonds_payable',  # 应付债券
-            'interest_payable': 'interest_payable',  # 应付利息
-            'total_non_current_liability': 'total_non_current_liability',  # 非流动负债合计
-            'total_non_current_assets': 'total_non_current_assets',  # 非流动资产合计
-            'fixed_assets_netbook': 'fixed_assets',  # 固定资产
-            'total_owner_equities': 'total_owner_equities',  # 所有者权益（或股东权益）合计
-        })
         cash_flow_mrq_sets = get_fin_consolidated_statements_pit(FinCashFlow,
                                                                  [FinCashFlow.net_operate_cash_flow,
                                                                   ], dates=[trade_date])

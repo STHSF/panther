@@ -22,8 +22,6 @@ from vision.table.fin_balance import FinBalance
 from vision.table.fin_income import FinIncome
 from vision.table.fin_indicator import FinIndicator
 
-from vision.table.fin_balance_ttm import FinBalanceTTM
-from vision.table.fin_indicator_ttm import FinIndicatorTTM
 from vision.table.fin_income_ttm import FinIncomeTTM
 from vision.table.fin_cash_flow_ttm import FinCashFlowTTM
 
